@@ -73,7 +73,7 @@ export const CLICK = 'click'
 ```
 import {CLICK} from './const'
 
-on(events_type,c**allback)**{
+on(events_type,callback){
 //有更简单的语法可以再写一下
 
   switch(events_type){
