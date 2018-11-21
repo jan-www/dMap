@@ -1,0 +1,30 @@
+{
+  "name": "dmap",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "babel-preset-es2015": "^6.24.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "grunt": "^1.0.3",
+    "rollup": "^0.67.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EnrigleZ/dMap.git"
+  },
+  "author": "BUAA",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EnrigleZ/dMap/issues"
+  },
+  "homepage": "https://github.com/EnrigleZ/dMap#readme"
+}
