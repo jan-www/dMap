@@ -10,7 +10,7 @@ export class BaseLayer {
             throw new Error('Class BaseLayer cannot be initialized.');
         }
         
-        this._obj = L.map(mapid, option);
+        this._obj = L.layer(mapid, option);
         this._prev_data = [];
         this._data = [];
     }
@@ -32,5 +32,9 @@ export class BaseLayer {
 
     data(d, func) {
         this._data = d;
+    }
+
+    addTo(map) {
+        this._obj.addTo(map)
     }
 }

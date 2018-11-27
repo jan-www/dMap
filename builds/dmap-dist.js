@@ -23,46 +23,6 @@ var dmap = (function (exports) {
     return Constructor;
   }
 
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function");
-    }
-
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) _setPrototypeOf(subClass, superClass);
-  }
-
-  function _setPrototypeOf(o, p) {
-    _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
-      o.__proto__ = p;
-      return o;
-    };
-
-    return _setPrototypeOf(o, p);
-  }
-
-  function _assertThisInitialized(self) {
-    if (self === void 0) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return self;
-  }
-
-  function _possibleConstructorReturn(self, call) {
-    if (call && (typeof call === "object" || typeof call === "function")) {
-      return call;
-    }
-
-    return _assertThisInitialized(self);
-  }
-
   // Define constants.
    // Fired on every frame of a zoom animation
 
@@ -116,21 +76,65 @@ var dmap = (function (exports) {
     return BaseLayer;
   }();
 
+  //      xxx: 123
+  // }
+  // 
+  // var d = [[1,2], [3,4], [5,6]]
+  // pl.data(d, function(d, i) {
+  //      return {
+  //          "coordination": [d[0], d[1]],
+  //          "option": {
+  //              "radius": 10,
+  //              "color": "red"
+  //           }
+  //      }
+  //  })
+  // );
+  // 
+  // pl.enter()
+
   var PointLayer =
   /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(PointLayer, _BaseLayer);
-
-    function PointLayer(mapid, option) {
-      var _this;
-
+  function () {
+    function PointLayer(leaflet_map, option) {
       _classCallCheck(this, PointLayer);
 
-      return _possibleConstructorReturn(_this);
+      this._data = [];
+      this._points = [];
+      this._leaflet_map = map; // this.setOption(option)
     }
 
+    _createClass(PointLayer, [{
+      key: "on",
+      value: function on(event_type, fn) {// TODO
+      }
+    }, {
+      key: "data",
+      value: function data(_data, fn) {
+        // this._data = data;      // or append otherwise?
+        this._data = _data.map(fn);
+        return this;
+      } // render all points of this PointLayer to this.map
+
+    }, {
+      key: "enter",
+      value: function enter() {
+        // in enter() method contruct _points
+        this._points = this._data.map(function (data) {
+          return L.circle(data.coordination, data.option);
+        }); // maybe assert?
+        // this._points.forEach(function(circle, i, a, this) {circle.addTo(this._leaflet_map);});
+
+        for (var i = 0; i < this._points.length; ++i) {
+          this._points[i].addTo(this._leaflet_map);
+        }
+
+        return this;
+      }
+    }]);
+
     return PointLayer;
-  }(BaseLayer);
+  }();
 
   // import * as BaseLayer from "./layers/index.js";
 

@@ -2,7 +2,4 @@
 
 // export {BaseLayer}
 
-export * from "./layers/BaseLayer.js"
-
-console.log('If there exists an error below, then complie goes successfully.')
-var a = new BaseLayer('');
+export * from "./layers/index.js"
