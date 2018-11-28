@@ -23,53 +23,128 @@ var dmap = (function (exports) {
     return Constructor;
   }
 
-  // Define constants.
-   // Fired on every frame of a zoom animation
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function");
+    }
 
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) _setPrototypeOf(subClass, superClass);
+  }
+
+  function _getPrototypeOf(o) {
+    _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+      return o.__proto__ || Object.getPrototypeOf(o);
+    };
+    return _getPrototypeOf(o);
+  }
+
+  function _setPrototypeOf(o, p) {
+    _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+      o.__proto__ = p;
+      return o;
+    };
+
+    return _setPrototypeOf(o, p);
+  }
+
+  function _assertThisInitialized(self) {
+    if (self === void 0) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return self;
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (call && (typeof call === "object" || typeof call === "function")) {
+      return call;
+    }
+
+    return _assertThisInitialized(self);
+  }
+
+  // BaseLayer.js
+  // Define BaseLayer class and basic methods here.
+  // @class BaseLayer
   var BaseLayer =
   /*#__PURE__*/
   function () {
-    function BaseLayer(mapid, option) {
+    function BaseLayer(option) {
       _classCallCheck(this, BaseLayer);
 
       if ((this instanceof BaseLayer ? this.constructor : void 0) === BaseLayer) {
         throw new Error('Class BaseLayer cannot be initialized.');
       }
 
-      this._obj = L.layer(mapid, option);
-      this._prev_data = [];
       this._data = [];
+      this._layer_group = undefined;
+      this.setOption();
     }
 
     _createClass(BaseLayer, [{
       key: "on",
       value: function on(event_type, callback) {
-        switch (event_type) {
-          // other cases.
-          default:
-            {
-              this._obj.on(event_type, callback);
-            }
-        }
-
+        // TODO
         return this;
       }
     }, {
       key: "setOption",
       value: function setOption(option) {
-        this._obj.setOption(option);
-
+        // TODO
         return this;
       }
     }, {
       key: "data",
-      value: function data(d, func) {
-        this._data = d;
+      value: function data(_data, fn) {
+        this._data = _data.map(fn);
+        return this;
       }
     }, {
       key: "addTo",
       value: function addTo(map) {
-        this._obj.addTo(map);
+        this._layer_group.addTo(map);
+
+        return this;
+      }
+    }, {
+      key: "enter",
+      value: function enter() {
+        if (this._layer_group !== undefined) {
+          this.remove();
+        } // maybe delete this._layer_group ? 
+
+
+        this._layer_group = L.layerGroup(this.generate() // rename would fit well
+        );
+        return this;
+      }
+    }, {
+      key: "exit",
+      value: function exit() {
+        this.remove();
+        return this;
+      } // render() method should be declared in ChildClass/
+
+    }, {
+      key: "generate",
+      value: function generate() {
+        // console.log('??')
+        return [];
+      }
+    }, {
+      key: "remove",
+      value: function remove() {
+        if (this._layer_group !== undefined) {
+          this._layer_group.remove();
+        } // return what??
+
       }
     }]);
 
@@ -85,49 +160,27 @@ var dmap = (function (exports) {
 
   var PointLayer =
   /*#__PURE__*/
-  function () {
-    function PointLayer(leaflet_map, option) {
+  function (_BaseLayer) {
+    _inherits(PointLayer, _BaseLayer);
+
+    function PointLayer(option) {
       _classCallCheck(this, PointLayer);
 
-      this._data = [];
-      this._layer_group = undefined;
-      this._leaflet_map = map; // this.setOption(option)
-    }
+      return _possibleConstructorReturn(this, _getPrototypeOf(PointLayer).call(this, option));
+    } // specified
+
 
     _createClass(PointLayer, [{
-      key: "on",
-      value: function on(event_type, fn) {// TODO
-      }
-    }, {
-      key: "data",
-      value: function data(_data, fn) {
-        this._data = _data.map(fn);
-        return this;
-      } // render all points of this PointLayer to this.map
-
-    }, {
-      key: "enter",
-      value: function enter() {
-        // in enter() method contruct _points
-        if (this._layer_group !== undefined) this._layer_group.remove(); // maybe assert?
-
-        this._layer_group = L.layerGroup(this._data.map(function (data) {
+      key: "generate",
+      value: function generate() {
+        return this._data.map(function (data) {
           return L.circle(data.coordination, data.option);
-        }));
-
-        this._layer_group.addTo(this._leaflet_map);
-
-        return this;
-      }
-    }, {
-      key: "exit",
-      value: function exit() {
-        if (this._layer_group !== undefined) this._layer_group.remove();
+        });
       }
     }]);
 
     return PointLayer;
-  }();
+  }(BaseLayer);
 
   // import * as BaseLayer from "./layers/index.js";
 
