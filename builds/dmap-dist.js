@@ -206,9 +206,36 @@ var dmap = (function (exports) {
     return PointLayer;
   }(BaseLayer);
 
+  var PolygonLayer =
+  /*#__PURE__*/
+  function (_BaseLayer) {
+    _inherits(PolygonLayer, _BaseLayer);
+
+    function PolygonLayer(option) {
+      _classCallCheck(this, PolygonLayer);
+
+      return _possibleConstructorReturn(this, _getPrototypeOf(PolygonLayer).call(this, option));
+    } // @method generate
+    // 
+    // Return Array of L.polygon
+
+
+    _createClass(PolygonLayer, [{
+      key: "generate",
+      value: function generate() {
+        return this._data.map(function (data) {
+          return L.polygon(data.coordinations, data.option);
+        });
+      }
+    }]);
+
+    return PolygonLayer;
+  }(BaseLayer);
+
   // import * as BaseLayer from "./layers/index.js";
 
   exports.PointLayer = PointLayer;
+  exports.PolygonLayer = PolygonLayer;
   exports.BaseLayer = BaseLayer;
 
   return exports;
