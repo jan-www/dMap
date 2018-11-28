@@ -76,22 +76,12 @@ var dmap = (function (exports) {
     return BaseLayer;
   }();
 
-  //      xxx: 123
-  // }
-  // 
-  // var d = [[1,2], [3,4], [5,6]]
-  // pl.data(d, function(d, i) {
-  //      return {
-  //          "coordination": [d[0], d[1]],
-  //          "option": {
-  //              "radius": 10,
-  //              "color": "red"
-  //           }
-  //      }
-  //  })
-  // );
-  // 
-  // pl.enter()
+  // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  //     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  // }).addTo(map);
+  // l = new dmap.PointLayer(map);
+  // d = [[51, 0], [51, 10]]
+  // l.data(d, function(d){return {coordination: d, option: {radius: 200, color: 'red'}}}).enter();
 
   var PointLayer =
   /*#__PURE__*/
@@ -100,7 +90,7 @@ var dmap = (function (exports) {
       _classCallCheck(this, PointLayer);
 
       this._data = [];
-      this._points = [];
+      this._layer_group = undefined;
       this._leaflet_map = map; // this.setOption(option)
     }
 
@@ -111,7 +101,6 @@ var dmap = (function (exports) {
     }, {
       key: "data",
       value: function data(_data, fn) {
-        // this._data = data;      // or append otherwise?
         this._data = _data.map(fn);
         return this;
       } // render all points of this PointLayer to this.map
@@ -120,16 +109,20 @@ var dmap = (function (exports) {
       key: "enter",
       value: function enter() {
         // in enter() method contruct _points
-        this._points = this._data.map(function (data) {
-          return L.circle(data.coordination, data.option);
-        }); // maybe assert?
-        // this._points.forEach(function(circle, i, a, this) {circle.addTo(this._leaflet_map);});
+        if (this._layer_group !== undefined) this._layer_group.remove(); // maybe assert?
 
-        for (var i = 0; i < this._points.length; ++i) {
-          this._points[i].addTo(this._leaflet_map);
-        }
+        this._layer_group = L.layerGroup(this._data.map(function (data) {
+          return L.circle(data.coordination, data.option);
+        }));
+
+        this._layer_group.addTo(this._leaflet_map);
 
         return this;
+      }
+    }, {
+      key: "exit",
+      value: function exit() {
+        if (this._layer_group !== undefined) this._layer_group.remove();
       }
     }]);
 

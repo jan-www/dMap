@@ -14,10 +14,10 @@ import {BaseLayer} from "./BaseLayer.js"
 // l.data(d, function(d){return {coordination: d, option: {radius: 200, color: 'red'}}}).enter();
 
 
-export class PointLayer {
+export class PointLayer { 
     constructor(leaflet_map, option) {
         this._data = [];
-        this._points = [];
+        this._layer_group = undefined; 
         this._leaflet_map = map;
         // this.setOption(option)
     }
@@ -26,8 +26,8 @@ export class PointLayer {
         // TODO
     }
     
+    // in BaseLayer
     data(data, fn) {
-        // this._data = data;      // or append otherwise?
         this._data = data.map(fn);
         return this;
     }
@@ -35,13 +35,26 @@ export class PointLayer {
     // render all points of this PointLayer to this.map
     enter() {
         // in enter() method contruct _points
-        this._points = this._data.map((data)=>{return L.circle(data.coordination, data.option)});
+        if (this._layer_group !== undefined) this._layer_group.remove();
 
         // maybe assert?
-
-        for (var i = 0; i < this._points.length; ++i) {
-            this._points[i].addTo(this._leaflet_map);
-        }
+        render();
         return this;
+    }
+
+    // specified
+    render() {
+        this._layer_group = L.layerGroup(
+            this._data.map(
+                (data)=>{return L.circle(data.coordination, data.option)}
+                )
+            );
+        this._layer_group.addTo(this._leaflet_map);
+        
+    }
+
+    // in BaseLayer
+    exit() {
+        if (this._layer_group !== undefined) this._layer_group.remove();
     }
 }
