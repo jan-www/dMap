@@ -73,6 +73,7 @@ var dmap = (function (exports) {
   // BaseLayer.js
   // Define BaseLayer class and basic methods here.
   // @class BaseLayer
+  // Base class of all dmap.layer.
   var BaseLayer =
   /*#__PURE__*/
   function () {
@@ -86,33 +87,54 @@ var dmap = (function (exports) {
       this._data = [];
       this._layer_group = undefined;
       this.setOption();
-    }
+    } // @method on
+    // @parameter event_type: event
+    // @parameter callback: function
+    // 
+    // Bind callback function to every element.
+
 
     _createClass(BaseLayer, [{
       key: "on",
       value: function on(event_type, callback) {
         // TODO
         return this;
-      }
+      } // @method setOption
+      // @parameter option: object
+      // 
+      // Set layer option.
+
     }, {
       key: "setOption",
       value: function setOption(option) {
         // TODO
         return this;
-      }
+      } // @method data
+      // @parameter data: Array
+      // @parameter fn: function(d, i, a)
+      // 
+      // Set this._data by data and mapping-function fn.
+
     }, {
       key: "data",
       value: function data(_data, fn) {
         this._data = _data.map(fn);
         return this;
-      }
+      } // @method addTo
+      // @parameter leaflet_map: L.map
+      // 
+      // Add all elements in this layer to L.map.
+
     }, {
       key: "addTo",
-      value: function addTo(map) {
-        this._layer_group.addTo(map);
+      value: function addTo(leaflet_map) {
+        this._layer_group.addTo(leaflet_map);
 
         return this;
-      }
+      } // @method enter
+      // 
+      // Update this._layer_group.
+
     }, {
       key: "enter",
       value: function enter() {
@@ -124,39 +146,39 @@ var dmap = (function (exports) {
         this._layer_group = L.layerGroup(this.generate() // rename would fit well
         );
         return this;
-      }
+      } // @method exit
+      // 
+      // Quit binding this layer on the L.map.
+
     }, {
       key: "exit",
       value: function exit() {
         this.remove();
         return this;
-      } // render() method should be declared in ChildClass/
+      } // @method generate
+      // 注意 BaseLayer 的 generate() 方法不应调用，enter() 中应该调用对应子类的方法。
 
     }, {
       key: "generate",
       value: function generate() {
-        // console.log('??')
         return [];
-      }
+      } // @method remove
+      // 
+      // Remove all elements from L.map.
+
     }, {
       key: "remove",
       value: function remove() {
         if (this._layer_group !== undefined) {
           this._layer_group.remove();
-        } // return what??
+        }
 
+        return this; // return what??
       }
     }]);
 
     return BaseLayer;
   }();
-
-  // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  //     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  // }).addTo(map);
-  // l = new dmap.PointLayer(map);
-  // d = [[51, 0], [51, 10]]
-  // l.data(d, function(d){return {coordination: d, option: {radius: 200, color: 'red'}}}).enter();
 
   var PointLayer =
   /*#__PURE__*/
@@ -167,7 +189,9 @@ var dmap = (function (exports) {
       _classCallCheck(this, PointLayer);
 
       return _possibleConstructorReturn(this, _getPrototypeOf(PointLayer).call(this, option));
-    } // specified
+    } // @method generate
+    // 
+    // Return Array of L.circle.
 
 
     _createClass(PointLayer, [{

@@ -1,5 +1,5 @@
 // PointLayer.js
-// Define BaseLayer class.
+// Define PointLayer class.
 
 import {BaseLayer} from "./BaseLayer.js"
 
