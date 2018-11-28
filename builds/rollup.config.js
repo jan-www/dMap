@@ -6,7 +6,8 @@ export default {
     input: "src/dmap.js",
     output: {
         file: "builds/dmap-dist.js",
-        format: "cjs",
+        format: "iife",
+        name: "dmap"
     },
     plugins: [babel(
         {
