@@ -1,0 +1,20 @@
+// TODO-1: options
+// TODO-2: setElementOptions()
+// TODO-3: on(), onElement()
+// TODO-4: ODLayer 3 events
+
+// map(_data, function());
+
+
+    generate() {
+        return this._data.map(
+            (data)=>{
+                var ret = L.marker(
+                    data.coordination, data.option
+                )
+                if d contains 'popup':
+                    ret.bindPopup(xxxxx)
+                return ret;
+            }
+        );
+    }
