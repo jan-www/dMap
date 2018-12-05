@@ -2,7 +2,7 @@
 [http://es6.ruanyifeng.com/#docs/style](http://es6.ruanyifeng.com/#docs/style)
 
 一个样例：
-```
+```js
 import BaseLayer from '../layers/BaseLayer'
 class Map{
   constructor(dom,option) {
@@ -43,7 +43,7 @@ map.on('click',function(){
 
 不希望被调用，可以参照下面的语法
 [http://es6.ruanyifeng.com/#docs/class](http://es6.ruanyifeng.com/#docs/class)
-```
+```js
 export default class BaseLayer{
   constructor() {
     if(new.target === BaseLayer){
@@ -56,7 +56,7 @@ export default class BaseLayer{
 }
 ```
 
-```
+```js
 import BaseLayer from '../layer/BaseLayer'
 export default class Map extends BaseLayer{
   
@@ -64,13 +64,13 @@ export default class Map extends BaseLayer{
 ```
 
 常量定义
-```
+```js
 //const.js
 export const CLICK = 'click'
 ```
 
 常量引用
-```
+```js
 import {CLICK} from './const'
 
 on(events_type,callback){
@@ -85,7 +85,7 @@ on(events_type,callback){
 
 
 
-```
+```js
 onElement(events_type,callback){
   for(let i=0;i<this._item.length;i++){
     _item[i].on(events_type,function(){
@@ -101,7 +101,7 @@ layer.onElement('click',function(d,i){
 ```
 
 [https://leafletjs.com/reference-1.3.4.html#layergroup](https://leafletjs.com/reference-1.3.4.html#layergroup)
-```
+```js
 var marker1 = L.marker([lat,lon],20)
 var marker2 = L.marker([lat,lon],20)
 L.layerGroup([marker1, marker2])
