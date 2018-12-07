@@ -1,6 +1,6 @@
 // TODO-1: options -- Done
-// TODO-2: setElementOptions()
-// TODO-3: on(), onElement()
+// TODO-2: setElementOptions() -- Done
+// TODO-3: on(), onElement() -- Done了一半
 // TODO-4: ODLayer 3 events
 
 // map(_data, function());

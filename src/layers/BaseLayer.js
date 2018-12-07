@@ -21,9 +21,21 @@ export class BaseLayer {
     // 
     // Bind callback function to every element.
     on(event_type, callback) {
-        // TODO
+        if (this._layer_group !== undefined) {
+            this._layer_group.eachLayer(function(layer) {
+                layer.on(event_type, callback);
+            });
+        }
         return this;
     }
+
+
+    // @method onElement
+    // @parameter
+    // 
+    // xx
+    // onElement() 我不会写哇
+
 
     // @method setOption
     // @parameter options: object
@@ -31,6 +43,33 @@ export class BaseLayer {
     // Set layer option.
     setOption(options) {
         // TODO
+        return this;
+    }
+
+
+    // @method setElementOption
+    // @parameter data: Array
+    // @parameter fn: function(d, i, a)
+    // 
+    // Set options of each element by data and mapping-function fn.
+    // 
+    // e.g:
+    // '''
+    // var pl = new dmap.PolygonLayer();
+    // ...
+    // pl.setElementOption(['black', 'aqua'], function(d, i){return {color: d};}).enter();
+    // pl.addTo(map);
+    // '''
+    // 
+    setElementOption(data, fn) {
+        let array_options = data.map(fn), i = 0;
+        for (i = 0; i < this._data.length; ++i) {
+            this._data[i].options = this._data[i].options || {};
+
+            if (i < data.length) {
+                Object.assign(this._data[i].options, array_options[i])
+            }
+        }
         return this;
     }
 
