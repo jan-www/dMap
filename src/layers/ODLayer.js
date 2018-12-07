@@ -7,8 +7,8 @@ import {od} from './vector/OD.js'
  *
  */
 export class ODLayer extends BaseLayer{
-    constructor(option) {
-        super(option);
+    constructor(options) {
+        super(options);
     }
 
     // @method generate

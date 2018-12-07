@@ -1,8 +1,8 @@
 import {BaseLayer} from "./BaseLayer.js"
 
 export class MarkerLayer extends BaseLayer {
-    constructor(option) {
-        super(option)
+    constructor(options) {
+        super(options)
     }
 
     // @method generate
@@ -12,7 +12,7 @@ export class MarkerLayer extends BaseLayer {
         return this._data.map(
             (data)=>{
                 return L.marker(
-                    data.coordination, data.option
+                    data.coordination, data.options
                 )
             }
         );

@@ -5,14 +5,14 @@
 // @class BaseLayer
 // Base class of all dmap.layer.
 export class BaseLayer {
-    constructor(option) {
+    constructor(options) {
         if (new.target === BaseLayer) {
             throw new Error('Class BaseLayer cannot be initialized.');
         }
 
         this._data = [];
         this._layer_group = undefined;
-        this.setOption()
+        this.setOption(options)
     }
 
     // @method on
@@ -26,10 +26,10 @@ export class BaseLayer {
     }
 
     // @method setOption
-    // @parameter option: object
+    // @parameter options: object
     // 
     // Set layer option.
-    setOption(option) {
+    setOption(options) {
         // TODO
         return this;
     }
