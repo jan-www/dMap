@@ -3,8 +3,8 @@
 import {BaseLayer} from "./BaseLayer.js"
 
 export class PolygonLayer extends BaseLayer {
-    constructor(option) {
-        super(option)
+    constructor(options) {
+        super(options)
     }
 
     // @method generate
@@ -13,7 +13,7 @@ export class PolygonLayer extends BaseLayer {
     generate() {
         return this._data.map(
             (data)=>{return L.polygon(
-                data.coordinations, data.option
+                data.coordinations, data.options
             )}
         );
     }

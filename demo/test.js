@@ -7,13 +7,13 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 l = new dmap.MarkerLayer();
 d = [[51, 0], [51, 10]]
 l.data(d, function(d){
-    return {coordination: d, option: {radius: 200, color: 'red'}}
+    return {coordination: d, options: {radius: 200, color: 'red'}}
 }).enter();
 l.addTo(map)
 
 pl = new dmap.PolygonLayer();
 d = [[[[30, 114], [50, 114], [40, 120]], 'red'], [[[-30, 114], [-50, 114], [-40, 120]], 'green']]
-pl.data(d, function(d){return{coordinations: d[0], option: {color: d[1]}}}).enter();
+pl.data(d, function(d){return{coordinations: d[0], options: {color: d[1]}}}).enter();
 pl.addTo(map);
 
 var dash_straight = {

@@ -1,6 +1,6 @@
-// TODO-1: options
-// TODO-2: setElementOptions()
-// TODO-3: on(), onElement()
+// TODO-1: options -- Done
+// TODO-2: setElementOptions() -- Done
+// TODO-3: on(), onElement() -- Done了一半
 // TODO-4: ODLayer 3 events
 
 // map(_data, function());
@@ -10,7 +10,7 @@
         return this._data.map(
             (data)=>{
                 var ret = L.marker(
-                    data.coordination, data.option
+                    data.coordination, data.options
                 )
                 if d contains 'popup':
                     ret.bindPopup(xxxxx)

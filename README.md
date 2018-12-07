@@ -10,7 +10,7 @@ dMap提供基础的地图渲染和基于地图的图表，api分三层调用：
 在特定div内使用leaflet引擎渲染默认底图（初始时默认北京中心，zoomLevel=7(待定)，使用实验室地图服务器，该层设计基本迁移leaflet的api，返回一个具体的地图对象。
 
 ```
-var map = new dMap.Map(‘#div’, (option))
+var map = new dMap.Map(‘#div’, (options))
 ```
 1. 建立地图图层，绑定数据
 
@@ -19,7 +19,7 @@ var map = new dMap.Map(‘#div’, (option))
 **（这里借鉴了d3的语法）**
 
 ```
-var layer = new dMap.PointMap(option)
+var layer = new dMap.PointMap(options)
 .data(data,function(d){})
 .enter()
 ```
@@ -30,7 +30,7 @@ var layer = new dMap.PointMap(option)
 ```
 layer.addTo(map)
 ```
-## Option 、Data和Layer
+## options 、Data和Layer
 在echart的实现逻辑中，比较侧重于直接进行图表配置后注入数据，这样的好处是一个option决定了数据的显示状态，但坏处是使得配置项过于复杂，当我需要对图表中的每个元素进行自定义的时候也非常不直观，而在d3的实现逻辑中，更倾向于数据绑定操作，对图表的类型和基本配置就会比较困难，在dMap的实现逻辑中，将这两种方式进行了一种平衡，并接入了leaflet的图层逻辑：
 * 使用option进行整个图表的配置
 * 使用data注入数据，并使用data中的函数来对具体的某个元素进行配置
@@ -72,14 +72,14 @@ map.setOptions({theme:'...'})
 ```
 ### 导入新配置
 ```
-map.setOptions(option)
+map.setOptions(options)
 ```
 
 ## 图层配置
 ### 基础配置
 图层基础配置适用于一般图层，可以包括以下配置选项，可以参考leaflet对图层类的设置标准
 ```
-option = {
+options = {
   name: 'layer1', //图层名称
   enable_tooltip: boolean, //是否允许tooltip
   tooltip_element: '#div', //定位tooltip元素
@@ -96,20 +96,20 @@ option = {
 
 ### 标记图(MarkerMap)
 ```
-option = {
+options = {
   icon: 'src'  //标记的图标
   icon_size: 23 //如在元素中有设置，此项被覆盖
 }
 ```
 ### 点图(PointMap)
 ```
-option = {
+options = {
   radius: 200 //配置点的半径，如在元素中有设置，此项被覆盖
 }
 ```
 ### OD图(ODMap)
 ```
-option = {
+options = {
   arc: 233, //OD的弧度
   startIcon: 'src', //起始点的图标
   endIcon: 'src', //终点的图标
@@ -122,7 +122,7 @@ option = {
 ```
 ### 时间轴图(TimeLineMap)
 ```
-option = {
+options = {
   enableControl: boolean, //是否显示时间控制条，默认显示
   autoPlay: boolean, //是否自动播放
   tickTime: 3444,//时间过渡，毫秒

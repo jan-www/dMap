@@ -4,8 +4,8 @@
 import {BaseLayer} from "./BaseLayer.js"
 
 export class PointLayer extends BaseLayer{ 
-    constructor(option) {
-        super(option);
+    constructor(options) {
+        super(options);
     }
 
     // @method generate
@@ -14,7 +14,7 @@ export class PointLayer extends BaseLayer{
     generate() {
         return this._data.map(
             (data)=>{return L.circle(
-                data.coordination, data.option
+                data.coordination, data.options
             )}
         );
     }
