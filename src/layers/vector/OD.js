@@ -61,24 +61,6 @@ export var OD = L.Path.extend({
     },
     
     animateIcon: function(path) {
-        // highlight trail
-        var trial = this._path;   //get svgpath
-        // var optionsBak = this.options;
-        // var newOptions = this.options;
-        // newOptions.weight = newOptions.weight * 2;
-        // newOptions.opacity = 1.0;
-
-        this.on('mouseover', function(e){
-            trial.setAttribute('stroke-dasharray', 1);
-            trial.setAttribute('stroke-width', this.options.weight*1.25);
-            trial.setAttribute('stroke-opacity', 1.0);
-        });
-        this.on('mouseout', function(e){
-            trial.setAttribute('stroke-dasharray', this.options.dashArray);
-            trial.setAttribute('stroke-width', this.options.weight);
-            trial.setAttribute('stroke-opacity', this.options.opacity);
-        })
-
         // make icon move along the trail
         if (this.spaceship_img)
             this.spaceship_img.remove();
@@ -256,12 +238,29 @@ export var OD = L.Path.extend({
         this._updatePath();
     },
     
+    trailHighlight: function(){
+        // highlight trail
+        var trial = this._path;   //get svgpath
+
+        this.on('mouseover', function(e){
+            trial.setAttribute('stroke-dasharray', 1);
+            trial.setAttribute('stroke-width', this.options.weight*1.25);
+            trial.setAttribute('stroke-opacity', 1.0);
+        });
+        this.on('mouseout', function(e){
+            trial.setAttribute('stroke-dasharray', this.options.dashArray);
+            trial.setAttribute('stroke-width', this.options.weight);
+            trial.setAttribute('stroke-opacity', this.options.opacity);
+        })
+    },
+
     _updatePath: function () {
         let latlngs = this._renderer._updateTrail(this);
         //Bind popup of latlng to the points.
         if(this.options.popup){
             this.setPointPopup();   
         }
+        this.trailHighlight(); // highlight the trail
         //animated plane after update trail
         if(this.options.trailAnimate){
             this.animateIcon(latlngs); 

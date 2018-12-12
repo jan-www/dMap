@@ -37,7 +37,7 @@ d = [
             fillColor: 'red',
             curvature: 4,
             opacity: 0.5,
-            weight: '3',
+            weight: '5',
             dashHandle: true,
             popup: false,
             trailAnimate: true,
@@ -55,12 +55,12 @@ d = [
             dashArray: 6,
             curvature: 6,
             //opacity: 0.5,
-            weight: '3',
+            weight: '5',
             // icon: {
             //     iconUrl: "mario.png"
             // },
             popup: true,
-            trailAnimate: true
+            trailAnimate: false
         }
     ]
 ];
