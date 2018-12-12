@@ -9,7 +9,7 @@ export class BaseLayer {
         if (new.target === BaseLayer) {
             throw new Error('Class BaseLayer cannot be initialized.');
         }
-
+    
         this._data = [];
         this._layer_group = undefined;
         this.setOption(options)
@@ -88,6 +88,7 @@ export class BaseLayer {
     // 
     // Add all elements in this layer to L.map.
     addTo(leaflet_map) {
+        this._map = leaflet_map; // for ODLayer update
         this._layer_group.addTo(leaflet_map)
         return this;
     }
