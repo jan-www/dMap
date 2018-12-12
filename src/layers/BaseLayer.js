@@ -10,7 +10,7 @@ export class BaseLayer {
             throw new Error('Class BaseLayer cannot be initialized.');
         }
 
-        this._data = [];
+        this._data = [];  // {}
         this._layer_group = undefined;
         this.setOption(options)
     }
