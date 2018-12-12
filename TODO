@@ -5,6 +5,17 @@
 
 // map(_data, function());
 
+// circle -> circlemarker
+// PolylineLayer
+// 方格图
+
+
+function foo(d, i) {
+
+}
+
+
+xxl.on('click', foo);
 
     generate() {
         return this._data.map(

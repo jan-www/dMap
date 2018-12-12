@@ -22,9 +22,13 @@ export class BaseLayer {
     // Bind callback function to every element.
     on(event_type, callback) {
         if (this._layer_group !== undefined) {
-            this._layer_group.eachLayer(function(layer) {
-                layer.on(event_type, callback);
-            });
+            let layers = this._layer_group.getLayers();
+            for (let i = 0; i < layers.length; ++i) {
+                layers[i].on(event_type, function() {
+                    callback(this._data[i], i);
+                }, this);  //bind
+            }
+
         }
         return this;
     }
