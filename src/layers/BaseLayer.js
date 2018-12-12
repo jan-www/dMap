@@ -33,14 +33,6 @@ export class BaseLayer {
         return this;
     }
 
-
-    // @method onElement
-    // @parameter
-    // 
-    // xx
-    // onElement() 我不会写哇
-
-
     // @method setOption
     // @parameter options: object
     // 

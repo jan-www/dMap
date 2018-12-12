@@ -84,7 +84,8 @@ var dmap = (function (exports) {
         throw new Error('Class BaseLayer cannot be initialized.');
       }
 
-      this._data = [];
+      this._data = []; // {}
+
       this._layer_group = undefined;
       this.setOption(options);
     } // @method on
@@ -248,7 +249,7 @@ var dmap = (function (exports) {
       key: "generate",
       value: function generate() {
         return this._data.map(function (data) {
-          return L.circle(data.coordination, data.options);
+          return L.circleMarker(data.coordination, data.options);
         });
       }
     }]);
@@ -522,12 +523,39 @@ var dmap = (function (exports) {
     return ODLayer;
   }(BaseLayer);
 
+  var PolylineLayer =
+  /*#__PURE__*/
+  function (_BaseLayer) {
+    _inherits(PolylineLayer, _BaseLayer);
+
+    function PolylineLayer(options) {
+      _classCallCheck(this, PolylineLayer);
+
+      return _possibleConstructorReturn(this, _getPrototypeOf(PolylineLayer).call(this, options));
+    } // @method generate
+    // 
+    // Return Array of L.Marker.
+
+
+    _createClass(PolylineLayer, [{
+      key: "generate",
+      value: function generate() {
+        return this._data.map(function (data) {
+          return L.polyline(data.coordinations, data.options);
+        });
+      }
+    }]);
+
+    return PolylineLayer;
+  }(BaseLayer);
+
   // import * as BaseLayer from "./layers/index.js";
 
   exports.PointLayer = PointLayer;
   exports.PolygonLayer = PolygonLayer;
   exports.MarkerLayer = MarkerLayer;
   exports.ODLayer = ODLayer;
+  exports.PolylineLayer = PolylineLayer;
   exports.BaseLayer = BaseLayer;
   exports.OD = OD;
   exports.od = od;
