@@ -26,29 +26,16 @@ var dash_straight = {
     animate: true
 };
 
-// test for od trail
+// org = L.circleMarker({lat: 5.8731, lng: 80.7718}).addTo(map).addTo(map);
+// org.bindPopup(org.getLatLng().toString());
+// org.on('click', function(e){org.openPopup()});
+//test for od trail
 ods = new dmap.ODLayer();
 d = [
     [
-        {lat: 7.8731, lng: 80.7718},
-        {lat: -25.2744, lng: 133.7751},
-        {
-            color: '#4682B4',
-            fillColor: 'red',
-            curvature: 4,
-            opacity: 0.5,
-            weight: '5',
-            dashHandle: true,
-            popup: false,
-            trailAnimate: true,
-            icon: {
-                iconUrl: "mario.png"
-            }
-        }
-    ],
-    [
-        {lat: 7.8731, lng: 80.7718},
         {lat: 41.8719, lng: 12.5674},
+        {lat: 5.8731, lng: 80.7718},
+        
         {
             color: '#5F9EA0',
             //fillColor: 'rgb(145, 146, 150)',
@@ -59,8 +46,26 @@ d = [
             // icon: {
             //     iconUrl: "mario.png"
             // },
-            popup: true,
+            points: true,
+            //popup: true,
             trailAnimate: false
+        }
+    ],[
+        {lat: 7.8731, lng: 80.7718},
+        {lat: -25.2744, lng: 133.7751},
+        {
+            color: '#4682B4',
+            fillColor: 'red',
+            curvature: 4,
+            opacity: 0.5,
+            weight: '5',
+            dashHandle: true,
+            points: true,
+            popup: false,
+            trailAnimate: true,
+            icon: {
+                iconUrl: "mario.png"
+            }
         }
     ]
 ];
@@ -70,4 +75,26 @@ ods.data(d, function(d){
     }
 }).enter();
 ods.addTo(map);
-//ods.trailAnimate();
+var orgpopup = L.popup();
+ods.on('org_mouseover', function(e){
+    orgpopup
+        .setLatLng(e.latlng)
+        .setContent(e.latlng.toString())
+        .openOn(map);
+});
+ods.on('org_mouseout', function(e){
+    orgpopup.remove();
+})
+
+ods.on('trail_click', function(e){
+    alert('You click on me');
+});
+
+// var myRenderer = L.svg({ padding: 4 , tolerance: 1});
+// myRenderer.on('click', function(){
+//     alert('Oooops');
+// });
+// // var line = L.polyline( {lat: 7.8731, lng: 80.7718},
+// //     {lat: 41.8719, lng: 12.5674}, { renderer: myRenderer } ).addTo(map);
+// var circle = L.circle( {lat: 12.8731, lng: 80.7718}, {radius:500,  renderer: myRenderer } );
+// circle.addTo(map);

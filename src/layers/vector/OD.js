@@ -34,13 +34,21 @@ export var OD = L.Path.extend({
         // @option leftSide: Boolean = false.
         // Make the trial on the right side of line from origin to destination. 
         leftSide: false,
+
+        // @option points: Boolean = false.
+        // Whether to add origin and destination points on the map.
+        points: false,
         
         // @option popup: Boolean = false.
-        // Bind popup of latlng to the origin and destination points.
+        // Whether to bind popup of latlng to the origin and destination points.
         popup: false,
+
+        // @optoin trailHighlight: Boolean = false.
+        // Whether to highlight the trail.
+        trailHighlight: false,
         
         // @option trailAnimate: Boolean = false.
-        // Setup animation of trial by using the icon in options.
+        // Whether to setup animation of trial by using the icon in options.
         trailAnimate: false
     },
 
@@ -131,16 +139,22 @@ export var OD = L.Path.extend({
         });
     },
     
-    setPointPopup: function(){
-        let markerOptins = {
-            color: '#00C5CD', //Turquoise3
-            radius: 2,
-            opacity: 0.5
-        };
-        var orgMarker = L.circleMarker(
-            this._latlngs.org, 
-            markerOptins).addTo(this._map)
-            .bindPopup(this._latlngs.org.toString());
+    addPoints: function(){
+        this._orgMarker.addTo(this._map);
+        this._dstMarker.addTo(this._map);
+    },
+
+    setPointsPopup: function(){
+        // let markerOptins = {
+        //     color: '#00C5CD', //Turquoise3
+        //     radius: 2,
+        //     opacity: 0.5
+        // };
+        // var orgMarker = L.circleMarker(
+        //     this._latlngs.org, 
+        //     markerOptins).addTo(this._map)
+        let orgMarker = this._orgMarker;
+        orgMarker.bindPopup(orgMarker.getLatLng().toString());
         orgMarker.on('mouseover', function (e){
             orgMarker.openPopup();
         });
@@ -148,10 +162,11 @@ export var OD = L.Path.extend({
             orgMarker.closePopup();
         });
 
-        var dstMarker = L.circleMarker(
-            this._latlngs.dst, 
-            markerOptins).addTo(this._map)
-            .bindPopup(this._latlngs.dst.toString());
+        // var dstMarker = L.circleMarker(
+        //     this._latlngs.dst, 
+        //     markerOptins).addTo(this._map)
+        let dstMarker = this._dstMarker;
+        dstMarker.bindPopup(dstMarker.getLatLng().toString());
         dstMarker.on('mouseover', function (e){
             dstMarker.openPopup();
         });
@@ -215,7 +230,48 @@ export var OD = L.Path.extend({
             dst: dst,
             mid: mid
         };
+        // set points
+        this._setPoints();
         this._bounds = this._computeBounds();
+    },
+
+    _setPoints: function(){
+        let markerOptins = {
+            color: '#00C5CD', //Turquoise3
+            radius: 2,
+            opacity: 0.5
+        };
+        this._orgMarker = L.circleMarker(
+            this._latlngs.org, 
+            markerOptins);
+        this._dstMarker = L.circleMarker(
+            this._latlngs.dst, 
+            markerOptins);
+    },
+
+    // return items which can be listen
+    getItem: function(item_type){
+        if(item_type === 'org'){
+            return this._orgMarker;
+        }else if(item_type === 'dst'){
+            return this._dstMarker;
+        } else if(item_type === 'trail'){
+            return this; 
+        }else {
+            return null;
+        }
+    },
+
+    getOrigin: function(){
+        return this._orgMarker;
+    },
+
+    getDestination: function(){
+        return this._dstMarker;
+    },
+
+    getTrail: function(){
+        return this._path;
     },
 
     _computeBounds: function () {
@@ -240,7 +296,7 @@ export var OD = L.Path.extend({
     
     trailHighlight: function(){
         // highlight trail
-        var trial = this._path;   //get svgpath
+        var trial = this.getTrail();   //get svgpath
 
         this.on('mouseover', function(e){
             trial.setAttribute('stroke-dasharray', 1);
@@ -256,12 +312,18 @@ export var OD = L.Path.extend({
 
     _updatePath: function () {
         let latlngs = this._renderer._updateTrail(this);
-        //Bind popup of latlng to the points.
-        if(this.options.popup){
-            this.setPointPopup();   
+        // Add points to map.
+        if(this.options.points){
+            this.addPoints();
+            //Bind popup of latlng to the points.
+            if(this.options.popup){
+                this.setPointsPopup();   
+            }
         }
-        this.trailHighlight(); // highlight the trail
-        //animated plane after update trail
+        if(this.options.trailHighlight){
+            this.trailHighlight(); // highlight the trail
+        }
+        // Animate plane after trail updated
         if(this.options.trailAnimate){
             this.animateIcon(latlngs); 
         }
