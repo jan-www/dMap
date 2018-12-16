@@ -21,4 +21,27 @@ export class ODLayer extends BaseLayer{
             )}
         );
     }
+
+    // trailAnimate() {
+    //     var animateLayer = this._layer_group;
+    //     var trails = animateLayer.getLayers();
+    //     // 点哪个删除哪个，其余的都不变的
+    //     //animateLayer.clearLayers();
+    //     for(let k = 0, kLen = trails.length; k < kLen; k++){
+    //         // show OD coordinations
+
+    //         // show the plane
+    //         var path = trails[k].getPath();
+    //         var opts = trails[k].getOptions();
+    //         var trail = trails[k].on("click", function(e){
+    //             opts.icon = {
+    //                 iconUrl: "plane.png"
+    //             };
+    //             animateLayer.removeLayer(trails[k]);
+    //             var newTrail = od(path.org, path.dst, opts);
+    //             newTrail.addTo(animateLayer);
+    //         })
+    //     }
+
+    // }
 }

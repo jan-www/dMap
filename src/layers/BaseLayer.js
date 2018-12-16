@@ -84,6 +84,7 @@ export class BaseLayer {
     // 
     // Add all elements in this layer to L.map.
     addTo(leaflet_map) {
+        //this._map = leaflet_map; // for ODLayer update
         this._layer_group.addTo(leaflet_map)
         return this;
     }

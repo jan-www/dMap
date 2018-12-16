@@ -1,5 +1,5 @@
-var map = L.map('mapid').setView([51.505, -0.09], 5);
-
+//var map = L.map('mapid').setView([51.505, -0.09], 13);
+var map = L.map('mapid').setView([6.9270786, 79.861243], 3);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
@@ -22,7 +22,8 @@ var dash_straight = {
     dashArray: 8,
     curvature: 6,
     opacity: 0.8,
-    weight: '1.5'
+    weight: '3',
+    animate: true
 };
 
 // test for od trail
@@ -32,24 +33,34 @@ d = [
         {lat: 7.8731, lng: 80.7718},
         {lat: -25.2744, lng: 133.7751},
         {
-            color: 'blue',
-            //fillColor: 'rgb(145, 146, 150)',
-            dashArray: 8,
+            color: '#4682B4',
+            fillColor: 'red',
             curvature: 4,
-            opacity: 0.8,
-            weight: '1.5'
+            opacity: 0.5,
+            weight: '5',
+            dashHandle: true,
+            popup: false,
+            trailAnimate: true,
+            icon: {
+                iconUrl: "mario.png"
+            }
         }
     ],
     [
         {lat: 7.8731, lng: 80.7718},
         {lat: 41.8719, lng: 12.5674},
         {
-            color: 'red',
+            color: '#5F9EA0',
             //fillColor: 'rgb(145, 146, 150)',
-            dashArray: 8,
+            dashArray: 6,
             curvature: 6,
-            opacity: 0.8,
-            weight: '1.5'
+            //opacity: 0.5,
+            weight: '5',
+            // icon: {
+            //     iconUrl: "mario.png"
+            // },
+            popup: true,
+            trailAnimate: false
         }
     ]
 ];
@@ -59,3 +70,4 @@ ods.data(d, function(d){
     }
 }).enter();
 ods.addTo(map);
+//ods.trailAnimate();
