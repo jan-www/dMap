@@ -9,8 +9,8 @@ export class BaseLayer {
         if (new.target === BaseLayer) {
             throw new Error('Class BaseLayer cannot be initialized.');
         }
-    
-        this._data = [];
+
+        this._data = [];  // {}
         this._layer_group = undefined;
         this.setOption(options)
     }
@@ -22,20 +22,16 @@ export class BaseLayer {
     // Bind callback function to every element.
     on(event_type, callback) {
         if (this._layer_group !== undefined) {
-            this._layer_group.eachLayer(function(layer) {
-                layer.on(event_type, callback);
-            });
+            let layers = this._layer_group.getLayers();
+            for (let i = 0; i < layers.length; ++i) {
+                layers[i].on(event_type, function() {
+                    callback(this._data[i], i);
+                }, this);  //bind
+            }
+
         }
         return this;
     }
-
-
-    // @method onElement
-    // @parameter
-    // 
-    // xx
-    // onElement() 我不会写哇
-
 
     // @method setOption
     // @parameter options: object

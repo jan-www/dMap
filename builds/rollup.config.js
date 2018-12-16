@@ -15,5 +15,7 @@ export default {
             babelrc: true,
             presets: ["@babel/preset-env"]
         }
-    ), uglify.uglify()] 
+    ), 
+    // uglify.uglify()
+] 
 }
