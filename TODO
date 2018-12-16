@@ -1,10 +1,15 @@
-// TODO-1: options -- Done
-// TODO-2: setElementOptions() -- Done
-// TODO-3: on(), onElement() -- Done了一半
-// TODO-4: ODLayer 3 events
-
 // map(_data, function());
 
+
+// 方格图
+
+
+function foo(d, i) {
+
+}
+
+
+xxl.on('click', foo);
 
     generate() {
         return this._data.map(
