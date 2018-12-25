@@ -48,7 +48,7 @@ d = [
             // },
             points: true,
             //popup: true,
-            trailAnimate: false
+            trailAnimate: true
         }
     ],[
         {lat: 7.8731, lng: 80.7718},
@@ -61,7 +61,8 @@ d = [
             weight: '5',
             dashHandle: true,
             points: true,
-            popup: false,
+            popup: true,
+            trailHighlight: true,
             trailAnimate: true,
             icon: {
                 iconUrl: "mario.png"
@@ -79,7 +80,7 @@ var orgpopup = L.popup();
 ods.on('org_mouseover', function(e){
     orgpopup
         .setLatLng(e.latlng)
-        .setContent(e.latlng.toString())
+        .setContent('org: '+ e.latlng.toString())
         .openOn(map);
 });
 ods.on('org_mouseout', function(e){
@@ -87,9 +88,17 @@ ods.on('org_mouseout', function(e){
 })
 
 ods.on('trail_click', function(e){
-    alert('You click on me');
+    orgpopup
+        .setLatLng(e.latlng)
+        .setContent('I am a trail')
+        .openOn(map);
+    setTimeout(function(){
+        orgpopup.remove();
+    }, 1000);
 });
-
+// ods.on('trail_mouseout', function(e){
+//     orgpopup.remove();
+// })
 // var myRenderer = L.svg({ padding: 4 , tolerance: 1});
 // myRenderer.on('click', function(){
 //     alert('Oooops');
