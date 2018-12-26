@@ -14,6 +14,7 @@
     "rollup": "^0.67.3",
     "rollup-plugin-babel": "^4.0.3",
     "rollup-plugin-json": "^3.1.0",
+    "rollup-plugin-node-resolve": "^4.0.0",
     "rollup-plugin-uglify": "^6.0.0"
   },
   "scripts": {
@@ -29,5 +30,8 @@
   "bugs": {
     "url": "https://github.com/EnrigleZ/dMap/issues"
   },
-  "homepage": "https://github.com/EnrigleZ/dMap#readme"
+  "homepage": "https://github.com/EnrigleZ/dMap#readme",
+  "dependencies": {
+    "@turf/turf": "^5.1.6"
+  }
 }
