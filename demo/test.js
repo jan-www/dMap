@@ -17,13 +17,17 @@ pl.data(d, function(d){return{coordinations: d[0], options: {color: d[1]}}}).ent
 pl.addTo(map);
 
 var dash_straight = {
-    color: 'red',
-    //fillColor: 'rgb(145, 146, 150)',
-    dashArray: 8,
-    curvature: 6,
-    opacity: 0.8,
-    weight: '3',
-    animate: true
+    color: '#4682B4',
+    fillColor: 'red',
+    dashArray: 6,
+    curvature: 4,
+    opacity: 0.5,
+    weight: '5',
+    dashHandle: true,
+    points: true,
+    popup: true,
+    trailHighlight: true,
+    trailAnimate: true,
 };
 
 // org = L.circleMarker({lat: 5.8731, lng: 80.7718}).addTo(map).addTo(map);

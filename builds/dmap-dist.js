@@ -323,9 +323,18 @@ var dmap = (function (exports) {
     // @section
     // @aka OD options
     options: {
+      // @option color: String = '#4682B4'
+      // Specify the color of the trail. You can also use description like 
+      // 'color: "red"'.
       color: '#4682B4',
+      // @option opacity: Number = 0.5
+      // Specify the opacity of the trail.
       opacity: 0.5,
-      weight: '3',
+      // @option weight: Number = 3
+      // Specify the width of the trail.
+      weight: 3,
+      // @option icon: Object = icon
+      // Give an icon to show animation on the trail. Default is a plane.
       icon: {
         iconUrl: "plane.png"
       },
@@ -340,9 +349,33 @@ var dmap = (function (exports) {
       // @option points: Boolean = false.
       // Whether to add origin and destination points on the map.
       points: false,
+      // @option points: Boolean = false.
+      // Whether to add origin and destination points on the map.
+      pointsSize: 3.0,
+      // @option pointsColor: String = '#00C5CD'
+      // Specify the color of the origin and destination points.
+      pointsColor: '#00C5CD',
+      //Turquoise3
+      // @option pointsRadius: Number = 2
+      // Specify the size of the origin and destination points.
+      pointsRadius: 2,
+      // @option pointsOpacity: Number = 2
+      // Specify the opacity of the origin and destination points.
+      pointsOpacity: 0.5,
+      // @option preferCenter: Object = L.latLng(destination)
+      // When the difference between org.lng and dst.lng is lager than 180,
+      // we choose the point nearer to preferCenter as the base point and
+      // move another one to make the trail sense. Default is destinaton.
+      preferCenter: undefined,
       // @option popup: Boolean = false.
       // Whether to bind popup of latlng to the origin and destination points.
       popup: false,
+      // @option popupContent: Object = undefined
+      // Specify the popup content when popup is true.
+      // Note that it is supposed to be like 
+      // `{org: "your content a", dst: "your content b"} `
+      // Default is {org: org.latLng, dst: dst.latLng}.
+      popuopContent: undefined,
       // @optoin trailHighlight: Boolean = false.
       // Whether to highlight the trail.
       trailHighlight: false,
@@ -352,8 +385,45 @@ var dmap = (function (exports) {
     },
     initialize: function initialize(origin, destination, options) {
       L.setOptions(this, options);
+
+      if (this.options.preferCenter === undefined) {
+        //set the default preferCenter
+        this.options.preferCenter = destination;
+      }
+
       this._initialUpdate = true;
-      this.setPath(L.latLng(origin), L.latLng(destination));
+
+      var points = this._normalizePoints(L.latLng(origin), L.latLng(destination));
+
+      this.setPath(points.origin, points.destination); // this.setPath(L.latLng(origin), L.latLng(destination));
+    },
+    // Normalize the points to get a trail with shortest distance
+    // parameters org and dst must be L.latLng
+    _normalizePoints: function _normalizePoints(org, dst) {
+      var o = org,
+          d = dst,
+          c = this.options.preferCenter;
+
+      if (Math.abs(o.lng - d.lng) < 180) {
+        return {
+          origin: o,
+          destination: d
+        };
+      } // redundancy o
+
+
+      if (o.distanceTo(L.latLng(c)) < d.distanceTo(L.latLng(c))) {
+        return {
+          origin: o,
+          destination: L.latLng(d.lat, d.lng > 0 ? d.lng - 360 : d.lng + 360)
+        };
+      } // redundancy d
+      else {
+          return {
+            origin: L.latLng(o.lat, o.lng > 0 ? o.lng - 360 : o.lng + 360),
+            destination: d
+          };
+        }
     },
     onAdd: function onAdd(map) {
       this._renderer._initPath(this);
@@ -426,32 +496,27 @@ var dmap = (function (exports) {
       this._dstMarker.addTo(this._map);
     },
     setPointsPopup: function setPointsPopup() {
-      // let markerOptins = {
-      //     color: '#00C5CD', //Turquoise3
-      //     radius: 2,
-      //     opacity: 0.5
-      // };
-      // var orgMarker = L.circleMarker(
-      //     this._latlngs.org, 
-      //     markerOptins).addTo(this._map)
+      var content = this.options.popuopContent; // TODO: Check whether content has fields `org` and `dst`
+
       var orgMarker = this._orgMarker;
-      orgMarker.bindPopup(orgMarker.getLatLng().toString());
+      orgMarker.bindPopup(content.org);
       orgMarker.on('mouseover', function (e) {
         orgMarker.openPopup();
       });
       orgMarker.on('mouseout', function (e) {
-        orgMarker.closePopup();
-      }); // var dstMarker = L.circleMarker(
-      //     this._latlngs.dst, 
-      //     markerOptins).addTo(this._map)
-
+        setTimeout(function () {
+          orgMarker.closePopup();
+        }, 300);
+      });
       var dstMarker = this._dstMarker;
-      dstMarker.bindPopup(dstMarker.getLatLng().toString());
+      dstMarker.bindPopup(content.dst);
       dstMarker.on('mouseover', function (e) {
         dstMarker.openPopup();
       });
       dstMarker.on('mouseout', function (e) {
-        dstMarker.closePopup();
+        setTimeout(function () {
+          dstMarker.closePopup();
+        }, 300);
       });
     },
     getPath: function getPath() {
@@ -504,13 +569,19 @@ var dmap = (function (exports) {
     },
     _setPoints: function _setPoints() {
       var markerOptins = {
-        color: '#00C5CD',
-        //Turquoise3
-        radius: 2,
-        opacity: 0.5
+        color: this.options.pointsColor,
+        radius: this.options.pointsRadius,
+        opacity: this.options.pointsOpacity
       };
       this._orgMarker = L.circleMarker(this._latlngs.org, markerOptins);
-      this._dstMarker = L.circleMarker(this._latlngs.dst, markerOptins);
+      this._dstMarker = L.circleMarker(this._latlngs.dst, markerOptins); // set default popup content
+
+      if (this.options.popuopContent === undefined) {
+        this.options.popuopContent = {
+          org: this._orgMarker.getLatLng().toString(),
+          dst: this._dstMarker.getLatLng().toString()
+        };
+      }
     },
     // return items which can be listen
     getItem: function getItem(item_type) {
@@ -554,15 +625,18 @@ var dmap = (function (exports) {
       // highlight trail
       var trial = this.getTrail(); //get svgpath
 
+      var _options = this.options;
       this.on('mouseover', function (e) {
         trial.setAttribute('stroke-dasharray', 1);
-        trial.setAttribute('stroke-width', this.options.weight * 1.25);
+        trial.setAttribute('stroke-width', _options.weight * 1.25);
         trial.setAttribute('stroke-opacity', 1.0);
       });
       this.on('mouseout', function (e) {
-        trial.setAttribute('stroke-dasharray', this.options.dashArray);
-        trial.setAttribute('stroke-width', this.options.weight);
-        trial.setAttribute('stroke-opacity', this.options.opacity);
+        setTimeout(function () {
+          trial.setAttribute('stroke-dasharray', _options.dashArray);
+          trial.setAttribute('stroke-width', _options.weight);
+          trial.setAttribute('stroke-opacity', _options.opacity);
+        }, 300);
       });
     },
     _updatePath: function _updatePath() {
