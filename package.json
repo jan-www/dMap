@@ -30,8 +30,5 @@
   "bugs": {
     "url": "https://github.com/EnrigleZ/dMap/issues"
   },
-  "homepage": "https://github.com/EnrigleZ/dMap#readme",
-  "dependencies": {
-    "@turf/turf": "^5.1.6"
-  }
+  "homepage": "https://github.com/EnrigleZ/dMap#readme"
 }
