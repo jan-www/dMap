@@ -1,5 +1,5 @@
 import Cell from './Cell'
-
+import {RGBColor} from '../../utils/Util'
 /*
   1.0.1 (downloaded from https://github.com/Sumbera/gLayers.Leaflet/releases/tag/v1.0.1)
 
@@ -153,7 +153,9 @@ L.CanvasLayer.Field = L.CanvasLayer.extend({
         opacity: 1,
         onClick: null,
         onMouseMove: null,
-        inFilter: null
+        inFilter: null,
+        border: false,
+        borderWidth: 0.000005
     },
 
     initialize: function(field, options) {
@@ -338,7 +340,17 @@ export var ScalarFieldMap = L.CanvasLayer.Field.extend({
     },
 
     _defaultColorScale: function() {
-        return chroma.scale(['white', 'black']).domain(this._field.range);
+
+        function ColorRangeFunction(range) {
+            var _range = range;
+            this.fn = function(v) {
+                var data = Math.floor(255*(_range[1]-v)/(_range[1]-_range[0]))
+                .toString(16);
+                return '#'+data+data+data;
+            }
+        }
+        return new ColorRangeFunction(this._field.range).fn;
+        // return chroma.scale(['white', 'black']).domain(this._field.range);
     },
 
     setColor(f) {
@@ -408,7 +420,7 @@ export var ScalarFieldMap = L.CanvasLayer.Field.extend({
      */
     _prepareImageIn(data, width, height) {
         let f = this.options.interpolate ? 'interpolatedValueAt' : 'valueAt';
-
+        
         let pos = 0;
         for (let j = 0; j < height; j++) {
             for (let i = 0; i < width; i++) {
@@ -419,10 +431,28 @@ export var ScalarFieldMap = L.CanvasLayer.Field.extend({
                 let v = this._field[f](lon, lat); // 'valueAt' | 'interpolatedValueAt' || TODO check some 'artifacts'
                 if (v !== null) {
                     let color = this._getColorFor(v);
+                    
+                    // if at border
+                    // if (this.options.border === true) {
+                    //     let epsilon = this.options.borderWidth / 2;
+                    //     let [ii, jj] = this._field._getDecimalIndexes(lon, lat);
+                    //     ii = Math.floor(ii); jj = Math.floor(jj);
+                    //     let gridxllCorner = this._field.xllCorner + ii * this._field.cellXSize,
+                    //     gridyllCorner = this._field.yllCorner + jj * this._field.cellYSize;
+                        
+                    //     if ((lon - gridxllCorner < epsilon || gridxllCorner + this._field.cellXSize - lon < epsilon)
+                    //     || (lat - gridyllCorner < epsilon || gridyllCorner + this._field.cellYSize - lat < epsilon)) {
+                    //         color = new RGBColor('rgba(0,0,0,1)');
+                    //     }
+                    // }
+                    
                     let [R, G, B, A] = color.rgba();
                     data[pos] = R;
                     data[pos + 1] = G;
                     data[pos + 2] = B;
+                    if (A === null) {
+                        A = this.options.opacity;
+                    }
                     data[pos + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
                 }
                 pos = pos + 4;
@@ -515,7 +545,7 @@ export var ScalarFieldMap = L.CanvasLayer.Field.extend({
         if (typeof c === 'function') {
             c = this.options.color(v);
         }
-        let color = chroma(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
+        let color = new RGBColor(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
         return color;
     }
 });
@@ -614,7 +644,11 @@ class Field {
 
     /**
      * Apply a spatial mask to field values
-     * @param {L.GeoJSON} m 
+     * @param {L.Polygon} m 
+     * 
+     * var poly = L.polygon([...]);
+     * var s = ScalarField.fromASCIIGrid(...);
+     * s.setSpatialMask(poly);
      */
     setSpatialMask(m) {
         this._spatialMask = m;
@@ -1224,7 +1258,7 @@ export class ScalarField extends Field {
         if (this._inFilter) {
             data = data.filter(this._inFilter);
         }
-        return [d3.min(data), d3.max(data)];
+        return [Math.min.apply(null, data), Math.max.apply(null, data)];
     }
 
     /**
