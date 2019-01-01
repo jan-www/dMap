@@ -25,7 +25,7 @@ export class BaseLayer {
             let layers = this._layer_group.getLayers();
             for (let i = 0; i < layers.length; ++i) {
                 layers[i].on(event_type, function() {
-                    callback(this._data[i], i);
+                    callback(this._data[i], i, layers[i]);
                 }, this);  //bind
             }
 
