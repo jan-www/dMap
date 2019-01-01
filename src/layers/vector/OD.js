@@ -19,9 +19,21 @@ export var OD = L.Path.extend({
     // @section
     // @aka OD options
     options:{
+        // @option color: String = '#4682B4'
+        // Specify the color of the trail. You can also use description like 
+        // 'color: "red"'.
         color: '#4682B4',
+
+        // @option opacity: Number = 0.5
+        // Specify the opacity of the trail.
         opacity: 0.5,
-        weight: '3',
+
+        // @option weight: Number = 3
+        // Specify the width of the trail.
+        weight: 3,
+
+        // @option icon: Object = icon
+        // Give an icon to show animation on the trail. Default is a plane.
         icon: {
             iconUrl: "plane.png"
         },
@@ -34,21 +46,101 @@ export var OD = L.Path.extend({
         // @option leftSide: Boolean = false.
         // Make the trial on the right side of line from origin to destination. 
         leftSide: false,
+
+        // @option points: Boolean = false.
+        // Whether to add origin and destination points on the map.
+        points: false,
+
+        // @option points: Boolean = false.
+        // Whether to add origin and destination points on the map.
+        pointsSize: 3.0,
         
+        // @option pointsColor: String = '#00C5CD'
+        // Specify the color of the origin and destination points.
+        pointsColor: '#00C5CD', //Turquoise3
+
+        // @option pointsRadius: Number = 2
+        // Specify the size of the origin and destination points.
+        pointsRadius: 2,
+
+        // @option pointsOpacity: Number = 2
+        // Specify the opacity of the origin and destination points.
+        pointsOpacity: 0.5,
+
+        // @option preferCenter: Object = L.latLng(destination)
+        // When the difference between org.lng and dst.lng is lager than 180,
+        // we choose the point nearer to preferCenter as the base point and
+        // move another one to make the trail sense. Default is destinaton.
+        preferCenter: undefined,
+
         // @option popup: Boolean = false.
-        // Bind popup of latlng to the origin and destination points.
+        // Whether to bind popup of latlng to the origin and destination points.
         popup: false,
+
+        // @option popupContent: Object = undefined
+        // Specify the popup content when popup is true.
+        // Note that it is supposed to be like 
+        // `{org: "your content a", dst: "your content b"} `
+        // Default is {org: org.latLng, dst: dst.latLng}.
+        popuopContent: undefined,
+
+        // @optoin trailHighlight: Boolean = false.
+        // Whether to highlight the trail.
+        trailHighlight: false,
         
         // @option trailAnimate: Boolean = false.
-        // Setup animation of trial by using the icon in options.
+        // Whether to setup animation of trial by using the icon in options.
         trailAnimate: false
     },
 
     initialize: function (origin, destination, options) {
         L.setOptions(this, options);
+        if(this.options.preferCenter === undefined){ //set the default preferCenter
+            this.options.preferCenter = destination;
+        }
         this._initialUpdate = true;
+
         
-        this.setPath(L.latLng(origin), L.latLng(destination));
+        let points = this._normalizePoints(
+            L.latLng(origin), L.latLng(destination));
+        this.setPath(points.origin, points.destination);
+        // this.setPath(L.latLng(origin), L.latLng(destination));
+    },
+
+    // Normalize the points to get a trail with shortest distance
+    // parameters org and dst must be L.latLng
+    _normalizePoints: function (org, dst){
+        let o = org,
+            d = dst,
+            c = this.options.preferCenter;
+        
+        if(Math.abs(o.lng - d.lng) < 180){
+            return {
+                origin: o,
+                destination: d
+            };
+        }
+        
+        // redundancy o
+        if(o.distanceTo(L.latLng(c)) < d.distanceTo(L.latLng(c))){
+            return {
+                origin: o,
+                destination: L.latLng(
+                    d.lat,
+                    d.lng > 0? d.lng - 360: d.lng + 360
+                )
+            }
+        }
+        // redundancy d
+        else{
+            return {
+                origin: L.latLng(
+                    o.lat, 
+                    o.lng > 0? o.lng - 360: o.lng + 360
+                ),
+                destination: d
+            }
+        }
     },
 
     onAdd: function (map) {
@@ -131,32 +223,34 @@ export var OD = L.Path.extend({
         });
     },
     
-    setPointPopup: function(){
-        let markerOptins = {
-            color: '#00C5CD', //Turquoise3
-            radius: 2,
-            opacity: 0.5
-        };
-        var orgMarker = L.circleMarker(
-            this._latlngs.org, 
-            markerOptins).addTo(this._map)
-            .bindPopup(this._latlngs.org.toString());
+    addPoints: function(){
+        this._orgMarker.addTo(this._map);
+        this._dstMarker.addTo(this._map);
+    },
+
+    setPointsPopup: function(){
+        let content = this.options.popuopContent;
+        // TODO: Check whether content has fields `org` and `dst`
+        let orgMarker = this._orgMarker;
+        orgMarker.bindPopup(content.org);
         orgMarker.on('mouseover', function (e){
             orgMarker.openPopup();
         });
         orgMarker.on('mouseout', function (e){
-            orgMarker.closePopup();
+            setTimeout(function(){
+                orgMarker.closePopup();
+            }, 300);
         });
 
-        var dstMarker = L.circleMarker(
-            this._latlngs.dst, 
-            markerOptins).addTo(this._map)
-            .bindPopup(this._latlngs.dst.toString());
+        let dstMarker = this._dstMarker;
+        dstMarker.bindPopup(content.dst);
         dstMarker.on('mouseover', function (e){
             dstMarker.openPopup();
         });
         dstMarker.on('mouseout', function (e){
-            dstMarker.closePopup();
+            setTimeout(function(){
+                dstMarker.closePopup();
+            }, 300);
         });
     },
 
@@ -215,7 +309,55 @@ export var OD = L.Path.extend({
             dst: dst,
             mid: mid
         };
+        // set points
+        this._setPoints();
         this._bounds = this._computeBounds();
+    },
+
+    _setPoints: function(){
+        let markerOptins = {
+            color: this.options.pointsColor, 
+            radius: this.options.pointsRadius,
+            opacity: this.options.pointsOpacity
+        };
+        this._orgMarker = L.circleMarker(
+            this._latlngs.org, 
+            markerOptins);
+        this._dstMarker = L.circleMarker(
+            this._latlngs.dst, 
+            markerOptins);
+        // set default popup content
+        if( this.options.popuopContent === undefined){
+            this.options.popuopContent = {
+                org: this._orgMarker.getLatLng().toString(),
+                dst: this._dstMarker.getLatLng().toString()
+            }
+        }
+    },
+
+    // return items which can be listen
+    getItem: function(item_type){
+        if(item_type === 'org'){
+            return this._orgMarker;
+        }else if(item_type === 'dst'){
+            return this._dstMarker;
+        } else if(item_type === 'trail'){
+            return this; 
+        }else {
+            return null;
+        }
+    },
+
+    getOrigin: function(){
+        return this._orgMarker;
+    },
+
+    getDestination: function(){
+        return this._dstMarker;
+    },
+
+    getTrail: function(){
+        return this._path;
     },
 
     _computeBounds: function () {
@@ -240,28 +382,36 @@ export var OD = L.Path.extend({
     
     trailHighlight: function(){
         // highlight trail
-        var trial = this._path;   //get svgpath
-
+        var trial = this.getTrail();   //get svgpath
+        var _options = this.options;
         this.on('mouseover', function(e){
             trial.setAttribute('stroke-dasharray', 1);
-            trial.setAttribute('stroke-width', this.options.weight*1.25);
+            trial.setAttribute('stroke-width', _options.weight*1.25);
             trial.setAttribute('stroke-opacity', 1.0);
         });
         this.on('mouseout', function(e){
-            trial.setAttribute('stroke-dasharray', this.options.dashArray);
-            trial.setAttribute('stroke-width', this.options.weight);
-            trial.setAttribute('stroke-opacity', this.options.opacity);
+            setTimeout(function(){
+                trial.setAttribute('stroke-dasharray', _options.dashArray);
+                trial.setAttribute('stroke-width', _options.weight);
+                trial.setAttribute('stroke-opacity', _options.opacity);
+            }, 300);
         })
     },
 
     _updatePath: function () {
         let latlngs = this._renderer._updateTrail(this);
-        //Bind popup of latlng to the points.
-        if(this.options.popup){
-            this.setPointPopup();   
+        // Add points to map.
+        if(this.options.points){
+            this.addPoints();
+            //Bind popup of latlng to the points.
+            if(this.options.popup){
+                this.setPointsPopup();   
+            }
         }
-        this.trailHighlight(); // highlight the trail
-        //animated plane after update trail
+        if(this.options.trailHighlight){
+            this.trailHighlight(); // highlight the trail
+        }
+        // Animate plane after trail updated
         if(this.options.trailAnimate){
             this.animateIcon(latlngs); 
         }
