@@ -1,7 +1,7 @@
 import babel from 'rollup-plugin-babel';
 import uglify from 'rollup-plugin-uglify';
 import json from 'rollup-plugin-json';
-import resolve from 'rollup-plugin-node-resolve';
+// import resolve from 'rollup-plugin-node-resolve';
 
 export default {
     input: "src/dmap.js",
@@ -11,7 +11,7 @@ export default {
         name: "dmap",
     },
     plugins: [
-        resolve(),
+        // resolve(),
         babel(
         {
             babelrc: true,

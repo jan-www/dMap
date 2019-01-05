@@ -155,7 +155,8 @@ L.CanvasLayer.Field = L.CanvasLayer.extend({
         onMouseMove: null,
         inFilter: null,
         border: false,
-        borderWidth: 0.000005
+        borderWidth: 0.00001,
+        borderColor: 'rgba(0,0,0,1)'
     },
 
     initialize: function(field, options) {
@@ -433,18 +434,20 @@ export var ScalarFieldMap = L.CanvasLayer.Field.extend({
                     let color = this._getColorFor(v);
                     
                     // if at border
-                    // if (this.options.border === true) {
-                    //     let epsilon = this.options.borderWidth / 2;
-                    //     let [ii, jj] = this._field._getDecimalIndexes(lon, lat);
-                    //     ii = Math.floor(ii); jj = Math.floor(jj);
-                    //     let gridxllCorner = this._field.xllCorner + ii * this._field.cellXSize,
-                    //     gridyllCorner = this._field.yllCorner + jj * this._field.cellYSize;
-                        
-                    //     if ((lon - gridxllCorner < epsilon || gridxllCorner + this._field.cellXSize - lon < epsilon)
-                    //     || (lat - gridyllCorner < epsilon || gridyllCorner + this._field.cellYSize - lat < epsilon)) {
-                    //         color = new RGBColor('rgba(0,0,0,1)');
-                    //     }
-                    // }
+                    if (this.options.border === true) {
+                        let epsilon = this.options.borderWidth / 2;
+                        let [ii, jj] = this._field._getDecimalIndexes(lon, lat);
+                        ii = Math.floor(ii); jj = Math.floor(jj);
+                        let xlllon = this._field.xllCorner + ii * this._field.cellXSize,
+                            yurlat = this._field.yurCorner - jj * this._field.cellYSize;
+                            
+
+                        if ((lon - xlllon < epsilon || xlllon + this._field.cellXSize - lon < epsilon)
+                        || (yurlat - lat < epsilon || lat - yurlat + this._field.cellYSize < epsilon)) {
+                            color = new RGBColor(this.options.borderColor);
+                        }
+                
+                    }
                     
                     let [R, G, B, A] = color.rgba();
                     data[pos] = R;

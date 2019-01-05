@@ -1347,7 +1347,8 @@ var dmap = (function (exports) {
       onMouseMove: null,
       inFilter: null,
       border: false,
-      borderWidth: 0.000005
+      borderWidth: 0.00001,
+      borderColor: 'rgba(0,0,0,1)'
     },
     initialize: function initialize(field, options) {
       L.Util.setOptions(this, options);
@@ -1616,7 +1617,25 @@ var dmap = (function (exports) {
 
           if (v !== null) {
             var color = this._getColorFor(v); // if at border
-            // if (this.options.border === true) {
+
+
+            if (this.options.border === true) {
+              var epsilon = this.options.borderWidth / 2;
+
+              var _this$_field$_getDeci = this._field._getDecimalIndexes(lon, lat),
+                  _this$_field$_getDeci2 = _slicedToArray(_this$_field$_getDeci, 2),
+                  ii = _this$_field$_getDeci2[0],
+                  jj = _this$_field$_getDeci2[1];
+
+              ii = Math.floor(ii);
+              jj = Math.floor(jj);
+              var xlllon = this._field.xllCorner + ii * this._field.cellXSize,
+                  yurlat = this._field.yurCorner - jj * this._field.cellYSize;
+
+              if (lon - xlllon < epsilon || xlllon + this._field.cellXSize - lon < epsilon || yurlat - lat < epsilon || lat - yurlat + this._field.cellYSize < epsilon) {
+                color = new RGBColor(this.options.borderColor);
+              }
+            } // if (this.options.border === true) {
             //     let epsilon = this.options.borderWidth / 2;
             //     let [ii, jj] = this._field._getDecimalIndexes(lon, lat);
             //     ii = Math.floor(ii); jj = Math.floor(jj);
