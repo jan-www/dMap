@@ -155,8 +155,9 @@ L.CanvasLayer.Field = L.CanvasLayer.extend({
         onMouseMove: null,
         inFilter: null,
         border: false,
-        borderWidth: 0.00001,
-        borderColor: 'rgba(0,0,0,1)'
+        borderWidth: 0.5,
+        borderColor: '#000000',
+        borderOpacity: 0.99
     },
 
     initialize: function(field, options) {
@@ -436,17 +437,11 @@ export var ScalarFieldMap = L.CanvasLayer.Field.extend({
                     // if at border
                     if (this.options.border === true) {
                         let epsilon = this.options.borderWidth / 2;
-                        let [ii, jj] = this._field._getDecimalIndexes(lon, lat);
-                        ii = Math.floor(ii); jj = Math.floor(jj);
-                        let xlllon = this._field.xllCorner + ii * this._field.cellXSize,
-                            yurlat = this._field.yurCorner - jj * this._field.cellYSize;
-                            
-
-                        if ((lon - xlllon < epsilon || xlllon + this._field.cellXSize - lon < epsilon)
-                        || (yurlat - lat < epsilon || lat - yurlat + this._field.cellYSize < epsilon)) {
+                        
+                        if (this._isOnBorder(i, j, epsilon)) {
                             color = new RGBColor(this.options.borderColor);
+                            if (color.a === null) color.a = this.options.borderOpacity
                         }
-                
                     }
                     
                     let [R, G, B, A] = color.rgba();
@@ -461,6 +456,17 @@ export var ScalarFieldMap = L.CanvasLayer.Field.extend({
                 pos = pos + 4;
             }
         }
+    },
+
+
+
+     _isOnBorder: function(x, y, epsilon) {
+        let bounds = this._pixelBounds()
+        const pixelXSize = (bounds.max.x - bounds.min.x) / this._field.nCols,
+            pixelYSize = (bounds.max.y - bounds.min.y) / this._field.nRows;
+        if ((x-bounds.min.x) % pixelXSize <= epsilon || (x-bounds.min.x) % pixelXSize >= pixelXSize-epsilon) return true;
+        if ((y-bounds.min.y) % pixelYSize <= epsilon || (y-bounds.min.y) % pixelYSize >= pixelYSize-epsilon) return true;
+        return false;
     },
 
     /**

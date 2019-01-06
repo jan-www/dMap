@@ -30,12 +30,15 @@ d3.text('data/test.asc', function (asc) {
 
       // Bilinear interpolation
       let interpolated = dmap.scalarFieldMap(s, {
+        opacity: 0.9,
         border: true,
         // color: function(v) {
         //   if (v > 0.8) return 'yellow';
         //   return 'orange';
         // },
-        opacity: 0.9
+        borderColor: new dmap.RGBColor('orange'),
+        borderWidth: 1,
+        borderOpacity: 0.2
       });
       interpolated.on('click', identify);
       interpolated.addTo(map);
