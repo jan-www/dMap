@@ -40,7 +40,7 @@ export var OD = L.Path.extend({
         // @option curvature: Number = 4.0
         // How much to simplify the trial on map. More means less curved the 
         // trial is, and less means more curved the trial is.
-        // Note that curvature have to be greater than 4.0.
+        // Note that curvature have to be greater than 3.0.
         curvature: 4.0,
 
         // @option leftSide: Boolean = false.
@@ -50,10 +50,6 @@ export var OD = L.Path.extend({
         // @option points: Boolean = false.
         // Whether to add origin and destination points on the map.
         points: false,
-
-        // @option points: Boolean = false.
-        // Whether to add origin and destination points on the map.
-        pointsSize: 3.0,
         
         // @option pointsColor: String = '#00C5CD'
         // Specify the color of the origin and destination points.

@@ -11,7 +11,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 // Prepare the data of airports and airlines
 let  airports = odData.Airport_LOC,
-    trails = odData.flights.slice(0);
+    trails = odData.flights.slice(0, 100);
 
 var ods = new dmap.ODLayer();
 // Feed data to OD layer and use `enter()` to render it 
@@ -23,7 +23,7 @@ ods.data(trails, function(t){
             // @trail relevant
             color: '#4682B4',
             dashArray: 0,
-            curvature: 8,
+            curvature: 2,
             opacity: 0.3,
             weight: 2,
             // @points relevant
