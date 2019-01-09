@@ -39,7 +39,7 @@ export var HeatmapOverlay = L.Layer.extend({
 
   initialize: function (config) {
     this.cfg = config;
-    this._el = L.DomUtil.create('div', 'leaflet-zoom-hide');
+    this._el = L.DomUtil.create('div', 'leaflet-zoom-hide'); //创建类名为leaflet-zoom-hide的div元素
     this._data = [];
     this._max = 1;
     this._min = 0;

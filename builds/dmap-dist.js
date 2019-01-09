@@ -1003,6 +1003,7 @@ var dmap = (function (exports) {
   exports.ODLayer = ODLayer;
   exports.PolylineLayer = PolylineLayer;
   exports.heatmapOverlay = heatmapOverlay;
+  exports.HeatmapOverlay = HeatmapOverlay;
   exports.BaseLayer = BaseLayer;
   exports.OD = OD;
   exports.od = od;
