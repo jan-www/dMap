@@ -19,5 +19,6 @@ OD is a class that draw a trail according to the given two points, i.e. origin p
 | popupContent | `Object` |   |  Specify the popup content when popup is true. Note that it is supposed to be like `{org: "your content a", dst: "your content b"} `. Default is {org: org.latLng, dst: dst.latLng}. |
 | trailHighlight | Boolean | false | Whether to highlight the trail. |
 | trailAnimate | Boolean | false | Whether to setup animation of trial by using the icon in options. |
+| twoWay    | Boolean   | false | Whether the trail is two-way. |
 
 And it also includes options inherited from `L.Path`.
