@@ -23,7 +23,7 @@ ods.data(trails, function(t){
             // @trail relevant
             color: '#4682B4',
             dashArray: 0,
-            curvature: 2,
+            curvature: 5,
             opacity: 0.3,
             weight: 2,
             // @points relevant
@@ -40,6 +40,7 @@ ods.data(trails, function(t){
             }, 
             trailHighlight: true,
             trailAnimate: true,
+            twoWay: t[5]==1?true: false
         }
     }
 }).enter();

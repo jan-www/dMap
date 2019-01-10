@@ -1,3 +1,4 @@
+
 /*
  * @class OD
  * @inherits L.Path
@@ -86,7 +87,11 @@ export var OD = L.Path.extend({
         
         // @option trailAnimate: Boolean = false.
         // Whether to setup animation of trial by using the icon in options.
-        trailAnimate: false
+        trailAnimate: false,
+
+        // @option twoWay: Boolean = false.
+        // Whether the trail is two-way.
+        twoWay: false
     },
 
     initialize: function (origin, destination, options) {
@@ -178,45 +183,72 @@ export var OD = L.Path.extend({
         width = Math.min(Math.max(width, 30), 64);
         height = Math.min(Math.max(height, 30), 64);
 
-        this.on('click', function(e){
-            Snap.animate(0, forth_path_length, function (step) {
-
-                //show image when plane start to animate
+        this.on('click', function(e) {
+            Snap.animate(0, full_path_length, function (step) {
+                //console.log(full_path_length);
                 spaceship_img.attr({
                     visibility: "visible"
                 });
-    
                 spaceship_img.attr({width: width, height: height});
-    
-                //last_step = step;
-    
-                let moveToPoint = Snap.path.getPointAtLength(flight_path, step);
-    
-                let x = moveToPoint.x - (width / 2);
-                let y = moveToPoint.y - (height / 2);
-    
-    
-                spaceship.transform('translate(' + x + ',' + y + ') rotate(' + (moveToPoint.alpha - 90) + ', ' + width / 2 + ', ' + height / 2 + ')');
-    
-            }, 2500, mina.easeout, function () {
-    
-                Snap.animate(forth_path_length, half_path_length, function (step) {
-    
-                    //last_step = step;
-                    let moveToPoint = Snap.path.getPointAtLength(flight_path, step);
-    
-                    let x = moveToPoint.x - width / 2;
-                    let y = moveToPoint.y - height / 2;
-                    spaceship.transform('translate(' + x + ',' + y + ') rotate(' + (moveToPoint.alpha - 90) + ', ' + width / 2 + ', ' + height / 2 + ')');
-                }, 7000, mina.easein, function () {
-                    //done
-                    spaceship_img.attr({
-                        visibility: "hidden"
-                    });
+
+                var point = Snap.path.getPointAtLength(flight_path, step); // 根据path长度变化获取坐标
+                var m = new Snap.Matrix();
+                m.translate(point.x-(width/2), point.y-(height/2));
+                m.rotate(point.alpha - 90, width/2, height/2); // 使飞机总是朝着曲线方向。point.alpha：点的切线和水平线形成的夹角
+                spaceship_img.transform(m);
+            }, 7000, mina.easeinout, function(){
+                spaceship_img.attr({
+                    visibility: "hidden"
                 });
+            })
+        })
+
+        // this.on('click', function(e){
+        //     Snap.animate(0, forth_path_length, function (step) {
+
+        //         //show image when plane start to animate
+        //         spaceship_img.attr({
+        //             visibility: "visible"
+        //         });
     
-            });
-        });
+        //         spaceship_img.attr({width: width, height: height});
+    
+        //         //last_step = step;
+    
+        //         let moveToPoint = Snap.path.getPointAtLength(flight_path, step);
+    
+        //         let x = moveToPoint.x - (width / 2);
+        //         let y = moveToPoint.y - (height / 2);
+    
+    
+        //         spaceship.transform('translate(' + x + ',' + y + ') rotate(' + (moveToPoint.alpha - 90) + ', ' + width / 2 + ', ' + height / 2 + ')');
+    
+        //     }, 2500,  function () {
+    
+        //         Snap.animate(forth_path_length, half_path_length, function (step) {
+    
+        //             //last_step = step;
+        //             let moveToPoint = Snap.path.getPointAtLength(flight_path, step);
+    
+        //             let x = moveToPoint.x - width / 2;
+        //             let y = moveToPoint.y - height / 2;
+        //             spaceship.transform('translate(' + x + ',' + y + ') rotate(' + (moveToPoint.alpha - 90) + ', ' + width / 2 + ', ' + height / 2 + ')');
+        //         }, 2500, function () {
+                    
+        //             // Snap.animate(half_path_length, half_path_length + forth_path_length, function(step){
+        //             //     let moveToPoint = Snap.path.getPointAtLength(flight_path, step);
+        //             // }, 2500, function(){
+
+        //             // })
+                    
+        //             //done
+        //             spaceship_img.attr({
+        //                 visibility: "hidden"
+        //             });
+        //         });
+    
+        //     });
+        // });
     },
     
     addPoints: function(){
@@ -380,19 +412,30 @@ export var OD = L.Path.extend({
         // highlight trail
         var trial = this.getTrail();   //get svgpath
         var _options = this.options;
+        var tpopup = L.popup();
         this.on('mouseover', function(e){
             trial.setAttribute('stroke-dasharray', 1);
             trial.setAttribute('stroke-width', _options.weight*1.25);
             trial.setAttribute('stroke-opacity', 1.0);
+            if (_options.twoWay) { // render two-way trail
+                tpopup
+                    .setLatLng(e.latlng)
+                    .setContent('I am a two-way trail.')
+                    .openOn(this._map);
+            }
         });
         this.on('mouseout', function(e){
             setTimeout(function(){
                 trial.setAttribute('stroke-dasharray', _options.dashArray);
                 trial.setAttribute('stroke-width', _options.weight);
                 trial.setAttribute('stroke-opacity', _options.opacity);
+                if(_options.twoWay){
+                    tpopup.remove();
+                }
             }, 300);
         })
     },
+
 
     _updatePath: function () {
         let latlngs = this._renderer._updateTrail(this);

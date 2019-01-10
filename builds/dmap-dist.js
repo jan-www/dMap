@@ -416,7 +416,7 @@ var dmap = (function (exports) {
       // @option curvature: Number = 4.0
       // How much to simplify the trial on map. More means less curved the 
       // trial is, and less means more curved the trial is.
-      // Note that curvature have to be greater than 4.0.
+      // Note that curvature have to be greater than 3.0.
       curvature: 4.0,
       // @option leftSide: Boolean = false.
       // Make the trial on the right side of line from origin to destination. 
@@ -424,9 +424,6 @@ var dmap = (function (exports) {
       // @option points: Boolean = false.
       // Whether to add origin and destination points on the map.
       points: false,
-      // @option points: Boolean = false.
-      // Whether to add origin and destination points on the map.
-      pointsSize: 3.0,
       // @option pointsColor: String = '#00C5CD'
       // Specify the color of the origin and destination points.
       pointsColor: '#00C5CD',
@@ -456,7 +453,10 @@ var dmap = (function (exports) {
       trailHighlight: false,
       // @option trailAnimate: Boolean = false.
       // Whether to setup animation of trial by using the icon in options.
-      trailAnimate: false
+      trailAnimate: false,
+      // @option twoWay: Boolean = false.
+      // Whether the trail is two-way.
+      twoWay: false
     },
     initialize: function initialize(origin, destination, options) {
       L.setOptions(this, options);
@@ -525,7 +525,6 @@ var dmap = (function (exports) {
         'stroke': 'none'
       });
       var full_path_length = Snap.path.getTotalLength(flight_path);
-      var half_path_length = full_path_length / 2;
       var forth_path_length = full_path_length / 4;
 
       var width = forth_path_length / this._map.getZoom();
@@ -535,35 +534,58 @@ var dmap = (function (exports) {
       width = Math.min(Math.max(width, 30), 64);
       height = Math.min(Math.max(height, 30), 64);
       this.on('click', function (e) {
-        Snap.animate(0, forth_path_length, function (step) {
-          //show image when plane start to animate
+        Snap.animate(0, full_path_length, function (step) {
+          //console.log(full_path_length);
           spaceship_img.attr({
             visibility: "visible"
           });
           spaceship_img.attr({
             width: width,
             height: height
-          }); //last_step = step;
+          });
+          var point = Snap.path.getPointAtLength(flight_path, step); // 根据path长度变化获取坐标
 
-          var moveToPoint = Snap.path.getPointAtLength(flight_path, step);
-          var x = moveToPoint.x - width / 2;
-          var y = moveToPoint.y - height / 2;
-          spaceship.transform('translate(' + x + ',' + y + ') rotate(' + (moveToPoint.alpha - 90) + ', ' + width / 2 + ', ' + height / 2 + ')');
-        }, 2500, mina.easeout, function () {
-          Snap.animate(forth_path_length, half_path_length, function (step) {
-            //last_step = step;
-            var moveToPoint = Snap.path.getPointAtLength(flight_path, step);
-            var x = moveToPoint.x - width / 2;
-            var y = moveToPoint.y - height / 2;
-            spaceship.transform('translate(' + x + ',' + y + ') rotate(' + (moveToPoint.alpha - 90) + ', ' + width / 2 + ', ' + height / 2 + ')');
-          }, 7000, mina.easein, function () {
-            //done
-            spaceship_img.attr({
-              visibility: "hidden"
-            });
+          var m = new Snap.Matrix();
+          m.translate(point.x - width / 2, point.y - height / 2);
+          m.rotate(point.alpha - 90, width / 2, height / 2); // 使飞机总是朝着曲线方向。point.alpha：点的切线和水平线形成的夹角
+
+          spaceship_img.transform(m);
+        }, 7000, mina.easeinout, function () {
+          spaceship_img.attr({
+            visibility: "hidden"
           });
         });
-      });
+      }); // this.on('click', function(e){
+      //     Snap.animate(0, forth_path_length, function (step) {
+      //         //show image when plane start to animate
+      //         spaceship_img.attr({
+      //             visibility: "visible"
+      //         });
+      //         spaceship_img.attr({width: width, height: height});
+      //         //last_step = step;
+      //         let moveToPoint = Snap.path.getPointAtLength(flight_path, step);
+      //         let x = moveToPoint.x - (width / 2);
+      //         let y = moveToPoint.y - (height / 2);
+      //         spaceship.transform('translate(' + x + ',' + y + ') rotate(' + (moveToPoint.alpha - 90) + ', ' + width / 2 + ', ' + height / 2 + ')');
+      //     }, 2500,  function () {
+      //         Snap.animate(forth_path_length, half_path_length, function (step) {
+      //             //last_step = step;
+      //             let moveToPoint = Snap.path.getPointAtLength(flight_path, step);
+      //             let x = moveToPoint.x - width / 2;
+      //             let y = moveToPoint.y - height / 2;
+      //             spaceship.transform('translate(' + x + ',' + y + ') rotate(' + (moveToPoint.alpha - 90) + ', ' + width / 2 + ', ' + height / 2 + ')');
+      //         }, 2500, function () {
+      //             // Snap.animate(half_path_length, half_path_length + forth_path_length, function(step){
+      //             //     let moveToPoint = Snap.path.getPointAtLength(flight_path, step);
+      //             // }, 2500, function(){
+      //             // })
+      //             //done
+      //             spaceship_img.attr({
+      //                 visibility: "hidden"
+      //             });
+      //         });
+      //     });
+      // });
     },
     addPoints: function addPoints() {
       this._orgMarker.addTo(this._map);
@@ -701,16 +723,26 @@ var dmap = (function (exports) {
       var trial = this.getTrail(); //get svgpath
 
       var _options = this.options;
+      var tpopup = L.popup();
       this.on('mouseover', function (e) {
         trial.setAttribute('stroke-dasharray', 1);
         trial.setAttribute('stroke-width', _options.weight * 1.25);
         trial.setAttribute('stroke-opacity', 1.0);
+
+        if (_options.twoWay) {
+          // render two-way trail
+          tpopup.setLatLng(e.latlng).setContent('I am a two-way trail.').openOn(this._map);
+        }
       });
       this.on('mouseout', function (e) {
         setTimeout(function () {
           trial.setAttribute('stroke-dasharray', _options.dashArray);
           trial.setAttribute('stroke-width', _options.weight);
           trial.setAttribute('stroke-opacity', _options.opacity);
+
+          if (_options.twoWay) {
+            tpopup.remove();
+          }
         }, 300);
       });
     },
@@ -834,7 +866,7 @@ var dmap = (function (exports) {
       return _possibleConstructorReturn(this, _getPrototypeOf(ODLayer).call(this, options));
     } // @method generate
     // 
-    // Return Array of L.circle.
+    // Return Array of L.od.
 
 
     _createClass(ODLayer, [{
