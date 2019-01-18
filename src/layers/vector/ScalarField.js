@@ -419,7 +419,11 @@ export var ScalarFieldMap = L.CanvasLayer.Field.extend({
             this._map.getCenter()
             );
         
+        let borderColor = this.getBorderColor().toRGBA();
+        ctx.lineWidth = this.options.borderWidth / 2;
+        ctx.strokeStyle = borderColor;
         for (var j = 0; j < this._field.nRows; ++j) {
+            // console.log(j)
             for (var i = 0; i < this._field.nCols; ++i) {
                 let value = this._field._valueAtIndexes(i, j);
                 if (value === null) continue;
@@ -430,23 +434,14 @@ export var ScalarFieldMap = L.CanvasLayer.Field.extend({
                     _yur = this._field.yurCorner - j*this._field.cellYSize;
                 let _xllPixel = this._map.latLngToContainerPoint([_yur, _xll]).x,
                     _yurPixel = this._map.latLngToContainerPoint([_yur, _xll]).y;
-
-
-                ctx.fillRect(
-                    _xllPixel,// - offsetPoint.x, 
-                    _yurPixel,// - offsetPoint.y,
-                    pixelXSize, 
-                    pixelYSize
-                )
-                // ctx.strokeStyle='black';
-                // ctx.lineWidth = this.options.borderWidth / 2;
-                // ctx.rect(
-                //     xllPixelCorner+i*pixelXSize - offsetPoint.x, 
-                //     yurPixelCorner+j*pixelYSize - offsetPoint.y,
-                //     pixelXSize, 
-                //     pixelYSize
-                // );
+                // console.log(_xllPixel,  _yurPixel, pixelXSize,  pixelYSize);
+                ctx.fillRect(_xllPixel,  _yurPixel, pixelXSize,  pixelYSize)
+                if (this.options.border && 3*this.options.borderWidth < Math.min(pixelXSize, pixelYSize)) {
+                    ctx.strokeRect(_xllPixel, _yurPixel, pixelXSize, pixelYSize)
+                }
             }
+
+
         }
         // let img = ctx.createImageData(width, height);
         // let data = img.data;
@@ -456,8 +451,15 @@ export var ScalarFieldMap = L.CanvasLayer.Field.extend({
 
         // ctx.strokeStyle="red";
         // ctx.rect(5,5,pixelXSize,pixelYSize);
-        },
+    },
 
+    getBorderColor: function() {
+        let color = new RGBColor(this.options.borderColor);
+        if (color.a === null) {
+            color.a = this.options.borderOpacity;
+        }
+        return color;
+    },
     /**
      * Prepares the image in data, as array with RGBAs
      * [R1, G1, B1, A1, R2, G2, B2, A2...]

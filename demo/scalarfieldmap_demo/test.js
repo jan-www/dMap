@@ -19,7 +19,7 @@ d3.text('data/out.asc', function (asc) {
 
       // Bilinear interpolation
       let interpolated = dmap.scalarFieldMap(s, {
-        opacity: 0.99,
+        opacity: 0.78,
         border: true,
         color: function(v) {
           if (v < 3.78571428) return '#FFFFB2';
@@ -30,9 +30,9 @@ d3.text('data/out.asc', function (asc) {
           if (v < 22.7142857) return '#E31A1C';
           return '#B10026';
         },
-        borderColor: 'black',
-        borderWidth: 6,
-        borderOpacity: 0.9
+        borderColor: '#111111',
+        borderWidth: 1,
+        borderOpacity: 0.7
       });
       interpolated.on('click', identify);
       interpolated.addTo(map);

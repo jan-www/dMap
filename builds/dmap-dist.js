@@ -1635,7 +1635,12 @@ var dmap = (function (exports) {
 
       var offsetPoint = this._map._latLngToNewLayerPoint(this._map.getBounds().getNorthWest(), this._map.getZoom(), this._map.getCenter());
 
+      var borderColor = this.getBorderColor().toRGBA();
+      ctx.lineWidth = this.options.borderWidth / 2;
+      ctx.strokeStyle = borderColor;
+
       for (var j = 0; j < this._field.nRows; ++j) {
+        // console.log(j)
         for (var i = 0; i < this._field.nCols; ++i) {
           var value = this._field._valueAtIndexes(i, j);
 
@@ -1649,18 +1654,14 @@ var dmap = (function (exports) {
               _yur = this._field.yurCorner - j * this._field.cellYSize;
 
           var _xllPixel = this._map.latLngToContainerPoint([_yur, _xll]).x,
-              _yurPixel = this._map.latLngToContainerPoint([_yur, _xll]).y;
+              _yurPixel = this._map.latLngToContainerPoint([_yur, _xll]).y; // console.log(_xllPixel,  _yurPixel, pixelXSize,  pixelYSize);
 
-          ctx.fillRect(_xllPixel, // - offsetPoint.x, 
-          _yurPixel, // - offsetPoint.y,
-          pixelXSize, pixelYSize); // ctx.strokeStyle='black';
-          // ctx.lineWidth = this.options.borderWidth / 2;
-          // ctx.rect(
-          //     xllPixelCorner+i*pixelXSize - offsetPoint.x, 
-          //     yurPixelCorner+j*pixelYSize - offsetPoint.y,
-          //     pixelXSize, 
-          //     pixelYSize
-          // );
+
+          ctx.fillRect(_xllPixel, _yurPixel, pixelXSize, pixelYSize);
+
+          if (this.options.border && 3 * this.options.borderWidth < Math.min(pixelXSize, pixelYSize)) {
+            ctx.strokeRect(_xllPixel, _yurPixel, pixelXSize, pixelYSize);
+          }
         }
       } // let img = ctx.createImageData(width, height);
       // let data = img.data;
@@ -1669,6 +1670,15 @@ var dmap = (function (exports) {
       // ctx.strokeStyle="red";
       // ctx.rect(5,5,pixelXSize,pixelYSize);
 
+    },
+    getBorderColor: function getBorderColor() {
+      var color = new RGBColor(this.options.borderColor);
+
+      if (color.a === null) {
+        color.a = this.options.borderOpacity;
+      }
+
+      return color;
     },
 
     /**
