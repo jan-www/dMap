@@ -13,7 +13,7 @@ export class ODLayer extends BaseLayer{
 
     // @method generate
     // 
-    // Return Array of L.circle.
+    // Return Array of L.od.
     generate(){
         return this._data.map(
             (data)=>{return od(
