@@ -416,7 +416,7 @@ var dmap = (function (exports) {
       // @option curvature: Number = 4.0
       // How much to simplify the trial on map. More means less curved the 
       // trial is, and less means more curved the trial is.
-      // Note that curvature have to be greater than 4.0.
+      // Note that curvature have to be greater than 3.0.
       curvature: 4.0,
       // @option leftSide: Boolean = false.
       // Make the trial on the right side of line from origin to destination. 
@@ -424,9 +424,6 @@ var dmap = (function (exports) {
       // @option points: Boolean = false.
       // Whether to add origin and destination points on the map.
       points: false,
-      // @option points: Boolean = false.
-      // Whether to add origin and destination points on the map.
-      pointsSize: 3.0,
       // @option pointsColor: String = '#00C5CD'
       // Specify the color of the origin and destination points.
       pointsColor: '#00C5CD',
@@ -1327,12 +1324,9 @@ var dmap = (function (exports) {
       this._frame = null;
     },
     //------------------------------------------------------------------------------
-    _animateZoom: function _animateZoom(e) {
-      var scale = this._map.getZoomScale(e.zoom);
-
-      var offset = this._map._latLngToNewLayerPoint(this._map.getBounds().getNorthWest(), e.zoom, e.center);
-
-      L.DomUtil.setTransform(this._canvas, offset, scale);
+    _animateZoom: function _animateZoom(e) {// var scale = this._map.getZoomScale(e.zoom);
+      // var offset = this._map._latLngToNewLayerPoint(this._map.getBounds().getNorthWest(), e.zoom, e.center);
+      // L.DomUtil.setTransform(this._canvas, offset, scale);
     }
   });
 
@@ -1595,12 +1589,51 @@ var dmap = (function (exports) {
 
       var width = this._canvas.width;
       var height = this._canvas.height;
-      var img = ctx.createImageData(width, height);
-      var data = img.data;
 
-      this._prepareImageIn(data, width, height);
+      var bounds = this._pixelBounds(),
+          ulCorner = this._map.latLngToLayerPoint([this._field.yurCorner, this._field.xllCorner]);
 
-      ctx.putImageData(img, 0, 0);
+      var xllPixelCorner = ulCorner.x,
+          yurPixelCorner = ulCorner.y;
+      var pixelXSize = (bounds.max.x - bounds.min.x) / this._field.nCols,
+          pixelYSize = (bounds.max.y - bounds.min.y) / this._field.nRows;
+
+      var offsetPoint = this._map._latLngToNewLayerPoint(this._map.getBounds().getNorthWest(), this._map.getZoom(), this._map.getCenter());
+
+      for (var j = 0; j < this._field.nRows; ++j) {
+        for (var i = 0; i < this._field.nCols; ++i) {
+          var value = this._field._valueAtIndexes(i, j);
+
+          if (value === null) continue;
+
+          var color = this._getColorFor(value);
+
+          ctx.fillStyle = color.toRGBA();
+
+          var _xll = this._field.xllCorner + i * this._field.cellXSize,
+              _yur = this._field.yurCorner - j * this._field.cellYSize;
+
+          var _xllPixel = this._map.latLngToContainerPoint([_yur, _xll]).x,
+              _yurPixel = this._map.latLngToContainerPoint([_yur, _xll]).y;
+
+          ctx.fillRect(_xllPixel, // - offsetPoint.x, 
+          _yurPixel, // - offsetPoint.y,
+          pixelXSize, pixelYSize); // ctx.strokeStyle='black';
+          // ctx.lineWidth = this.options.borderWidth / 2;
+          // ctx.rect(
+          //     xllPixelCorner+i*pixelXSize - offsetPoint.x, 
+          //     yurPixelCorner+j*pixelYSize - offsetPoint.y,
+          //     pixelXSize, 
+          //     pixelYSize
+          // );
+        }
+      } // let img = ctx.createImageData(width, height);
+      // let data = img.data;
+      // this._prepareImageIn(data, width, height);
+      // ctx.putImageData(img, 0, 0);
+      // ctx.strokeStyle="red";
+      // ctx.rect(5,5,pixelXSize,pixelYSize);
+
     },
 
     /**
@@ -2422,7 +2455,8 @@ var dmap = (function (exports) {
         }
 
         var p = header;
-        p.zs = zs; //console.timeEnd('ScalarField from ASC');
+        p.zs = zs; // p.range = [min_value, max]
+        //console.timeEnd('ScalarField from ASC');
 
         return new ScalarField(p);
       }
@@ -2514,8 +2548,7 @@ var dmap = (function (exports) {
           var zs = rasters[bandIndex]; // left-right and top-down order
 
           if (fileDirectory.GDAL_NODATA) {
-            var noData = parseFloat(fileDirectory.GDAL_NODATA); // console.log(noData);
-
+            var noData = parseFloat(fileDirectory.GDAL_NODATA);
             var simpleZS = Array.from(zs); // to simple array, so null is allowed | TODO efficiency??
 
             zs = simpleZS.map(function (z) {
@@ -2548,8 +2581,7 @@ var dmap = (function (exports) {
       _this.zs = params['zs'];
       _this.grid = _this._buildGrid();
 
-      _this._updateRange(); //console.log(`ScalarField created (${this.nCols} x ${this.nRows})`);
-
+      _this._updateRange();
 
       return _this;
     }
@@ -2618,7 +2650,17 @@ var dmap = (function (exports) {
           data = data.filter(this._inFilter);
         }
 
-        return [Math.min.apply(null, data), Math.max.apply(null, data)];
+        var min_value = undefined,
+            max_value = undefined;
+
+        for (var i = 0; i < data.length; ++i) {
+          var v = data[i];
+          if (v === null) continue;
+          min_value = min_value === undefined ? v : min_value > v ? v : min_value;
+          max_value = max_value === undefined ? v : max_value < v ? v : max_value;
+        }
+
+        return [min_value, max_value];
       }
       /**
        * Bilinear interpolation for Number

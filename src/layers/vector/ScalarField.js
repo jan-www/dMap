@@ -129,10 +129,10 @@ L.CanvasLayer = L.Layer.extend({
 
     //------------------------------------------------------------------------------
     _animateZoom: function (e) {
-        var scale = this._map.getZoomScale(e.zoom);
-        var offset = this._map._latLngToNewLayerPoint(this._map.getBounds().getNorthWest(), e.zoom, e.center);
+        // var scale = this._map.getZoomScale(e.zoom);
+        // var offset = this._map._latLngToNewLayerPoint(this._map.getBounds().getNorthWest(), e.zoom, e.center);
 
-        L.DomUtil.setTransform(this._canvas, offset, scale);
+        // L.DomUtil.setTransform(this._canvas, offset, scale);
     }
 });
 
@@ -404,13 +404,59 @@ export var ScalarFieldMap = L.CanvasLayer.Field.extend({
         let ctx = this._getDrawingContext();
         let width = this._canvas.width;
         let height = this._canvas.height;
+        
+        let bounds = this._pixelBounds(),
+            ulCorner = this._map.latLngToLayerPoint(
+                [this._field.yurCorner, this._field.xllCorner]
+            );
+        let xllPixelCorner = ulCorner.x, yurPixelCorner = ulCorner.y;
+        var pixelXSize = (bounds.max.x - bounds.min.x) / this._field.nCols,
+            pixelYSize = (bounds.max.y - bounds.min.y) / this._field.nRows;
+        
+        let offsetPoint = this._map._latLngToNewLayerPoint(
+            this._map.getBounds().getNorthWest(), 
+            this._map.getZoom(), 
+            this._map.getCenter()
+            );
+        
+        for (var j = 0; j < this._field.nRows; ++j) {
+            for (var i = 0; i < this._field.nCols; ++i) {
+                let value = this._field._valueAtIndexes(i, j);
+                if (value === null) continue;
+                let color = this._getColorFor(value)
+                ctx.fillStyle = color.toRGBA();
 
-        let img = ctx.createImageData(width, height);
-        let data = img.data;
+                let _xll = this._field.xllCorner + i*this._field.cellXSize,
+                    _yur = this._field.yurCorner - j*this._field.cellYSize;
+                let _xllPixel = this._map.latLngToContainerPoint([_yur, _xll]).x,
+                    _yurPixel = this._map.latLngToContainerPoint([_yur, _xll]).y;
 
-        this._prepareImageIn(data, width, height);
-        ctx.putImageData(img, 0, 0);
-    },
+
+                ctx.fillRect(
+                    _xllPixel,// - offsetPoint.x, 
+                    _yurPixel,// - offsetPoint.y,
+                    pixelXSize, 
+                    pixelYSize
+                )
+                // ctx.strokeStyle='black';
+                // ctx.lineWidth = this.options.borderWidth / 2;
+                // ctx.rect(
+                //     xllPixelCorner+i*pixelXSize - offsetPoint.x, 
+                //     yurPixelCorner+j*pixelYSize - offsetPoint.y,
+                //     pixelXSize, 
+                //     pixelYSize
+                // );
+            }
+        }
+        // let img = ctx.createImageData(width, height);
+        // let data = img.data;
+        
+        // this._prepareImageIn(data, width, height);
+        // ctx.putImageData(img, 0, 0);
+
+        // ctx.strokeStyle="red";
+        // ctx.rect(5,5,pixelXSize,pixelYSize);
+        },
 
     /**
      * Prepares the image in data, as array with RGBAs
@@ -1081,6 +1127,7 @@ export class ScalarField extends Field {
 
         // Data (left-right and top-down)
         let zs = [];
+        
         for (let i = 6; i < lines.length; i++) {
             let line = lines[i].trim();
             if (line === '') break;
@@ -1092,12 +1139,13 @@ export class ScalarField extends Field {
                     floatItem !== header.noDataValue
                         ? floatItem * scaleFactor
                         : null;
+
                 zs.push(v);
             });
         }
         let p = header;
         p.zs = zs;
-
+        // p.range = [min_value, max]
         //console.timeEnd('ScalarField from ASC');
         return new ScalarField(p);
     }
@@ -1187,7 +1235,6 @@ export class ScalarField extends Field {
 
             if (fileDirectory.GDAL_NODATA) {
                 let noData = parseFloat(fileDirectory.GDAL_NODATA);
-                // console.log(noData);
                 let simpleZS = Array.from(zs); // to simple array, so null is allowed | TODO efficiency??
                 zs = simpleZS.map(function(z) {
                     return z === noData ? null : z;
@@ -1216,7 +1263,7 @@ export class ScalarField extends Field {
 
         this.grid = this._buildGrid();
         this._updateRange();
-        //console.log(`ScalarField created (${this.nCols} x ${this.nRows})`);
+        
     }
 
     /**
@@ -1267,7 +1314,18 @@ export class ScalarField extends Field {
         if (this._inFilter) {
             data = data.filter(this._inFilter);
         }
-        return [Math.min.apply(null, data), Math.max.apply(null, data)];
+        let min_value = undefined, max_value = undefined;
+        for (let i = 0; i < data.length; ++i) {
+            let v = data[i]
+            if (v === null) continue;
+
+            min_value = min_value === undefined ? 
+                v : min_value > v ? v : min_value;
+            max_value = max_value === undefined ? 
+                v : max_value < v ? v : max_value;
+        }
+        
+        return [min_value, max_value]
     }
 
     /**
