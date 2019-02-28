@@ -39,4 +39,5 @@ d3.text('data/out.asc', function (asc) {
       map.fitBounds(interpolated.getBounds());
 
       l = interpolated;
+      // l.options.color = chroma.scale(['white', 'black']).domain(l._field.range);
 });

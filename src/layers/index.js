@@ -7,5 +7,5 @@ export {PolylineLayer} from './PolylineLayer.js';
 // export {heatmapOverlay} from './heatmap.js'
 
 export {ScalarFieldMap, scalarFieldMap, ScalarField} from './vector/ScalarField.js'
-
+export {CanvasPolylineLayer} from './CanvasPolylineLayer.js'
 export * from './vector/index';

@@ -1235,6 +1235,10 @@ var dmap = (function (exports) {
       return 'rgba(' + this.r + ', ' + this.g + ', ' + this.b + ', ' + (this.a === null ? 1 : this.a) + ')';
     };
 
+    this.toString = function () {
+      return this.a === null ? this.toHex() : this.toRGBA();
+    };
+
     this.rgba = function () {
       return [this.r, this.g, this.b, this.a];
     };
@@ -1247,8 +1251,7 @@ var dmap = (function (exports) {
     copyright Stanislav Sumbera,  2016 , sumbera.com , license MIT
     originally created and motivated by L.CanvasOverlay  available here: https://gist.github.com/Sumbera/11114288
   */
-
-  L.CanvasLayer = L.Layer.extend({
+  var CanvasLayer = L.Layer.extend({
     // -- initialized is called on prototype
     initialize: function initialize(options) {
       this._map = null;
@@ -1359,22 +1362,21 @@ var dmap = (function (exports) {
       this._frame = null;
     },
     //------------------------------------------------------------------------------
-    _animateZoom: function _animateZoom(e) {// var scale = this._map.getZoomScale(e.zoom);
-      // var offset = this._map._latLngToNewLayerPoint(this._map.getBounds().getNorthWest(), e.zoom, e.center);
-      // L.DomUtil.setTransform(this._canvas, offset, scale);
+    _animateZoom: function _animateZoom(e) {
+      var scale = this._map.getZoomScale(e.zoom);
+
+      var offset = this._map._latLngToNewLayerPoint(this._map.getBounds().getNorthWest(), e.zoom, e.center);
+
+      L.DomUtil.setTransform(this._canvas, offset, scale);
     }
   });
 
-  L.canvasLayer = function () {
-    return new L.CanvasLayer();
-  };
   /**
    * Abstract class for a Field layer on canvas, aka 'a Raster layer'
    * (ScalarField or a VectorField)
    */
 
-
-  L.CanvasLayer.Field = L.CanvasLayer.extend({
+  var FieldMap = CanvasLayer.extend({
     options: {
       mouseMoveCursor: {
         value: 'pointer',
@@ -1398,7 +1400,7 @@ var dmap = (function (exports) {
       }
     },
     getEvents: function getEvents() {
-      var events = L.CanvasLayer.prototype.getEvents.call(this);
+      var events = CanvasLayer.prototype.getEvents.call(this);
       events.zoomstart = this._hideCanvas.bind(this);
       events.zoomend = this._showCanvas.bind(this);
       return events;
@@ -1456,12 +1458,13 @@ var dmap = (function (exports) {
 
       L.DomUtil.setPosition(this._canvas, topLeft);
     },
+    _animateZoom: function _animateZoom() {},
     onLayerWillUnmount: function onLayerWillUnmount() {
       this._disableIdentify();
     },
     needRedraw: function needRedraw() {
       if (this._map && this._field) {
-        L.CanvasLayer.prototype.needRedraw.call(this);
+        CanvasLayer.prototype.needRedraw.call(this);
       }
     },
 
@@ -1543,7 +1546,7 @@ var dmap = (function (exports) {
    * ScalarField on canvas (a 'Raster')
    */
 
-  var ScalarFieldMap = L.CanvasLayer.Field.extend({
+  var ScalarFieldMap = FieldMap.extend({
     options: {
       type: 'colormap',
       // [colormap|vector]
@@ -1557,7 +1560,7 @@ var dmap = (function (exports) {
 
     },
     initialize: function initialize(scalarField, options) {
-      L.CanvasLayer.Field.prototype.initialize.call(this, scalarField, options);
+      FieldMap.prototype.initialize.call(this, scalarField, options);
       L.Util.setOptions(this, options);
     },
     _defaultColorScale: function _defaultColorScale() {
@@ -1608,7 +1611,7 @@ var dmap = (function (exports) {
       }
     },
     _showCanvas: function _showCanvas() {
-      L.CanvasLayer.Field.prototype._showCanvas.call(this);
+      FieldMap.prototype._showCanvas.call(this);
 
       this.needRedraw(); // TODO check spurious redraw (e.g. hide/show without moving map)
     },
@@ -1667,8 +1670,6 @@ var dmap = (function (exports) {
       // let data = img.data;
       // this._prepareImageIn(data, width, height);
       // ctx.putImageData(img, 0, 0);
-      // ctx.strokeStyle="red";
-      // ctx.rect(5,5,pixelXSize,pixelYSize);
 
     },
     getBorderColor: function getBorderColor() {
@@ -1679,64 +1680,6 @@ var dmap = (function (exports) {
       }
 
       return color;
-    },
-
-    /**
-     * Prepares the image in data, as array with RGBAs
-     * [R1, G1, B1, A1, R2, G2, B2, A2...]
-     * @private
-     * @param {[[Type]]} data   [[Description]]
-     * @param {Numver} width
-     * @param {Number} height
-     */
-    _prepareImageIn: function _prepareImageIn(data, width, height) {
-      var f = this.options.interpolate ? 'interpolatedValueAt' : 'valueAt';
-      var pos = 0;
-
-      for (var j = 0; j < height; j++) {
-        for (var i = 0; i < width; i++) {
-          var pointCoords = this._map.containerPointToLatLng([i, j]);
-
-          var lon = pointCoords.lng;
-          var lat = pointCoords.lat;
-
-          var v = this._field[f](lon, lat); // 'valueAt' | 'interpolatedValueAt' || TODO check some 'artifacts'
-
-
-          if (v !== null) {
-            var color = this._getColorFor(v); // if at border
-
-
-            if (this.options.border === true) {
-              var epsilon = this.options.borderWidth / 2;
-
-              if (this._isOnBorder(i, j, epsilon)) {
-                color = new RGBColor(this.options.borderColor);
-                if (color.a === null) color.a = this.options.borderOpacity;
-              }
-            }
-
-            var _color$rgba = color.rgba(),
-                _color$rgba2 = _slicedToArray(_color$rgba, 4),
-                R = _color$rgba2[0],
-                G = _color$rgba2[1],
-                B = _color$rgba2[2],
-                A = _color$rgba2[3];
-
-            data[pos] = R;
-            data[pos + 1] = G;
-            data[pos + 2] = B;
-
-            if (A === null) {
-              A = this.options.opacity;
-            }
-
-            data[pos + 3] = parseInt(A * 255); // not percent in alpha but hex 0-255
-          }
-
-          pos = pos + 4;
-        }
-      }
     },
     _isOnBorder: function _isOnBorder(x, y, epsilon) {
       var bounds = this._pixelBounds();
@@ -1829,7 +1772,7 @@ var dmap = (function (exports) {
       var c = this.options.color; // e.g. for a constant 'red'
 
       if (typeof c === 'function') {
-        c = this.options.color(v);
+        c = String(this.options.color(v));
       }
 
       var color = new RGBColor(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
@@ -2731,6 +2674,85 @@ var dmap = (function (exports) {
     return ScalarField;
   }(Field);
 
+  var CanvasPolylineLayer = CanvasLayer.extend({
+    options: {
+      color: '#000000',
+      opacity: 1.0,
+      lineWidth: 1
+    },
+    initialize: function initialize(polylines, options) {
+      L.Util.setOptions(this, options);
+      this._polylines = this._updatePolylines(polylines);
+      console.log('CanvasPolylineLayer init');
+      console.log(this._polylines);
+    },
+    _updatePolylines: function _updatePolylines(polylines) {
+      var ret = [];
+
+      for (var i = 0; i < polylines.length; ++i) {
+        ret.push(polylines[i].map(function (x) {
+          return L.latLng(x);
+        }));
+      }
+
+      return ret;
+    },
+    _updateOpacity: function _updateOpacity() {
+      L.DomUtil.setOpacity(this._canvas, this.options.opacity);
+    },
+    setOpacity: function setOpacity(opacity) {
+      this.options.opacity = opacity;
+
+      if (this._canvas) {
+        this._updateOpacity();
+      }
+
+      return this;
+    },
+    getBounds: function getBounds() {
+      var bounds = L.latLngBounds(this._polylines);
+      return bounds;
+    },
+    onDrawLayer: function onDrawLayer(viewInfo) {
+      // if (!this.isVisible()) return;
+      this._updateOpacity();
+
+      this._drawPolylines();
+    },
+    needRedraw: function needRedraw() {
+      if (this._map) {
+        CanvasLayer.prototype.needRedraw.call(this);
+      }
+    },
+    _drawPolylines: function _drawPolylines() {
+      var ctx = this._getDrawingContext();
+
+      ctx.strokeStyle = this.options.color;
+      ctx.lineWidth = this.options.lineWidth;
+
+      for (var i = 0; i < this._polylines.length; ++i) {
+        var latlngs = this._polylines[i];
+        ctx.beginPath();
+        if (latlngs.length) ctx.moveTo(this._map.latLngToContainerPoint(latlngs[0]).x, this._map.latLngToContainerPoint(latlngs[0]).y);
+        console.log('ctx.moveTo(', this._map.latLngToContainerPoint(latlngs[0]).x, ',', this._map.latLngToContainerPoint(latlngs[0]).y, ')');
+
+        for (var j = 1; j < latlngs.length; ++j) {
+          ctx.lineTo(this._map.latLngToContainerPoint(latlngs[j]).x, this._map.latLngToContainerPoint(latlngs[j]).y);
+          console.log('ctx.lineTo(', this._map.latLngToContainerPoint(latlngs[j]).x, ',', this._map.latLngToContainerPoint(latlngs[j]).y, ')');
+        }
+
+        ctx.stroke();
+        ctx.closePath();
+      }
+    },
+    _getDrawingContext: function _getDrawingContext() {
+      var g = this._canvas.getContext('2d');
+
+      g.clearRect(0, 0, this._canvas.width, this._canvas.height);
+      return g;
+    }
+  });
+
   exports.PointLayer = PointLayer;
   exports.PolygonLayer = PolygonLayer;
   exports.MarkerLayer = MarkerLayer;
@@ -2739,6 +2761,7 @@ var dmap = (function (exports) {
   exports.ScalarFieldMap = ScalarFieldMap;
   exports.scalarFieldMap = scalarFieldMap;
   exports.ScalarField = ScalarField;
+  exports.CanvasPolylineLayer = CanvasPolylineLayer;
   exports.BaseLayer = BaseLayer;
   exports.OD = OD;
   exports.od = od;

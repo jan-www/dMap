@@ -272,6 +272,9 @@ export function RGBColor(color_string)
     this.toRGBA = function() {
         return 'rgba(' + this.r + ', ' + this.g + ', ' + this.b + ', ' + (this.a === null ? 1 : this.a)+ ')';
     }
+    this.toString = function() {
+        return this.a === null ? this.toHex() : this.toRGBA();
+    }
     this.rgba = function() {
         return [
             this.r,
