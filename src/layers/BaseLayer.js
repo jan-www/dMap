@@ -97,7 +97,7 @@ export class BaseLayer {
             this.remove();
         }   // maybe delete this._layer_group ? 
 
-        this._layer_group = L.layerGroup(
+        this._layer_group = L.featureGroup(
             this.generate() // rename would fit well
         );
 
@@ -127,5 +127,9 @@ export class BaseLayer {
         }
         return this;
         // return what??
+    }
+
+    getBounds() {
+        return this._layer_group.getBounds();
     }
 }
