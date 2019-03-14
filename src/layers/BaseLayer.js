@@ -39,6 +39,7 @@ export class BaseLayer {
     // Set layer option.
     setOption(options) {
         // TODO
+        this.options = options;
         return this;
     }
 
@@ -57,7 +58,7 @@ export class BaseLayer {
     // pl.addTo(map);
     // '''
     // 
-    setElementOption(data, fn) {
+    setElementOptions(data, fn) {
         let array_options = data.map(fn), i = 0;
         for (i = 0; i < this._data.length; ++i) {
             this._data[i].options = this._data[i].options || {};

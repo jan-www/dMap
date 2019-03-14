@@ -7,6 +7,7 @@ var l = undefined;
 
 d3.text('data/out.asc', function (asc) {
     let s = dmap.ScalarField.fromASCIIGrid(asc);
+    console.log(s)
     let identify = function (e) {
         console.log(e.latlng);
         if (e.value !== null) {
