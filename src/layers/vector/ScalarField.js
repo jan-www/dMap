@@ -243,10 +243,6 @@ export var ScalarFieldMap = FieldMap.extend({
         this.needRedraw(); // TODO check spurious redraw (e.g. hide/show without moving map)
     },
 
-    /**
-     * Draws the field in an ImageData and applying it with putImageData.
-     * Used as a reference: http://geoexamples.com/d3-raster-tools-docs/code_samples/raster-pixels-page.html
-     */
     _drawImage: function() {
         this._ensureColor();
         let borderColor = this.getBorderColor().toRGBA(),

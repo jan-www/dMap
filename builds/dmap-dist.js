@@ -199,6 +199,7 @@ var dmap = (function (exports) {
       key: "setOption",
       value: function setOption(options) {
         // TODO
+        this.options = options;
         return this;
       } // @method setElementOption
       // @parameter data: Array
@@ -216,8 +217,8 @@ var dmap = (function (exports) {
       // 
 
     }, {
-      key: "setElementOption",
-      value: function setElementOption(data, fn) {
+      key: "setElementOptions",
+      value: function setElementOptions(data, fn) {
         var array_options = data.map(fn),
             i = 0;
 
@@ -265,7 +266,7 @@ var dmap = (function (exports) {
         } // maybe delete this._layer_group ? 
 
 
-        this._layer_group = L.layerGroup(this.generate() // rename would fit well
+        this._layer_group = L.featureGroup(this.generate() // rename would fit well
         );
         return this;
       } // @method exit
@@ -296,6 +297,11 @@ var dmap = (function (exports) {
         }
 
         return this; // return what??
+      }
+    }, {
+      key: "getBounds",
+      value: function getBounds() {
+        return this._layer_group.getBounds();
       }
     }]);
 
@@ -1242,7 +1248,7 @@ var dmap = (function (exports) {
     this.rgba = function () {
       return [this.r, this.g, this.b, this.a];
     };
-  }
+  } // TODO: colorScale - D3
 
   /*
     1.0.1 (downloaded from https://github.com/Sumbera/gLayers.Leaflet/releases/tag/v1.0.1)
@@ -1586,25 +1592,10 @@ var dmap = (function (exports) {
 
       this._updateOpacity();
 
-      var r = this._getRendererMethod(); //console.time('onDrawLayer');
-
-
-      r(); //console.timeEnd('onDrawLayer');
+      this._drawImage();
     },
 
     /* eslint-enable no-unused-vars */
-    _getRendererMethod: function _getRendererMethod() {
-      switch (this.options.type) {
-        case 'colormap':
-          return this._drawImage.bind(this);
-
-        case 'vector':
-          return this._drawArrows.bind(this);
-
-        default:
-          throw Error("Unkwown renderer type: ".concat(this.options.type));
-      }
-    },
     _ensureColor: function _ensureColor() {
       if (this.options.color === null) {
         this.setColor(this._defaultColorScale());
@@ -1615,62 +1606,40 @@ var dmap = (function (exports) {
 
       this.needRedraw(); // TODO check spurious redraw (e.g. hide/show without moving map)
     },
-
-    /**
-     * Draws the field in an ImageData and applying it with putImageData.
-     * Used as a reference: http://geoexamples.com/d3-raster-tools-docs/code_samples/raster-pixels-page.html
-     */
     _drawImage: function _drawImage() {
       this._ensureColor();
 
-      var ctx = this._getDrawingContext();
-
-      var width = this._canvas.width;
-      var height = this._canvas.height;
-
-      var bounds = this._pixelBounds(),
-          ulCorner = this._map.latLngToLayerPoint([this._field.yurCorner, this._field.xllCorner]);
-
-      var xllPixelCorner = ulCorner.x,
-          yurPixelCorner = ulCorner.y;
-      var pixelXSize = (bounds.max.x - bounds.min.x) / this._field.nCols,
+      var borderColor = this.getBorderColor().toRGBA(),
+          ctx = this._getDrawingContext(),
+          bounds = this._pixelBounds(),
+          pixelXSize = (bounds.max.x - bounds.min.x) / this._field.nCols,
           pixelYSize = (bounds.max.y - bounds.min.y) / this._field.nRows;
 
-      var offsetPoint = this._map._latLngToNewLayerPoint(this._map.getBounds().getNorthWest(), this._map.getZoom(), this._map.getCenter());
-
-      var borderColor = this.getBorderColor().toRGBA();
       ctx.lineWidth = this.options.borderWidth / 2;
       ctx.strokeStyle = borderColor;
 
       for (var j = 0; j < this._field.nRows; ++j) {
-        // console.log(j)
         for (var i = 0; i < this._field.nCols; ++i) {
           var value = this._field._valueAtIndexes(i, j);
 
           if (value === null) continue;
 
-          var color = this._getColorFor(value);
-
-          ctx.fillStyle = color.toRGBA();
-
           var _xll = this._field.xllCorner + i * this._field.cellXSize,
               _yur = this._field.yurCorner - j * this._field.cellYSize;
 
           var _xllPixel = this._map.latLngToContainerPoint([_yur, _xll]).x,
-              _yurPixel = this._map.latLngToContainerPoint([_yur, _xll]).y; // console.log(_xllPixel,  _yurPixel, pixelXSize,  pixelYSize);
+              _yurPixel = this._map.latLngToContainerPoint([_yur, _xll]).y;
 
+          var color = this._getColorFor(value);
 
+          ctx.fillStyle = color.toRGBA();
           ctx.fillRect(_xllPixel, _yurPixel, pixelXSize, pixelYSize);
 
           if (this.options.border && 3 * this.options.borderWidth < Math.min(pixelXSize, pixelYSize)) {
             ctx.strokeRect(_xllPixel, _yurPixel, pixelXSize, pixelYSize);
           }
         }
-      } // let img = ctx.createImageData(width, height);
-      // let data = img.data;
-      // this._prepareImageIn(data, width, height);
-      // ctx.putImageData(img, 0, 0);
-
+      }
     },
     getBorderColor: function getBorderColor() {
       var color = new RGBColor(this.options.borderColor);
@@ -1690,41 +1659,6 @@ var dmap = (function (exports) {
       if ((y - bounds.min.y) % pixelYSize <= epsilon || (y - bounds.min.y) % pixelYSize >= pixelYSize - epsilon) return true;
       return false;
     },
-
-    /**
-     * Draws the field as a set of arrows. Direction from 0 to 360 is assumed.
-     */
-    _drawArrows: function _drawArrows() {
-      var bounds = this._pixelBounds();
-
-      var pixelSize = (bounds.max.x - bounds.min.x) / this._field.nCols;
-      var stride = Math.max(1, Math.floor(1.2 * this.options.vectorSize / pixelSize));
-
-      var ctx = this._getDrawingContext();
-
-      ctx.strokeStyle = this.options.color;
-
-      var currentBounds = this._map.getBounds();
-
-      for (var y = 0; y < this._field.height; y = y + stride) {
-        for (var x = 0; x < this._field.width; x = x + stride) {
-          var _this$_field$_lonLatA = this._field._lonLatAtIndexes(x, y),
-              _this$_field$_lonLatA2 = _slicedToArray(_this$_field$_lonLatA, 2),
-              lon = _this$_field$_lonLatA2[0],
-              lat = _this$_field$_lonLatA2[1];
-
-          var v = this._field.valueAt(lon, lat);
-
-          var center = L.latLng(lat, lon);
-
-          if (v !== null && currentBounds.contains(center)) {
-            var cell = new Cell(center, v, this.cellXSize, this.cellYSize);
-
-            this._drawArrow(cell, ctx);
-          }
-        }
-      }
-    },
     _pixelBounds: function _pixelBounds() {
       var bounds = this.getBounds();
 
@@ -1734,35 +1668,6 @@ var dmap = (function (exports) {
 
       var pixelBounds = L.bounds(northWest, southEast);
       return pixelBounds;
-    },
-    _drawArrow: function _drawArrow(cell, ctx) {
-      var projected = this._map.latLngToContainerPoint(cell.center); // colormap vs. simple color
-
-
-      var color = this.options.color;
-
-      if (typeof color === 'function') {
-        ctx.strokeStyle = color(cell.value);
-      }
-
-      var size = this.options.vectorSize;
-      ctx.save();
-      ctx.translate(projected.x, projected.y);
-      var rotationRads = (90 + cell.value) * Math.PI / 180; // from, by default
-
-      if (this.options.arrowDirection === 'towards') {
-        rotationRads = rotationRads + Math.PI;
-      }
-
-      ctx.rotate(rotationRads);
-      ctx.beginPath();
-      ctx.moveTo(-size / 2, 0);
-      ctx.lineTo(+size / 2, 0);
-      ctx.moveTo(size * 0.25, -size * 0.25);
-      ctx.lineTo(+size / 2, 0);
-      ctx.lineTo(size * 0.25, size * 0.25);
-      ctx.stroke();
-      ctx.restore();
     },
 
     /**
@@ -2674,28 +2579,141 @@ var dmap = (function (exports) {
     return ScalarField;
   }(Field);
 
-  var CanvasPolylineLayer = CanvasLayer.extend({
-    options: {
-      color: '#000000',
-      opacity: 1.0,
-      lineWidth: 1
-    },
-    initialize: function initialize(polylines, options) {
-      L.Util.setOptions(this, options);
-      this._polylines = this._updatePolylines(polylines);
-      console.log('CanvasPolylineLayer init');
-      console.log(this._polylines);
-    },
-    _updatePolylines: function _updatePolylines(polylines) {
-      var ret = [];
+  var SVGGridLayer =
+  /*#__PURE__*/
+  function (_BaseLayer) {
+    _inherits(SVGGridLayer, _BaseLayer);
 
-      for (var i = 0; i < polylines.length; ++i) {
-        ret.push(polylines[i].map(function (x) {
-          return L.latLng(x);
-        }));
+    function SVGGridLayer(field, options) {
+      var _this;
+
+      _classCallCheck(this, SVGGridLayer);
+
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(SVGGridLayer).call(this, options));
+      _this._field = field;
+      console.log(field);
+
+      _this.makeData();
+
+      return _this;
+    }
+
+    _createClass(SVGGridLayer, [{
+      key: "setField",
+      value: function setField(field) {
+        this._field = field;
       }
+    }, {
+      key: "_ensureColor",
+      value: function _ensureColor() {
+        if (this.options.color === undefined) {
+          this.options.color = this._defaultColorScale();
+        }
+      }
+    }, {
+      key: "_defaultColorScale",
+      value: function _defaultColorScale() {
+        function ColorRangeFunction(range) {
+          var _range = range;
 
-      return ret;
+          this.fn = function (v) {
+            var data = Math.floor(255 * (_range[1] - v) / (_range[1] - _range[0])).toString(16);
+            return '#' + data + data + data;
+          };
+        }
+
+        return new ColorRangeFunction(this._field.range).fn;
+      }
+    }, {
+      key: "_getColorFor",
+      value: function _getColorFor(v) {
+        var c = this.options.color; // e.g. for a constant 'red'
+
+        if (typeof c === 'function') {
+          c = String(this.options.color(v));
+        }
+
+        var color = new RGBColor(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
+
+        return color;
+      }
+    }, {
+      key: "makeData",
+      value: function makeData() {
+        this._ensureColor();
+
+        this._data = [];
+
+        for (var i = 0; i < this._field.nRows; ++i) {
+          for (var j = 0; j < this._field.nCols; ++j) {
+            var value = this._field.grid[i][j];
+            if (value === null) continue;
+            console.log(value);
+
+            var color = this._getColorFor(value);
+
+            var point = {
+              coordinations: [[this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize], [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize]],
+              options: {
+                fillOpacity: 0.9,
+                fillColor: color
+              }
+            };
+
+            this._data.push(point);
+          }
+        }
+      }
+    }, {
+      key: "generate",
+      value: function generate() {
+        return this._data.map(function (data) {
+          return L.polygon(data.coordinations, data.options);
+        });
+      }
+    }]);
+
+    return SVGGridLayer;
+  }(BaseLayer);
+
+  var CanvasPolylineLayer = CanvasLayer.extend({
+    options: {},
+    // polylines is an Array of polyline, which is an Array of L.latlng.
+    initialize: function initialize(options) {
+      L.Util.setOptions(this, options);
+    },
+
+    /**
+     * 
+     * @param {Array} data 
+     * @param {function} fn 
+     * 
+     * var l = new CanvasPolylineLayer(options);
+     * var arr = [[[1, 2], [11, 12], [21, 22]], [another polyline]];
+     * l.data(arr, function(d) {
+     *      return {
+     *          coordinates: d.map(x => L.latLng(x)), 
+     *          options: { color: d.length > 2 ? 'gray' : 'black' }
+     *      }
+     *  });
+     * 
+     * 
+     */
+    data: function data(_data, fn) {
+      this._polylines = _data.map(fn);
+
+      this._polylines.forEach(function (d) {
+        d.coordinates = d.coordinates.map(function (x) {
+          return L.latLng(x);
+        });
+        d.options = Object.assign({
+          color: '#000000',
+          width: 1,
+          zoomLevel: 1
+        }, d.options);
+      });
+
+      this.needRedraw();
     },
     _updateOpacity: function _updateOpacity() {
       L.DomUtil.setOpacity(this._canvas, this.options.opacity);
@@ -2709,10 +2727,20 @@ var dmap = (function (exports) {
 
       return this;
     },
-    getBounds: function getBounds() {
-      var bounds = L.latLngBounds(this._polylines);
-      return bounds;
-    },
+    // getBounds: function() {
+    //     if (this._bounds === undefined) {
+    //         let bounds = undefined;
+    //         for (let i = 0; i < this._polylines.length; ++i) {
+    //             for (let j = 0; j < this._polylines[i].coordinates.length; ++j) {
+    //                 bounds = bounds ? bounds : L.bounds(this._polylines[i].coordinates[j]);
+    //                 console.log(bounds.max, bounds.min)
+    //                 bounds.extend(this._polylines[i].coordinates[j]);
+    //             }
+    //         }
+    //         this._bounds = bounds;
+    //     }
+    //     return this._bounds;
+    // },
     onDrawLayer: function onDrawLayer(viewInfo) {
       // if (!this.isVisible()) return;
       this._updateOpacity();
@@ -2727,18 +2755,20 @@ var dmap = (function (exports) {
     _drawPolylines: function _drawPolylines() {
       var ctx = this._getDrawingContext();
 
-      ctx.strokeStyle = this.options.color;
-      ctx.lineWidth = this.options.lineWidth;
-
       for (var i = 0; i < this._polylines.length; ++i) {
-        var latlngs = this._polylines[i];
+        if (this._map.getZoom() < this._polylines[i].options.zoomLevel) continue;
+
+        var latlngs = this._polylines[i].coordinates.map(function (x) {
+          return L.latLng(x);
+        });
+
+        this._prepareOptions(this._polylines[i], ctx);
+
         ctx.beginPath();
         if (latlngs.length) ctx.moveTo(this._map.latLngToContainerPoint(latlngs[0]).x, this._map.latLngToContainerPoint(latlngs[0]).y);
-        console.log('ctx.moveTo(', this._map.latLngToContainerPoint(latlngs[0]).x, ',', this._map.latLngToContainerPoint(latlngs[0]).y, ')');
 
         for (var j = 1; j < latlngs.length; ++j) {
           ctx.lineTo(this._map.latLngToContainerPoint(latlngs[j]).x, this._map.latLngToContainerPoint(latlngs[j]).y);
-          console.log('ctx.lineTo(', this._map.latLngToContainerPoint(latlngs[j]).x, ',', this._map.latLngToContainerPoint(latlngs[j]).y, ')');
         }
 
         ctx.stroke();
@@ -2750,6 +2780,10 @@ var dmap = (function (exports) {
 
       g.clearRect(0, 0, this._canvas.width, this._canvas.height);
       return g;
+    },
+    _prepareOptions: function _prepareOptions(polyline, ctx) {
+      ctx.lineWidth = polyline.options.width;
+      ctx.strokeStyle = polyline.options.color;
     }
   });
 
@@ -2761,6 +2795,7 @@ var dmap = (function (exports) {
   exports.ScalarFieldMap = ScalarFieldMap;
   exports.scalarFieldMap = scalarFieldMap;
   exports.ScalarField = ScalarField;
+  exports.SVGGridLayer = SVGGridLayer;
   exports.CanvasPolylineLayer = CanvasPolylineLayer;
   exports.BaseLayer = BaseLayer;
   exports.OD = OD;
