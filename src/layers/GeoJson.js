@@ -36,9 +36,7 @@ class GeoJson{
             if(layer && layer.feature){
                 callback(layer,layer.feature)
             }
-            console.log(666)
         }, this);
-        console.log(666)
         return this
     }
 }
