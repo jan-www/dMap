@@ -25,7 +25,7 @@ export class BaseLayer {
             let layers = this._layer_group.getLayers();
             for (let i = 0; i < layers.length; ++i) {
                 layers[i].on(event_type, function() {
-                    callback(this._data[i], i);
+                    callback(this._data[i], i, layers[i]);
                 }, this);  //bind
             }
 
@@ -39,6 +39,7 @@ export class BaseLayer {
     // Set layer option.
     setOption(options) {
         // TODO
+        this.options = options;
         return this;
     }
 
@@ -57,7 +58,7 @@ export class BaseLayer {
     // pl.addTo(map);
     // '''
     // 
-    setElementOption(data, fn) {
+    setElementOptions(data, fn) {
         let array_options = data.map(fn), i = 0;
         for (i = 0; i < this._data.length; ++i) {
             this._data[i].options = this._data[i].options || {};
@@ -97,7 +98,7 @@ export class BaseLayer {
             this.remove();
         }   // maybe delete this._layer_group ? 
 
-        this._layer_group = L.layerGroup(
+        this._layer_group = L.featureGroup(
             this.generate() // rename would fit well
         );
 
@@ -127,5 +128,9 @@ export class BaseLayer {
         }
         return this;
         // return what??
+    }
+
+    getBounds() {
+        return this._layer_group.getBounds();
     }
 }

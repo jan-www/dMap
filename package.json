@@ -29,5 +29,8 @@
   "bugs": {
     "url": "https://github.com/EnrigleZ/dMap/issues"
   },
-  "homepage": "https://github.com/EnrigleZ/dMap#readme"
+  "homepage": "https://github.com/EnrigleZ/dMap#readme",
+  "dependencies": {
+    "filereader": "^0.10.3"
+  }
 }

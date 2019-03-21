@@ -5,5 +5,7 @@ export {MarkerLayer} from "./MarkerLayer.js"
 export {ODLayer} from './ODLayer'
 export {PolylineLayer} from './PolylineLayer.js'
 export {heatmapOverlay,HeatmapOverlay} from './heatmap.js'
-
-export * from './vector/index'
+export {ScalarFieldMap, scalarFieldMap, ScalarField} from './vector/ScalarField.js'
+export {SVGGridLayer} from './vector/SVGGridLayer.js'
+export {CanvasPolylineLayer} from './CanvasPolylineLayer.js'
+export * from './vector/index';
