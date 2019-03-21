@@ -22,15 +22,16 @@ d3.text('data/out.asc', function (asc) {
       let interpolated = dmap.scalarFieldMap(s, {
         opacity: 0.78,
         border: true,
-        color: function(v) {
-          if (v < 3.78571428) return '#FFFFB2';
-          if (v < 7.57142857) return '#FED976';
-          if (v < 11.3571428) return '#FEB24C';
-          if (v < 15.1428571) return '#FD8D3C';
-          if (v < 18.9285714) return '#FC4E2A';
-          if (v < 22.7142857) return '#E31A1C';
-          return '#B10026';
-        },
+        color: dmap.colorScale(['#FFFFB2', '#E31A1C']).domain([0, 27]),
+        // color: function(v) {
+        //   if (v < 3.78571428) return '#FFFFB2';
+        //   if (v < 7.57142857) return '#FED976';
+        //   if (v < 11.3571428) return '#FEB24C';
+        //   if (v < 15.1428571) return '#FD8D3C';
+        //   if (v < 18.9285714) return '#FC4E2A';
+        //   if (v < 22.7142857) return '#E31A1C';
+        //   return '#B10026';
+        // },
         borderColor: '#111111',
         borderWidth: 1,
         borderOpacity: 0.7

@@ -1000,7 +1000,13 @@ var dmap = (function (exports) {
   function RGBColor(color_string) {
     this.ok = false;
 
-    if (color_string instanceof RGBColor) {
+    if (color_string instanceof Array) {
+      this.r = color_string[0];
+      this.g = color_string[1];
+      this.b = color_string[2];
+      this.a = color_string.length > 3 ? color_string[3] : 1;
+      this.ok = true;
+    } else if (color_string instanceof RGBColor) {
       this.r = color_string.r;
       this.g = color_string.g;
       this.b = color_string.b;
@@ -1175,7 +1181,7 @@ var dmap = (function (exports) {
         re: /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/,
         example: ['rgb(123, 234, 45)', 'rgb(255,234,245)'],
         process: function process(bits) {
-          return [parseInt(bits[1]), parseInt(bits[2]), parseInt(bits[3]), null];
+          return [parseInt(bits[1]), parseInt(bits[2]), parseInt(bits[3]), 1];
         }
       }, {
         re: /^rgba\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3}),\s*([01]\.?\d*?)\)$/,
@@ -1187,13 +1193,13 @@ var dmap = (function (exports) {
         re: /^(\w{2})(\w{2})(\w{2})$/,
         example: ['#00ff00', '336699'],
         process: function process(bits) {
-          return [parseInt(bits[1], 16), parseInt(bits[2], 16), parseInt(bits[3], 16), null];
+          return [parseInt(bits[1], 16), parseInt(bits[2], 16), parseInt(bits[3], 16), 1];
         }
       }, {
         re: /^(\w{1})(\w{1})(\w{1})$/,
         example: ['#fb0', 'f0f'],
         process: function process(bits) {
-          return [parseInt(bits[1] + bits[1], 16), parseInt(bits[2] + bits[2], 16), parseInt(bits[3] + bits[3], 16), null];
+          return [parseInt(bits[1] + bits[1], 16), parseInt(bits[2] + bits[2], 16), parseInt(bits[3] + bits[3], 16), 1];
         }
       }]; // search through the definitions to find a match
 
@@ -1221,7 +1227,7 @@ var dmap = (function (exports) {
     this.r = this.r < 0 || isNaN(this.r) ? 0 : this.r > 255 ? 255 : this.r;
     this.g = this.g < 0 || isNaN(this.g) ? 0 : this.g > 255 ? 255 : this.g;
     this.b = this.b < 0 || isNaN(this.b) ? 0 : this.b > 255 ? 255 : this.b;
-    this.a = this.a < 0 || isNaN(this.a) ? 0 : this.a > 1 ? 1 : this.a; // some getters
+    this.a = this.a < 0 || isNaN(this.a) ? 1 : this.a > 1 ? 1 : this.a; // some getters
 
     this.toRGB = function () {
       return 'rgb(' + this.r + ', ' + this.g + ', ' + this.b + ')';
@@ -1238,17 +1244,77 @@ var dmap = (function (exports) {
     };
 
     this.toRGBA = function () {
-      return 'rgba(' + this.r + ', ' + this.g + ', ' + this.b + ', ' + (this.a === null ? 1 : this.a) + ')';
+      return 'rgba(' + this.r + ', ' + this.g + ', ' + this.b + ', ' + this.a + ')';
     };
 
     this.toString = function () {
-      return this.a === null ? this.toHex() : this.toRGBA();
+      return this.a == 1 ? this.toHex() : this.toRGBA();
     };
 
     this.rgba = function () {
       return [this.r, this.g, this.b, this.a];
     };
-  } // TODO: colorScale - D3
+  }
+  var rgbColor = function rgbColor(color_string) {
+    return new RGBColor(color_string);
+  }; // TODO: colorScale - D3
+
+  var ColorScale =
+  /*#__PURE__*/
+  function () {
+    function ColorScale(rgbColors) {
+      _classCallCheck(this, ColorScale);
+
+      this._colors = rgbColors.map(function (color) {
+        return new RGBColor(color);
+      });
+      this._values = undefined;
+    }
+
+    _createClass(ColorScale, [{
+      key: "getColors",
+      value: function getColors() {
+        return this._colors;
+      }
+    }, {
+      key: "domain",
+      value: function domain(values) {
+        if (values.length != this._colors.length) {
+          throw new Error('Data length not match!');
+        }
+
+        var that = this;
+        return function (value) {
+          var colors = that.getColors(),
+              index = 0;
+          if (colors.length == 1) return colors[0];
+
+          for (index = 0; index < colors.length && value > values[index]; ++index) {
+          }
+
+          if (index == 0) index = 1;
+          if (index == colors.length) index -= 1;
+          var v0 = values[index - 1],
+              v1 = values[index],
+              c0 = colors[index - 1],
+              c1 = colors[index],
+              dr = c1.r - c0.r,
+              dg = c1.g - c0.g,
+              db = c1.b - c0.b,
+              rate = (value - v0) / (v1 - v0);
+          var r = c0.r + Math.floor(dr * rate),
+              g = c0.g + Math.floor(dg * rate),
+              b = c0.b + Math.floor(db * rate);
+          return new RGBColor([r, g, b]);
+        };
+      }
+    }]);
+
+    return ColorScale;
+  }();
+  var colorScale = function colorScale(rgbColors) {
+    return new ColorScale(rgbColors);
+  };
 
   /*
     1.0.1 (downloaded from https://github.com/Sumbera/gLayers.Leaflet/releases/tag/v1.0.1)
@@ -1570,16 +1636,9 @@ var dmap = (function (exports) {
       L.Util.setOptions(this, options);
     },
     _defaultColorScale: function _defaultColorScale() {
-      function ColorRangeFunction(range) {
-        var _range = range;
 
-        this.fn = function (v) {
-          var data = Math.floor(255 * (_range[1] - v) / (_range[1] - _range[0])).toString(16);
-          return '#' + data + data + data;
-        };
-      }
 
-      return new ColorRangeFunction(this._field.range).fn; // return chroma.scale(['white', 'black']).domain(this._field.range);
+      return colorScale(['white', 'black']).domain(this._field.range); // return chroma.scale(['white', 'black']).domain(this._field.range);
     },
     setColor: function setColor(f) {
       this.options.color = f;
@@ -2613,16 +2672,8 @@ var dmap = (function (exports) {
     }, {
       key: "_defaultColorScale",
       value: function _defaultColorScale() {
-        function ColorRangeFunction(range) {
-          var _range = range;
 
-          this.fn = function (v) {
-            var data = Math.floor(255 * (_range[1] - v) / (_range[1] - _range[0])).toString(16);
-            return '#' + data + data + data;
-          };
-        }
-
-        return new ColorRangeFunction(this._field.range).fn;
+        return colorScale(['white', 'black']).domain(this._field.range); // return new ColorRangeFunction(this._field.range).fn;
       }
     }, {
       key: "_getColorFor",
@@ -2677,7 +2728,9 @@ var dmap = (function (exports) {
   }(BaseLayer);
 
   var CanvasPolylineLayer = CanvasLayer.extend({
-    options: {},
+    options: {
+      onClick: null
+    },
     // polylines is an Array of polyline, which is an Array of L.latlng.
     initialize: function initialize(options) {
       L.Util.setOptions(this, options);
@@ -2706,6 +2759,10 @@ var dmap = (function (exports) {
         d.coordinates = d.coordinates.map(function (x) {
           return L.latLng(x);
         });
+        d.latLngBounds = L.latLngBounds();
+        d.coordinates.forEach(function (x) {
+          return d.latLngBounds.extend(x);
+        });
         d.options = Object.assign({
           color: '#000000',
           width: 1,
@@ -2713,6 +2770,7 @@ var dmap = (function (exports) {
         }, d.options);
       });
 
+      this._bounds = undefined;
       this.needRedraw();
     },
     _updateOpacity: function _updateOpacity() {
@@ -2727,36 +2785,69 @@ var dmap = (function (exports) {
 
       return this;
     },
-    // getBounds: function() {
-    //     if (this._bounds === undefined) {
-    //         let bounds = undefined;
-    //         for (let i = 0; i < this._polylines.length; ++i) {
-    //             for (let j = 0; j < this._polylines[i].coordinates.length; ++j) {
-    //                 bounds = bounds ? bounds : L.bounds(this._polylines[i].coordinates[j]);
-    //                 console.log(bounds.max, bounds.min)
-    //                 bounds.extend(this._polylines[i].coordinates[j]);
-    //             }
-    //         }
-    //         this._bounds = bounds;
-    //     }
-    //     return this._bounds;
-    // },
+    getBounds: function getBounds() {
+      if (this._map === undefined) return undefined;
+
+      if (this._bounds === undefined) {
+        var bounds = L.latLngBounds();
+
+        this._polylines.forEach(function (pl) {
+          bounds.extend(pl.latLngBounds);
+        });
+
+        this._bounds = bounds;
+      }
+
+      return this._bounds;
+    },
     onDrawLayer: function onDrawLayer(viewInfo) {
       // if (!this.isVisible()) return;
+      if (!this._map) return;
+
       this._updateOpacity();
 
       this._drawPolylines();
+    },
+    onLayerDidMount: function onLayerDidMount() {
+      this._enableIdentify();
+    },
+    onLayerWillUnmount: function onLayerWillUnmount() {
+      this._disableIdentify();
+    },
+    _enableIdentify: function _enableIdentify() {
+      // Everytime when CLICK on `this._map`, `this` will 
+      // react on a CLICK event.
+      this._map.on('click', this._onClick, this); // If there exists an `onClick` parameter, then bind this 
+      // function to CLICK event.
+
+
+      this.options.onClick && this.on('click', this.options.onClick, this);
+    },
+    _disableIdentify: function _disableIdentify() {
+      this._map.off('click', this._onClick, this);
+
+      this.options.onClick && this.off('click', this.options.onClick, this);
+    },
+    _onClick: function _onClick(e) {
+      var v = this._queryPolyline(e);
+
+      this.fire('click', v);
     },
     needRedraw: function needRedraw() {
       if (this._map) {
         CanvasLayer.prototype.needRedraw.call(this);
       }
     },
+    _displayPolyline: function _displayPolyline(polyline) {
+      return this._map.getZoom() >= polyline.options.zoomLevel;
+    },
     _drawPolylines: function _drawPolylines() {
+      if (!this._polylines) return;
+
       var ctx = this._getDrawingContext();
 
       for (var i = 0; i < this._polylines.length; ++i) {
-        if (this._map.getZoom() < this._polylines[i].options.zoomLevel) continue;
+        if (!this._displayPolyline(this._polylines[i])) continue;
 
         var latlngs = this._polylines[i].coordinates.map(function (x) {
           return L.latLng(x);
@@ -2784,6 +2875,58 @@ var dmap = (function (exports) {
     _prepareOptions: function _prepareOptions(polyline, ctx) {
       ctx.lineWidth = polyline.options.width;
       ctx.strokeStyle = polyline.options.color;
+    },
+    _queryPolyline: function _queryPolyline(e) {
+      var polyline = this._polylines && this.getBounds().contains(e.latlng) ? this._polylineAt(e.containerPoint) : undefined;
+      return {
+        event: e,
+        polyline: polyline,
+        latlng: e.latlng
+      };
+    },
+    _polylineAt: function _polylineAt(point) {
+      var min_precision = undefined,
+          ret_polyline = undefined;
+
+      for (var i = 0; i < this._polylines.length; ++i) {
+        var polyline = this._polylines[i];
+        if (!this._displayPolyline(polyline)) continue;
+
+        var precision = this._pointIsOnPolyline(point, polyline);
+
+        if (precision === false) continue; // point is not on this polyline
+
+        min_precision = Math.min(min_precision || precision, precision);
+        if (precision == min_precision) ret_polyline = polyline;
+      }
+
+      return ret_polyline;
+    },
+    _pointIsOnPolyline: function _pointIsOnPolyline(pt, polyline) {
+      var _this = this;
+
+      var latlngs = polyline.coordinates,
+          lineWidth = polyline.options.width,
+          containerPoints = latlngs.map(function (latlng) {
+        return _this._map.latLngToContainerPoint(latlng);
+      });
+      var ret = false;
+      if (polyline.latLngBounds && !polyline.latLngBounds.contains(this._map.containerPointToLatLng(pt))) return ret;
+
+      for (var i = 0; i < containerPoints.length - 1; ++i) {
+        var curPt = containerPoints[i],
+            nextPt = containerPoints[i + 1];
+
+        if (pt.x >= Math.min(curPt.x, nextPt.x) - 10 && pt.x <= Math.max(curPt.x, nextPt.x) + 10 && pt.y >= Math.min(curPt.y, nextPt.y) - 10 && pt.y <= Math.max(curPt.y, nextPt.y) + 10) {
+          var precision = Math.abs((curPt.x - pt.x) / (curPt.y - pt.y) - (nextPt.x - pt.x) / (nextPt.y - pt.y));
+
+          if (precision <= 1.618 + Math.log10(c._map.getZoom()) / 10) {
+            ret = Math.min(ret || precision, precision);
+          }
+        }
+      }
+
+      return ret;
     }
   });
 
@@ -2801,6 +2944,9 @@ var dmap = (function (exports) {
   exports.OD = OD;
   exports.od = od;
   exports.RGBColor = RGBColor;
+  exports.rgbColor = rgbColor;
+  exports.ColorScale = ColorScale;
+  exports.colorScale = colorScale;
 
   return exports;
 

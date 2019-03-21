@@ -32,6 +32,9 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
         this._polylines = data.map(fn);
         this._polylines.forEach(function(d) {
             d.coordinates = d.coordinates.map(x => L.latLng(x));
+            d.latLngBounds = L.latLngBounds();
+            d.coordinates.forEach(x => d.latLngBounds.extend(x));
+
             d.options = Object.assign({
                 color: '#000000',
                 width: 1,
@@ -61,9 +64,7 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
         if (this._bounds === undefined) {
             let bounds = L.latLngBounds();
             this._polylines.forEach(function(pl) {
-                pl.coordinates.forEach(function(coordinate) {
-                    bounds.extend(coordinate)
-                })
+                bounds.extend(pl.latLngBounds);
             })
             this._bounds = bounds;
         }
@@ -87,7 +88,12 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
     },
 
     _enableIdentify: function() {
+        // Everytime when CLICK on `this._map`, `this` will 
+        // react on a CLICK event.
        this._map.on('click', this._onClick, this);
+
+       // If there exists an `onClick` parameter, then bind this 
+       // function to CLICK event.
        this.options.onClick && this.on('click', this.options.onClick, this);
     },
 
@@ -149,8 +155,11 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
     },
 
     _queryPolyline: function(e) {
-        let polyline = this._polylineAt(e.containerPoint);
+        let polyline = this._polylines && this.getBounds().contains(e.latlng)
+            ? this._polylineAt(e.containerPoint) 
+            : undefined;
         return {
+            event: e,
             polyline: polyline,
             latlng: e.latlng
         }
@@ -176,17 +185,21 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
     _pointIsOnPolyline: function(pt, polyline) {
         let latlngs = polyline.coordinates,
             lineWidth = polyline.options.width,
-            containerPoints = latlngs.map(latlng => c._map.latLngToContainerPoint(latlng));
+            containerPoints = latlngs.map(latlng => this._map.latLngToContainerPoint(latlng));
         let ret = false;
+
+        if (polyline.latLngBounds && !polyline.latLngBounds.contains(
+            this._map.containerPointToLatLng(pt)
+        )) return ret;
 
         for (let i = 0; i < containerPoints.length-1; ++i) {
             let curPt = containerPoints[i], nextPt = containerPoints[i + 1];
-            if (pt.x >= Math.min(curPt.x, nextPt.x) - 10
+            if(pt.x >= Math.min(curPt.x, nextPt.x) - 10
             && pt.x <= Math.max(curPt.x, nextPt.x) + 10
             && pt.y >= Math.min(curPt.y, nextPt.y) - 10
             && pt.y <= Math.max(curPt.y, nextPt.y) + 10) {
                 let precision = Math.abs((curPt.x - pt.x) / (curPt.y - pt.y) - (nextPt.x - pt.x)/(nextPt.y - pt.y));
-                if (precision <= 0.05 + Math.log10(c._map.getZoom())/10) {
+                if (precision <= 1.618 + Math.log10(c._map.getZoom())/10) {
                     ret = Math.min(ret || precision, precision);
                 }
             }

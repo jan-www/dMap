@@ -1,5 +1,5 @@
 import Cell from './Cell'
-import {RGBColor} from '../../utils/Util'
+import {RGBColor, colorScale} from '../../utils/Util'
 import {CanvasLayer} from './CanvasLayer'
 
 /**
@@ -215,7 +215,8 @@ export var ScalarFieldMap = FieldMap.extend({
                 return '#'+data+data+data;
             }
         }
-        return new ColorRangeFunction(this._field.range).fn;
+        // return new ColorRangeFunction(this._field.range).fn;
+        return colorScale(['white', 'black']).domain(this._field.range);
         // return chroma.scale(['white', 'black']).domain(this._field.range);
     },
 

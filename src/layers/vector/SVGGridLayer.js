@@ -1,5 +1,5 @@
 import {BaseLayer} from '../BaseLayer'
-import {RGBColor} from '../../utils/Util'
+import {RGBColor, colorScale} from '../../utils/Util'
 
 // write generate()
 
@@ -30,7 +30,8 @@ export class SVGGridLayer extends BaseLayer{
                 return '#'+ data + data + data;
             }
         }
-        return new ColorRangeFunction(this._field.range).fn;
+        return colorScale(['white', 'black']).domain(this._field.range);
+        // return new ColorRangeFunction(this._field.range).fn;
     }
 
     _getColorFor(v) {

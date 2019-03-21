@@ -1,1 +1,1 @@
-export {RGBColor} from './Util'
+export {RGBColor, rgbColor, ColorScale, colorScale} from './Util'
