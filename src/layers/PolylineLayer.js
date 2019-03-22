@@ -12,7 +12,7 @@ export class PolylineLayer extends BaseLayer {
         return this._data.map(
             (data)=>{
                 return L.polyline(
-                    data.coordinations, data.options
+                    data.coordinates, data.options
                 )
             }
         );

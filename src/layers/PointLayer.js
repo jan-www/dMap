@@ -14,7 +14,7 @@ export class PointLayer extends BaseLayer{
     generate() {
         return this._data.map(
             (data)=>{return L.circleMarker(
-                data.coordination, data.options
+                data.coordinate, data.options
             )}
         );
     }

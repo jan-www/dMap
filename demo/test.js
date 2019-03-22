@@ -17,16 +17,16 @@ L.polyline( coordinatesbak, { weight: 10} ).addTo(map);
 //var circle = L.circle( center, { radius: 500, renderer: myRenderer } ).addTo(map);
 // var circlebak = L.circle( centerbak, { radius: 100 } ).addTo(map);
 
-// l = new dmap.MarkerLayer();
-// d = [[51, 0], [51, 10]]
-// l.data(d, function(d){
-//     return {coordination: d, options: {radius: 200, color: 'red'}}
-// }).enter();
-// l.addTo(map)
+l = new dmap.MarkerLayer();
+d = [[51, 0], [51, 10]]
+l.data(d, function(d){
+    return {coordinate: d, options: {radius: 200, color: 'red'}}
+}).enter();
+l.addTo(map)
 
 // pl = new dmap.PolygonLayer();
 // d = [[[[30, 114], [50, 114], [40, 120]], 'red'], [[[-30, 114], [-50, 114], [-40, 120]], 'green']]
-// pl.data(d, function(d){return{coordinations: d[0], options: {color: d[1]}}}).enter();
+// pl.data(d, function(d){return{coordinates: d[0], options: {color: d[1]}}}).enter();
 // pl.addTo(map);
 
 // var dash_straight = {

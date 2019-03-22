@@ -54,7 +54,7 @@ export class SVGGridLayer extends BaseLayer{
                 console.log(value)
                 let color = this._getColorFor(value);
                 let point = {
-                    coordinations: [
+                    coordinates: [
                         [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize],
                         [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize],
                         [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize],
@@ -73,7 +73,7 @@ export class SVGGridLayer extends BaseLayer{
     generate() {
         return this._data.map(
             (data)=>{return L.polygon(
-                data.coordinations, data.options
+                data.coordinates, data.options
             )}
         );
     }

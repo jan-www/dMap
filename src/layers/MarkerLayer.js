@@ -12,7 +12,7 @@ export class MarkerLayer extends BaseLayer {
         return this._data.map(
             (data)=>{
                 return L.marker(
-                    data.coordination, data.options
+                    data.coordinate, data.options
                 )
             }
         );

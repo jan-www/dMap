@@ -13,7 +13,7 @@ export class PolygonLayer extends BaseLayer {
     generate() {
         return this._data.map(
             (data)=>{return L.polygon(
-                data.coordinations, data.options
+                data.coordinates, data.options
             )}
         );
     }
