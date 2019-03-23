@@ -40,6 +40,7 @@ var FieldMap = CanvasLayer.extend({
     onLayerDidMount: function() {
         this._enableIdentify();
         this._ensureCanvasAlignment();
+        this._addControlBar();
     },
 
     show() {
@@ -86,6 +87,34 @@ var FieldMap = CanvasLayer.extend({
         this.options.onClick && this.off('click', this.options.onClick, this);
         this.options.onMouseMove &&
             this.off('mousemove', this.options.onMouseMove, this);
+    },
+
+    _addControlBar() {
+        if (!this.options.controlBar || !this.options.color.getAttr) return;
+        if (!this._controlBar) {
+            let control = L.control({position: 'bottomright'}), 
+                that = this;
+            control.onAdd = function(map) {
+                var div = L.DomUtil.create('div', 'controlbar');
+                let attrs = that.options.color.getAttr();
+
+                for (let i in attrs.colors) {
+                    let color = attrs.colors[i].toHex(),
+                        value = attrs.values[i],
+                        innerDiv = L.DomUtil.create('div', 'controlbar-list', div),
+                        leftColor = L.DomUtil.create('div', 'left', innerDiv),
+                        rightValue = L.DomUtil.create('span', 'right', innerDiv);
+                    
+                    leftColor.style.backgroundColor = color;
+                    rightValue.innerHTML = value;
+                }
+                return div;
+            
+            }
+            control.onRemove = function(){}
+            this._controlBar = control;
+        }
+        this._controlBar.addTo(this._map)
     },
 
     _ensureCanvasAlignment() {
@@ -191,9 +220,7 @@ export var ScalarFieldMap = FieldMap.extend({
     options: {
         type: 'colormap', // [colormap|vector]
         color: null, // function colorFor(value) [e.g. chromajs.scale],
-        interpolate: false, // Change to use interpolation
-        vectorSize: 20, // only used if 'vector'
-        arrowDirection: 'from' // [from|towards]
+        controlBar: false
     },
 
     initialize: function(scalarField, options) {
@@ -206,16 +233,6 @@ export var ScalarFieldMap = FieldMap.extend({
     },
 
     _defaultColorScale: function() {
-
-        function ColorRangeFunction(range) {
-            var _range = range;
-            this.fn = function(v) {
-                var data = Math.floor(255*(_range[1]-v)/(_range[1]-_range[0]))
-                .toString(16);
-                return '#'+data+data+data;
-            }
-        }
-        // return new ColorRangeFunction(this._field.range).fn;
         return colorScale(['white', 'black']).domain(this._field.range);
         // return chroma.scale(['white', 'black']).domain(this._field.range);
     },
@@ -538,49 +555,6 @@ class Field {
     }
 
     /**
-     * Interpolated value at lon-lat coordinates (bilinear method)
-     * @param   {Number} longitude
-     * @param   {Number} latitude
-     * @returns {Vector|Number} [u, v, magnitude]
-     *                          
-     * Source: https://github.com/cambecc/earth > product.js
-     */
-    interpolatedValueAt(lon, lat) {
-        if (this.notContains(lon, lat)) return null;
-
-        let [i, j] = this._getDecimalIndexes(lon, lat);
-        return this.interpolatedValueAtIndexes(i, j);
-    }
-
-    /**
-     * Interpolated value at i-j indexes (bilinear method)
-     * @param   {Number} i
-     * @param   {Number} j
-     * @returns {Vector|Number} [u, v, magnitude]
-     *
-     * Source: https://github.com/cambecc/earth > product.js
-     */
-    interpolatedValueAtIndexes(i, j) {
-        //         1      2           After converting λ and φ to fractional grid indexes i and j, we find the
-        //        fi  i   ci          four points 'G' that enclose point (i, j). These points are at the four
-        //         | =1.4 |           corners specified by the floor and ceiling of i and j. For example, given
-        //      ---G--|---G--- fj 8   i = 1.4 and j = 8.3, the four surrounding grid points are (1, 8), (2, 8),
-        //    j ___|_ .   |           (1, 9) and (2, 9).
-        //  =8.3   |      |
-        //      ---G------G--- cj 9   Note that for wrapped grids, the first column is duplicated as the last
-        //         |      |           column, so the index ci can be used without taking a modulo.
-
-        let indexes = this._getFourSurroundingIndexes(i, j);
-        let [fi, ci, fj, cj] = indexes;
-        let values = this._getFourSurroundingValues(fi, ci, fj, cj);
-        if (values) {
-            let [g00, g10, g01, g11] = values;
-            return this._doInterpolation(i - fi, j - fj, g00, g10, g01, g11);
-        }
-        return null;
-    }
-
-    /**
      * Get decimal indexes
      * @private
      * @param {Number} lon
@@ -594,60 +568,6 @@ class Field {
         let i = (lon - this.xllCorner) / this.cellXSize;
         let j = (this.yurCorner - lat) / this.cellYSize;
         return [i, j];
-    }
-
-    /**
-     * Get surrounding indexes (integer), clampling on borders
-     * @private
-     * @param   {Number} i - decimal index
-     * @param   {Number} j - decimal index
-     * @returns {Array} [fi, ci, fj, cj]
-     */
-    _getFourSurroundingIndexes(i, j) {
-        let fi = Math.floor(i);
-        let ci = fi + 1;
-        // duplicate colum to simplify interpolation logic (wrapped value)
-        if (this.isContinuous && ci >= this.nCols) {
-            ci = 0;
-        }
-        ci = this._clampColumnIndex(ci);
-
-        let fj = this._clampRowIndex(Math.floor(j));
-        let cj = this._clampRowIndex(fj + 1);
-
-        return [fi, ci, fj, cj];
-    }
-
-    /**
-     * Get four surrounding values or null if not available,
-     * from 4 integer indexes
-     * @private
-     * @param   {Number} fi
-     * @param   {Number} ci
-     * @param   {Number} fj
-     * @param   {Number} cj
-     * @returns {Array} 
-     */
-    _getFourSurroundingValues(fi, ci, fj, cj) {
-        var row;
-        if ((row = this.grid[fj])) {
-            // upper row ^^
-            var g00 = row[fi]; // << left
-            var g10 = row[ci]; // right >>
-            if (
-                this._isValid(g00) &&
-                this._isValid(g10) &&
-                (row = this.grid[cj])
-            ) {
-                // lower row vv
-                var g01 = row[fi]; // << left
-                var g11 = row[ci]; // right >>
-                if (this._isValid(g01) && this._isValid(g11)) {
-                    return [g00, g10, g01, g11]; // 4 values found!
-                }
-            }
-        }
-        return null;
     }
 
     /**

@@ -314,7 +314,7 @@ export class ColorScale {
             throw new Error('Data length not match!');
         }
         let that = this;
-        return function(value) {
+        let ret = function(value) {
             let colors = that.getColors(),
                 index = 0;
             if (colors.length == 1) return colors[0];
@@ -334,6 +334,14 @@ export class ColorScale {
 
             return new RGBColor([r, g, b]);      
         }
+        ret.getAttr = function() {
+            return {
+                values: values,
+                colors: that.getColors(),
+                colorScale: that
+            }
+        }
+        return ret;
     }
 }
 
