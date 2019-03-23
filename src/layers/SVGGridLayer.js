@@ -1,5 +1,5 @@
-import {BaseLayer} from '../BaseLayer'
-import {RGBColor, colorScale} from '../../utils/Util'
+import {BaseLayer} from './BaseLayer'
+import {RGBColor, colorScale} from '../utils/Util'
 
 // write generate()
 

@@ -932,66 +932,6 @@ var dmap = (function (exports) {
   }(BaseLayer);
 
   /**
-   *  Simple regular cell in a raster
-   */
-  var Cell =
-  /*#__PURE__*/
-  function () {
-    /**
-     * A simple cell with a numerical value
-     * @param {L.LatLng} center
-     * @param {Number|Vector} value
-     * @param {Number} xSize
-     * @param {Number} ySize
-     */
-    function Cell(center, value, xSize) {
-      var ySize = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : xSize;
-
-      _classCallCheck(this, Cell);
-
-      this.center = center;
-      this.value = value;
-      this.xSize = xSize;
-      this.ySize = ySize;
-    }
-
-    _createClass(Cell, [{
-      key: "equals",
-      value: function equals(anotherCell) {
-        return this.center.equals(anotherCell.center) && this._equalValues(this.value, anotherCell.value) && this.xSize === anotherCell.xSize && this.ySize === anotherCell.ySize;
-      }
-    }, {
-      key: "_equalValues",
-      value: function _equalValues(value, anotherValue) {
-        var type = value.constructor.name;
-        var answerFor = {
-          Number: value === anotherValue,
-          Vector: value.u === anotherValue.u && value.v === anotherValue.v
-        };
-        return answerFor[type];
-      }
-      /**
-       * Bounds for the cell
-       * @returns {LatLngBounds}
-       */
-
-    }, {
-      key: "getBounds",
-      value: function getBounds() {
-        var halfX = this.xSize / 2.0;
-        var halfY = this.ySize / 2.0;
-        var cLat = this.center.lat;
-        var cLng = this.center.lng;
-        var ul = L.latLng([cLat + halfY, cLng - halfX]);
-        var lr = L.latLng([cLat - halfY, cLng + halfX]);
-        return L.latLngBounds(L.latLng(lr.lat, ul.lng), L.latLng(ul.lat, lr.lng));
-      }
-    }]);
-
-    return Cell;
-  }();
-
-  /**
    * A class to parse color values
    * @author Stoyan Stefanov <sstoo@gmail.com>
    * @link   http://www.phpied.com/rgb-color-parser-in-javascript/
@@ -1664,26 +1604,19 @@ var dmap = (function (exports) {
    * ScalarField on canvas (a 'Raster')
    */
 
-  var ScalarFieldMap = FieldMap.extend({
+  var CanvasGridLayer = FieldMap.extend({
     options: {
       type: 'colormap',
       // [colormap|vector]
       color: null,
       // function colorFor(value) [e.g. chromajs.scale],
-      interpolate: false,
-      // Change to use interpolation
-      vectorSize: 20,
-      // only used if 'vector'
-      arrowDirection: 'from' // [from|towards]
-
+      controlBar: false
     },
     initialize: function initialize(scalarField, options) {
       FieldMap.prototype.initialize.call(this, scalarField, options);
       L.Util.setOptions(this, options);
     },
     _defaultColorScale: function _defaultColorScale() {
-
-
       return colorScale(['white', 'black']).domain(this._field.range); // return chroma.scale(['white', 'black']).domain(this._field.range);
     },
     setColor: function setColor(f) {
@@ -1790,9 +1723,362 @@ var dmap = (function (exports) {
       return color;
     }
   });
-  var scalarFieldMap = function scalarFieldMap(scalarField, options) {
-    return new ScalarFieldMap(scalarField, options);
+  var canvasGridLayer = function canvasGridLayer(scalarField, options) {
+    return new CanvasGridLayer(scalarField, options);
   };
+
+  var SVGGridLayer =
+  /*#__PURE__*/
+  function (_BaseLayer) {
+    _inherits(SVGGridLayer, _BaseLayer);
+
+    function SVGGridLayer(field, options) {
+      var _this;
+
+      _classCallCheck(this, SVGGridLayer);
+
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(SVGGridLayer).call(this, options));
+      _this._field = field;
+      console.log(field);
+
+      _this.makeData();
+
+      return _this;
+    }
+
+    _createClass(SVGGridLayer, [{
+      key: "setField",
+      value: function setField(field) {
+        this._field = field;
+      }
+    }, {
+      key: "_ensureColor",
+      value: function _ensureColor() {
+        if (this.options.color === undefined) {
+          this.options.color = this._defaultColorScale();
+        }
+      }
+    }, {
+      key: "_defaultColorScale",
+      value: function _defaultColorScale() {
+
+        return colorScale(['white', 'black']).domain(this._field.range); // return new ColorRangeFunction(this._field.range).fn;
+      }
+    }, {
+      key: "_getColorFor",
+      value: function _getColorFor(v) {
+        var c = this.options.color; // e.g. for a constant 'red'
+
+        if (typeof c === 'function') {
+          c = String(this.options.color(v));
+        }
+
+        var color = new RGBColor(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
+
+        return color;
+      }
+    }, {
+      key: "makeData",
+      value: function makeData() {
+        this._ensureColor();
+
+        this._data = [];
+
+        for (var i = 0; i < this._field.nRows; ++i) {
+          for (var j = 0; j < this._field.nCols; ++j) {
+            var value = this._field.grid[i][j];
+            if (value === null) continue;
+            console.log(value);
+
+            var color = this._getColorFor(value);
+
+            var point = {
+              coordinates: [[this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize], [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize]],
+              options: {
+                fillOpacity: 0.9,
+                fillColor: color
+              }
+            };
+
+            this._data.push(point);
+          }
+        }
+      }
+    }, {
+      key: "generate",
+      value: function generate() {
+        return this._data.map(function (data) {
+          return L.polygon(data.coordinates, data.options);
+        });
+      }
+    }]);
+
+    return SVGGridLayer;
+  }(BaseLayer);
+
+  var CanvasPolylineLayer = CanvasLayer.extend({
+    options: {
+      onClick: null
+    },
+    // polylines is an Array of polyline, which is an Array of L.latlng.
+    initialize: function initialize(options) {
+      L.Util.setOptions(this, options);
+    },
+
+    /**
+     * 
+     * @param {Array} data 
+     * @param {function} fn 
+     * 
+     * var l = new CanvasPolylineLayer(options);
+     * var arr = [[[1, 2], [11, 12], [21, 22]], [another polyline]];
+     * l.data(arr, function(d) {
+     *      return {
+     *          coordinates: d.map(x => L.latLng(x)), 
+     *          options: { color: d.length > 2 ? 'gray' : 'black' }
+     *      }
+     *  });
+     * 
+     * 
+     */
+    data: function data(_data, fn) {
+      this._polylines = _data.map(fn);
+
+      this._polylines.forEach(function (d) {
+        d.coordinates = d.coordinates.map(function (x) {
+          return L.latLng(x);
+        });
+        d.latLngBounds = L.latLngBounds();
+        d.coordinates.forEach(function (x) {
+          return d.latLngBounds.extend(x);
+        });
+        d.options = Object.assign({
+          color: '#000000',
+          width: 1,
+          zoomLevel: 1
+        }, d.options);
+      });
+
+      this._bounds = undefined;
+      this.needRedraw();
+    },
+    _updateOpacity: function _updateOpacity() {
+      L.DomUtil.setOpacity(this._canvas, this.options.opacity);
+    },
+    setOpacity: function setOpacity(opacity) {
+      this.options.opacity = opacity;
+
+      if (this._canvas) {
+        this._updateOpacity();
+      }
+
+      return this;
+    },
+    getBounds: function getBounds() {
+      if (this._map === undefined) return undefined;
+
+      if (this._bounds === undefined) {
+        var bounds = L.latLngBounds();
+
+        this._polylines.forEach(function (pl) {
+          bounds.extend(pl.latLngBounds);
+        });
+
+        this._bounds = bounds;
+      }
+
+      return this._bounds;
+    },
+    onDrawLayer: function onDrawLayer(viewInfo) {
+      // if (!this.isVisible()) return;
+      if (!this._map) return;
+
+      this._updateOpacity();
+
+      this._drawPolylines();
+    },
+    onLayerDidMount: function onLayerDidMount() {
+      this._enableIdentify();
+    },
+    onLayerWillUnmount: function onLayerWillUnmount() {
+      this._disableIdentify();
+    },
+    _enableIdentify: function _enableIdentify() {
+      // Everytime when CLICK on `this._map`, `this` will 
+      // react on a CLICK event.
+      this._map.on('click', this._onClick, this); // If there exists an `onClick` parameter, then bind this 
+      // function to CLICK event.
+
+
+      this.options.onClick && this.on('click', this.options.onClick, this);
+    },
+    _disableIdentify: function _disableIdentify() {
+      this._map.off('click', this._onClick, this);
+
+      this.options.onClick && this.off('click', this.options.onClick, this);
+    },
+    _onClick: function _onClick(e) {
+      var v = this._queryPolyline(e);
+
+      this.fire('click', v);
+    },
+    needRedraw: function needRedraw() {
+      if (this._map) {
+        CanvasLayer.prototype.needRedraw.call(this);
+      }
+    },
+    _displayPolyline: function _displayPolyline(polyline) {
+      return this._map.getZoom() >= polyline.options.zoomLevel;
+    },
+    _drawPolylines: function _drawPolylines() {
+      if (!this._polylines) return;
+
+      var ctx = this._getDrawingContext();
+
+      for (var i = 0; i < this._polylines.length; ++i) {
+        if (!this._displayPolyline(this._polylines[i])) continue;
+
+        var latlngs = this._polylines[i].coordinates.map(function (x) {
+          return L.latLng(x);
+        });
+
+        this._prepareOptions(this._polylines[i], ctx);
+
+        ctx.beginPath();
+        if (latlngs.length) ctx.moveTo(this._map.latLngToContainerPoint(latlngs[0]).x, this._map.latLngToContainerPoint(latlngs[0]).y);
+
+        for (var j = 1; j < latlngs.length; ++j) {
+          ctx.lineTo(this._map.latLngToContainerPoint(latlngs[j]).x, this._map.latLngToContainerPoint(latlngs[j]).y);
+        }
+
+        ctx.stroke();
+        ctx.closePath();
+      }
+    },
+    _getDrawingContext: function _getDrawingContext() {
+      var g = this._canvas.getContext('2d');
+
+      g.clearRect(0, 0, this._canvas.width, this._canvas.height);
+      return g;
+    },
+    _prepareOptions: function _prepareOptions(polyline, ctx) {
+      ctx.lineWidth = polyline.options.width;
+      ctx.strokeStyle = polyline.options.color;
+    },
+    _queryPolyline: function _queryPolyline(e) {
+      var polyline = this._polylines && this.getBounds().contains(e.latlng) ? this._polylineAt(e.containerPoint) : undefined;
+      return {
+        event: e,
+        polyline: polyline,
+        latlng: e.latlng
+      };
+    },
+    _polylineAt: function _polylineAt(point) {
+      var min_precision = undefined,
+          ret_polyline = undefined;
+
+      for (var i = 0; i < this._polylines.length; ++i) {
+        var polyline = this._polylines[i];
+        if (!this._displayPolyline(polyline)) continue;
+
+        var precision = this._pointIsOnPolyline(point, polyline);
+
+        if (precision === false) continue; // point is not on this polyline
+
+        min_precision = Math.min(min_precision || precision, precision);
+        if (precision == min_precision) ret_polyline = polyline;
+      }
+
+      return ret_polyline;
+    },
+    _pointIsOnPolyline: function _pointIsOnPolyline(pt, polyline) {
+      var _this = this;
+
+      var latlngs = polyline.coordinates,
+          lineWidth = polyline.options.width,
+          containerPoints = latlngs.map(function (latlng) {
+        return _this._map.latLngToContainerPoint(latlng);
+      });
+      var ret = false;
+      if (polyline.latLngBounds && !polyline.latLngBounds.contains(this._map.containerPointToLatLng(pt))) return ret;
+
+      for (var i = 0; i < containerPoints.length - 1; ++i) {
+        var curPt = containerPoints[i],
+            nextPt = containerPoints[i + 1];
+
+        if (pt.x >= Math.min(curPt.x, nextPt.x) - 10 && pt.x <= Math.max(curPt.x, nextPt.x) + 10 && pt.y >= Math.min(curPt.y, nextPt.y) - 10 && pt.y <= Math.max(curPt.y, nextPt.y) + 10) {
+          var precision = Math.abs((curPt.x - pt.x) / (curPt.y - pt.y) - (nextPt.x - pt.x) / (nextPt.y - pt.y));
+
+          if (precision <= 1.618 + Math.log10(c._map.getZoom()) / 10) {
+            ret = Math.min(ret || precision, precision);
+          }
+        }
+      }
+
+      return ret;
+    }
+  });
+
+  /**
+   *  Simple regular cell in a raster
+   */
+  var Cell =
+  /*#__PURE__*/
+  function () {
+    /**
+     * A simple cell with a numerical value
+     * @param {L.LatLng} center
+     * @param {Number|Vector} value
+     * @param {Number} xSize
+     * @param {Number} ySize
+     */
+    function Cell(center, value, xSize) {
+      var ySize = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : xSize;
+
+      _classCallCheck(this, Cell);
+
+      this.center = center;
+      this.value = value;
+      this.xSize = xSize;
+      this.ySize = ySize;
+    }
+
+    _createClass(Cell, [{
+      key: "equals",
+      value: function equals(anotherCell) {
+        return this.center.equals(anotherCell.center) && this._equalValues(this.value, anotherCell.value) && this.xSize === anotherCell.xSize && this.ySize === anotherCell.ySize;
+      }
+    }, {
+      key: "_equalValues",
+      value: function _equalValues(value, anotherValue) {
+        var type = value.constructor.name;
+        var answerFor = {
+          Number: value === anotherValue,
+          Vector: value.u === anotherValue.u && value.v === anotherValue.v
+        };
+        return answerFor[type];
+      }
+      /**
+       * Bounds for the cell
+       * @returns {LatLngBounds}
+       */
+
+    }, {
+      key: "getBounds",
+      value: function getBounds() {
+        var halfX = this.xSize / 2.0;
+        var halfY = this.ySize / 2.0;
+        var cLat = this.center.lat;
+        var cLng = this.center.lng;
+        var ul = L.latLng([cLat + halfY, cLng - halfX]);
+        var lr = L.latLng([cLat - halfY, cLng + halfX]);
+        return L.latLngBounds(L.latLng(lr.lat, ul.lng), L.latLng(ul.lat, lr.lng));
+      }
+    }]);
+
+    return Cell;
+  }();
+
   /**
    *  Abstract class for a set of values (Vector | Scalar)
    *  assigned to a regular 2D-grid (lon-lat), aka 'a Raster source'
@@ -2051,69 +2337,6 @@ var dmap = (function (exports) {
         return !this.contains(lon, lat);
       }
       /**
-       * Interpolated value at lon-lat coordinates (bilinear method)
-       * @param   {Number} longitude
-       * @param   {Number} latitude
-       * @returns {Vector|Number} [u, v, magnitude]
-       *                          
-       * Source: https://github.com/cambecc/earth > product.js
-       */
-
-    }, {
-      key: "interpolatedValueAt",
-      value: function interpolatedValueAt(lon, lat) {
-        if (this.notContains(lon, lat)) return null;
-
-        var _this$_getDecimalInde = this._getDecimalIndexes(lon, lat),
-            _this$_getDecimalInde2 = _slicedToArray(_this$_getDecimalInde, 2),
-            i = _this$_getDecimalInde2[0],
-            j = _this$_getDecimalInde2[1];
-
-        return this.interpolatedValueAtIndexes(i, j);
-      }
-      /**
-       * Interpolated value at i-j indexes (bilinear method)
-       * @param   {Number} i
-       * @param   {Number} j
-       * @returns {Vector|Number} [u, v, magnitude]
-       *
-       * Source: https://github.com/cambecc/earth > product.js
-       */
-
-    }, {
-      key: "interpolatedValueAtIndexes",
-      value: function interpolatedValueAtIndexes(i, j) {
-        //         1      2           After converting λ and φ to fractional grid indexes i and j, we find the
-        //        fi  i   ci          four points 'G' that enclose point (i, j). These points are at the four
-        //         | =1.4 |           corners specified by the floor and ceiling of i and j. For example, given
-        //      ---G--|---G--- fj 8   i = 1.4 and j = 8.3, the four surrounding grid points are (1, 8), (2, 8),
-        //    j ___|_ .   |           (1, 9) and (2, 9).
-        //  =8.3   |      |
-        //      ---G------G--- cj 9   Note that for wrapped grids, the first column is duplicated as the last
-        //         |      |           column, so the index ci can be used without taking a modulo.
-        var indexes = this._getFourSurroundingIndexes(i, j);
-
-        var _indexes = _slicedToArray(indexes, 4),
-            fi = _indexes[0],
-            ci = _indexes[1],
-            fj = _indexes[2],
-            cj = _indexes[3];
-
-        var values = this._getFourSurroundingValues(fi, ci, fj, cj);
-
-        if (values) {
-          var _values = _slicedToArray(values, 4),
-              g00 = _values[0],
-              g10 = _values[1],
-              g01 = _values[2],
-              g11 = _values[3];
-
-          return this._doInterpolation(i - fi, j - fj, g00, g10, g01, g11);
-        }
-
-        return null;
-      }
-      /**
        * Get decimal indexes
        * @private
        * @param {Number} lon
@@ -2133,68 +2356,6 @@ var dmap = (function (exports) {
         return [i, j];
       }
       /**
-       * Get surrounding indexes (integer), clampling on borders
-       * @private
-       * @param   {Number} i - decimal index
-       * @param   {Number} j - decimal index
-       * @returns {Array} [fi, ci, fj, cj]
-       */
-
-    }, {
-      key: "_getFourSurroundingIndexes",
-      value: function _getFourSurroundingIndexes(i, j) {
-        var fi = Math.floor(i);
-        var ci = fi + 1; // duplicate colum to simplify interpolation logic (wrapped value)
-
-        if (this.isContinuous && ci >= this.nCols) {
-          ci = 0;
-        }
-
-        ci = this._clampColumnIndex(ci);
-
-        var fj = this._clampRowIndex(Math.floor(j));
-
-        var cj = this._clampRowIndex(fj + 1);
-
-        return [fi, ci, fj, cj];
-      }
-      /**
-       * Get four surrounding values or null if not available,
-       * from 4 integer indexes
-       * @private
-       * @param   {Number} fi
-       * @param   {Number} ci
-       * @param   {Number} fj
-       * @param   {Number} cj
-       * @returns {Array} 
-       */
-
-    }, {
-      key: "_getFourSurroundingValues",
-      value: function _getFourSurroundingValues(fi, ci, fj, cj) {
-        var row;
-
-        if (row = this.grid[fj]) {
-          // upper row ^^
-          var g00 = row[fi]; // << left
-
-          var g10 = row[ci]; // right >>
-
-          if (this._isValid(g00) && this._isValid(g10) && (row = this.grid[cj])) {
-            // lower row vv
-            var g01 = row[fi]; // << left
-
-            var g11 = row[ci]; // right >>
-
-            if (this._isValid(g01) && this._isValid(g11)) {
-              return [g00, g10, g01, g11]; // 4 values found!
-            }
-          }
-        }
-
-        return null;
-      }
-      /**
        * Nearest value at lon-lat coordinates
        * @param   {Number} longitude
        * @param   {Number} latitude
@@ -2206,10 +2367,10 @@ var dmap = (function (exports) {
       value: function valueAt(lon, lat) {
         if (this.notContains(lon, lat)) return null;
 
-        var _this$_getDecimalInde3 = this._getDecimalIndexes(lon, lat),
-            _this$_getDecimalInde4 = _slicedToArray(_this$_getDecimalInde3, 2),
-            i = _this$_getDecimalInde4[0],
-            j = _this$_getDecimalInde4[1];
+        var _this$_getDecimalInde = this._getDecimalIndexes(lon, lat),
+            _this$_getDecimalInde2 = _slicedToArray(_this$_getDecimalInde, 2),
+            i = _this$_getDecimalInde2[0],
+            j = _this$_getDecimalInde2[1];
 
         var ii = Math.floor(i);
         var jj = Math.floor(j);
@@ -2684,311 +2845,19 @@ var dmap = (function (exports) {
     return ScalarField;
   }(Field);
 
-  var SVGGridLayer =
-  /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(SVGGridLayer, _BaseLayer);
-
-    function SVGGridLayer(field, options) {
-      var _this;
-
-      _classCallCheck(this, SVGGridLayer);
-
-      _this = _possibleConstructorReturn(this, _getPrototypeOf(SVGGridLayer).call(this, options));
-      _this._field = field;
-      console.log(field);
-
-      _this.makeData();
-
-      return _this;
-    }
-
-    _createClass(SVGGridLayer, [{
-      key: "setField",
-      value: function setField(field) {
-        this._field = field;
-      }
-    }, {
-      key: "_ensureColor",
-      value: function _ensureColor() {
-        if (this.options.color === undefined) {
-          this.options.color = this._defaultColorScale();
-        }
-      }
-    }, {
-      key: "_defaultColorScale",
-      value: function _defaultColorScale() {
-
-        return colorScale(['white', 'black']).domain(this._field.range); // return new ColorRangeFunction(this._field.range).fn;
-      }
-    }, {
-      key: "_getColorFor",
-      value: function _getColorFor(v) {
-        var c = this.options.color; // e.g. for a constant 'red'
-
-        if (typeof c === 'function') {
-          c = String(this.options.color(v));
-        }
-
-        var color = new RGBColor(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
-
-        return color;
-      }
-    }, {
-      key: "makeData",
-      value: function makeData() {
-        this._ensureColor();
-
-        this._data = [];
-
-        for (var i = 0; i < this._field.nRows; ++i) {
-          for (var j = 0; j < this._field.nCols; ++j) {
-            var value = this._field.grid[i][j];
-            if (value === null) continue;
-            console.log(value);
-
-            var color = this._getColorFor(value);
-
-            var point = {
-              coordinates: [[this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize], [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize]],
-              options: {
-                fillOpacity: 0.9,
-                fillColor: color
-              }
-            };
-
-            this._data.push(point);
-          }
-        }
-      }
-    }, {
-      key: "generate",
-      value: function generate() {
-        return this._data.map(function (data) {
-          return L.polygon(data.coordinates, data.options);
-        });
-      }
-    }]);
-
-    return SVGGridLayer;
-  }(BaseLayer);
-
-  var CanvasPolylineLayer = CanvasLayer.extend({
-    options: {
-      onClick: null
-    },
-    // polylines is an Array of polyline, which is an Array of L.latlng.
-    initialize: function initialize(options) {
-      L.Util.setOptions(this, options);
-    },
-
-    /**
-     * 
-     * @param {Array} data 
-     * @param {function} fn 
-     * 
-     * var l = new CanvasPolylineLayer(options);
-     * var arr = [[[1, 2], [11, 12], [21, 22]], [another polyline]];
-     * l.data(arr, function(d) {
-     *      return {
-     *          coordinates: d.map(x => L.latLng(x)), 
-     *          options: { color: d.length > 2 ? 'gray' : 'black' }
-     *      }
-     *  });
-     * 
-     * 
-     */
-    data: function data(_data, fn) {
-      this._polylines = _data.map(fn);
-
-      this._polylines.forEach(function (d) {
-        d.coordinates = d.coordinates.map(function (x) {
-          return L.latLng(x);
-        });
-        d.latLngBounds = L.latLngBounds();
-        d.coordinates.forEach(function (x) {
-          return d.latLngBounds.extend(x);
-        });
-        d.options = Object.assign({
-          color: '#000000',
-          width: 1,
-          zoomLevel: 1
-        }, d.options);
-      });
-
-      this._bounds = undefined;
-      this.needRedraw();
-    },
-    _updateOpacity: function _updateOpacity() {
-      L.DomUtil.setOpacity(this._canvas, this.options.opacity);
-    },
-    setOpacity: function setOpacity(opacity) {
-      this.options.opacity = opacity;
-
-      if (this._canvas) {
-        this._updateOpacity();
-      }
-
-      return this;
-    },
-    getBounds: function getBounds() {
-      if (this._map === undefined) return undefined;
-
-      if (this._bounds === undefined) {
-        var bounds = L.latLngBounds();
-
-        this._polylines.forEach(function (pl) {
-          bounds.extend(pl.latLngBounds);
-        });
-
-        this._bounds = bounds;
-      }
-
-      return this._bounds;
-    },
-    onDrawLayer: function onDrawLayer(viewInfo) {
-      // if (!this.isVisible()) return;
-      if (!this._map) return;
-
-      this._updateOpacity();
-
-      this._drawPolylines();
-    },
-    onLayerDidMount: function onLayerDidMount() {
-      this._enableIdentify();
-    },
-    onLayerWillUnmount: function onLayerWillUnmount() {
-      this._disableIdentify();
-    },
-    _enableIdentify: function _enableIdentify() {
-      // Everytime when CLICK on `this._map`, `this` will 
-      // react on a CLICK event.
-      this._map.on('click', this._onClick, this); // If there exists an `onClick` parameter, then bind this 
-      // function to CLICK event.
-
-
-      this.options.onClick && this.on('click', this.options.onClick, this);
-    },
-    _disableIdentify: function _disableIdentify() {
-      this._map.off('click', this._onClick, this);
-
-      this.options.onClick && this.off('click', this.options.onClick, this);
-    },
-    _onClick: function _onClick(e) {
-      var v = this._queryPolyline(e);
-
-      this.fire('click', v);
-    },
-    needRedraw: function needRedraw() {
-      if (this._map) {
-        CanvasLayer.prototype.needRedraw.call(this);
-      }
-    },
-    _displayPolyline: function _displayPolyline(polyline) {
-      return this._map.getZoom() >= polyline.options.zoomLevel;
-    },
-    _drawPolylines: function _drawPolylines() {
-      if (!this._polylines) return;
-
-      var ctx = this._getDrawingContext();
-
-      for (var i = 0; i < this._polylines.length; ++i) {
-        if (!this._displayPolyline(this._polylines[i])) continue;
-
-        var latlngs = this._polylines[i].coordinates.map(function (x) {
-          return L.latLng(x);
-        });
-
-        this._prepareOptions(this._polylines[i], ctx);
-
-        ctx.beginPath();
-        if (latlngs.length) ctx.moveTo(this._map.latLngToContainerPoint(latlngs[0]).x, this._map.latLngToContainerPoint(latlngs[0]).y);
-
-        for (var j = 1; j < latlngs.length; ++j) {
-          ctx.lineTo(this._map.latLngToContainerPoint(latlngs[j]).x, this._map.latLngToContainerPoint(latlngs[j]).y);
-        }
-
-        ctx.stroke();
-        ctx.closePath();
-      }
-    },
-    _getDrawingContext: function _getDrawingContext() {
-      var g = this._canvas.getContext('2d');
-
-      g.clearRect(0, 0, this._canvas.width, this._canvas.height);
-      return g;
-    },
-    _prepareOptions: function _prepareOptions(polyline, ctx) {
-      ctx.lineWidth = polyline.options.width;
-      ctx.strokeStyle = polyline.options.color;
-    },
-    _queryPolyline: function _queryPolyline(e) {
-      var polyline = this._polylines && this.getBounds().contains(e.latlng) ? this._polylineAt(e.containerPoint) : undefined;
-      return {
-        event: e,
-        polyline: polyline,
-        latlng: e.latlng
-      };
-    },
-    _polylineAt: function _polylineAt(point) {
-      var min_precision = undefined,
-          ret_polyline = undefined;
-
-      for (var i = 0; i < this._polylines.length; ++i) {
-        var polyline = this._polylines[i];
-        if (!this._displayPolyline(polyline)) continue;
-
-        var precision = this._pointIsOnPolyline(point, polyline);
-
-        if (precision === false) continue; // point is not on this polyline
-
-        min_precision = Math.min(min_precision || precision, precision);
-        if (precision == min_precision) ret_polyline = polyline;
-      }
-
-      return ret_polyline;
-    },
-    _pointIsOnPolyline: function _pointIsOnPolyline(pt, polyline) {
-      var _this = this;
-
-      var latlngs = polyline.coordinates,
-          lineWidth = polyline.options.width,
-          containerPoints = latlngs.map(function (latlng) {
-        return _this._map.latLngToContainerPoint(latlng);
-      });
-      var ret = false;
-      if (polyline.latLngBounds && !polyline.latLngBounds.contains(this._map.containerPointToLatLng(pt))) return ret;
-
-      for (var i = 0; i < containerPoints.length - 1; ++i) {
-        var curPt = containerPoints[i],
-            nextPt = containerPoints[i + 1];
-
-        if (pt.x >= Math.min(curPt.x, nextPt.x) - 10 && pt.x <= Math.max(curPt.x, nextPt.x) + 10 && pt.y >= Math.min(curPt.y, nextPt.y) - 10 && pt.y <= Math.max(curPt.y, nextPt.y) + 10) {
-          var precision = Math.abs((curPt.x - pt.x) / (curPt.y - pt.y) - (nextPt.x - pt.x) / (nextPt.y - pt.y));
-
-          if (precision <= 1.618 + Math.log10(c._map.getZoom()) / 10) {
-            ret = Math.min(ret || precision, precision);
-          }
-        }
-      }
-
-      return ret;
-    }
-  });
-
   exports.PointLayer = PointLayer;
   exports.PolygonLayer = PolygonLayer;
   exports.MarkerLayer = MarkerLayer;
   exports.ODLayer = ODLayer;
   exports.PolylineLayer = PolylineLayer;
-  exports.ScalarFieldMap = ScalarFieldMap;
-  exports.scalarFieldMap = scalarFieldMap;
-  exports.ScalarField = ScalarField;
+  exports.CanvasGridLayer = CanvasGridLayer;
+  exports.canvasGridLayer = canvasGridLayer;
   exports.SVGGridLayer = SVGGridLayer;
   exports.CanvasPolylineLayer = CanvasPolylineLayer;
   exports.BaseLayer = BaseLayer;
   exports.OD = OD;
   exports.od = od;
+  exports.ScalarField = ScalarField;
   exports.RGBColor = RGBColor;
   exports.rgbColor = rgbColor;
   exports.ColorScale = ColorScale;

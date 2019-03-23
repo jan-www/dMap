@@ -7,7 +7,7 @@ var l = undefined;
 
 d3.text('data/out.asc', function (asc) {
     let s = dmap.ScalarField.fromASCIIGrid(asc);
-    console.log(s)
+    
     let identify = function (e) {
         console.log(e.latlng);
         if (e.value !== null) {
@@ -19,7 +19,7 @@ d3.text('data/out.asc', function (asc) {
       };
 
       // Bilinear interpolation
-      let interpolated = dmap.scalarFieldMap(s, {
+      let interpolated = dmap.canvasGridLayer(s, {
         opacity: 0.78,
         border: true,
         color: dmap.colorScale(['#FFFFB2', '#E31A1C']).domain([0, 27]),
