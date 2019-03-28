@@ -4,23 +4,30 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
-coordinates = [[51, 0], [51, 10]]
-center = [53, 5];
-coordinatesbak = [[53, 0], [53, 10]]
-//centerbak = [53, 10];
-var myRenderer = L.svg({ padding: 1 , 
-    tolerance: 1
-});
-L.polyline( coordinates, { weight: 10, renderer: myRenderer } ).addTo(map);
-L.polyline( coordinatesbak, { weight: 10} ).addTo(map);
+// coordinates = [[51, 0], [51, 10]]
+// center = [53, 5];
+// coordinatesbak = [[53, 0], [53, 10]]
+// //centerbak = [53, 10];
+// var myRenderer = L.svg({ padding: 1 , 
+//     tolerance: 1
+// });
+// L.polyline( coordinates, { weight: 10, renderer: myRenderer } ).addTo(map);
+// L.polyline( coordinatesbak, { weight: 10} ).addTo(map);
 
 //var circle = L.circle( center, { radius: 500, renderer: myRenderer } ).addTo(map);
 // var circlebak = L.circle( centerbak, { radius: 100 } ).addTo(map);
 
-l = new dmap.MarkerLayer();
+// l = new dmap.MarkerLayer();
+// d = [[51, 0], [51, 10]]
+// l.data(d, function(d){
+//     return {coordinate: d, options: {radius: 200, color: 'red'}}
+// }).enter();
+// l.addTo(map)
+
+l = new dmap.PointLayer();
 d = [[51, 0], [51, 10]]
 l.data(d, function(d){
-    return {coordinate: d, options: {radius: 200, color: 'red'}}
+    return {coordinate: d, options: {radius: 5, color: 'red'}}
 }).enter();
 l.addTo(map)
 

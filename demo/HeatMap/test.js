@@ -29,7 +29,7 @@
     id: 'mapbox.streets'
     }).addTo(mymap);
 
-    var heatmapLayer = new dmap.HeatmapOverlay(cfg)   
+    var heatmapLayer = new HeatmapOverlay(cfg)   
     heatmapLayer.addTo(mymap);
     heatmapLayer.setData(testData);
     //An alternative way to add data

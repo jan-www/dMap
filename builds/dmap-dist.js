@@ -2019,6 +2019,164 @@ var dmap = (function (exports) {
     }
   });
 
+  var TimelineLayer =
+  /*#__PURE__*/
+  function () {
+    function TimelineLayer(mymap, options) {
+      _classCallCheck(this, TimelineLayer);
+
+      this._times = [];
+      this._data = [];
+      this.times2index = {};
+      this._layers = [];
+      this._curlayer = null;
+      this._map = mymap; // this.running = 1;//1:play,2:stop,3:pause
+
+      this.timeline = document.getElementById("timeline"); //timeline
+
+      timeline.style.visibility = "visible";
+      this.slider = document.getElementById("myRange");
+
+      this.output = document.getElementById("demo"); //output value
+
+      this.bt_play = document.getElementById("bt_play"); //play button
+      // this.bt_stop = document.getElementById("bt_stop");//stop button
+      // this.bt_pause = document.getElementById("bt_pause");//pause button
+
+      this.setOption(options);
+    }
+
+    _createClass(TimelineLayer, [{
+      key: "setOption",
+      value: function setOption(options) {
+        this.options = options;
+      }
+    }, {
+      key: "data",
+      value: function data(time, _data, fn) {
+        this._times = time;
+        this._data = _data;
+
+        for (var i = 0; i < time.length; i++) {
+          this.times2index[this._times[i]] = i;
+        }
+
+        for (var _i = 0; _i < time.length; _i++) {
+          var l = new PointLayer();
+          this._layers[_i] = l.data(_data[_i], fn).enter();
+        }
+
+        this.listen();
+        return this;
+      }
+    }, {
+      key: "listen",
+      value: function listen() {
+        //添加slider监听事件
+        var tmp = this;
+
+        this.slider.oninput = function () {
+          tmp.output.innerHTML = tmp._times[tmp.slider.value];
+          return tmp.output.innerHTML;
+        };
+
+        this.output.innerHTML = this._times[this.slider.value]; // Display the default slider value
+        //the timeline is(not) visible
+
+        if (this.options.enableControl == false) {
+          timeline.style.visibility = "hidden";
+        } else {
+          timeline.style.visibility = "visible";
+        } //是否自动播放
+
+
+        if (this.options.autoPlay == true) {
+          this.play(this._times[0], this._map);
+        } else {
+          this.renderAtTime(this._times[0], this._map);
+        } //添加播放按钮监听事件
+
+
+        var tmp = this;
+
+        this.bt_play.onclick = function () {
+          // tmp.running = 1;
+          tmp.play(tmp._times[0], tmp._map);
+        }; // this.bt_stop.onclick = function(){
+        //     tmp.running = 2;
+        // }
+        // this.bt_pause.onclick = function(){
+        //     tmp.running = 3;
+        // }
+
+      }
+    }, {
+      key: "renderAtTime",
+      value: function renderAtTime(time_index) {
+        if (this._curlayer != null) {
+          this._curlayer.remove();
+        }
+
+        switch (this.options.layerType) {
+          case "PointMap":
+            this._layers[this.times2index[time_index]].addTo(this._map);
+
+            this._curlayer = this._layers[this.times2index[time_index]];
+            break;
+
+          case "heatmap":
+            this._curlayer = new HeatmapOverlay(this.options.layerOption).addTo(this._map);
+
+            this._curlayer.setData(this._data[this.times2index[time_index]]);
+
+            break;
+
+          default:
+            throw new Error(this.options.layerType + 'is not exist in the timelinelayer');
+        }
+
+        this.slider.value = this.times2index[time_index];
+        this.output.innerHTML = time_index;
+      }
+    }, {
+      key: "on",
+      value: function on(event) {
+        if (event = "timechage") {
+          var tmp = this;
+
+          this.slider.onclick = function () {
+            tmp.renderAtTime(tmp.output.innerHTML, tmp._map);
+          };
+        }
+      }
+    }, {
+      key: "play",
+      value: function play(time) {
+        var _this = this;
+
+        var index = this.times2index[time]; //es6 promise
+
+        var _loop = function _loop(i) {
+          tmp = _this;
+
+          (function () {
+            setTimeout(function () {
+              return tmp.renderAtTime(tmp._times[i], tmp._map);
+            }, tmp.options.tickTime * i);
+          })();
+        };
+
+        for (var i = index; i < this._times.length; i++) {
+          var tmp;
+
+          _loop(i);
+        }
+      }
+    }]);
+
+    return TimelineLayer;
+  }();
+
   /**
    *  Simple regular cell in a raster
    */
@@ -2845,6 +3003,108 @@ var dmap = (function (exports) {
     return ScalarField;
   }(Field);
 
+  /**
+   * A class to define animation queue
+   * @author Stoyan Stefanov <sstoo@gmail.com>
+   * @link   http://www.phpied.com/rgb-color-parser-in-javascript/
+   * @license MIT license
+   */
+
+  /*
+  Usage: var timer = new dTimer() //similiar to setInterval
+  timer(function(elapsed){
+      //TO DO : elapsed = Animation trigger time - Animation start time
+      return True; //If you want timer stop, please return True value
+  }, delay, then)
+  */
+  function dTimer() {
+    var dMap_timer_queueHead,
+        dMap_timer_queueTail,
+        dMap_timer_interval,
+        dMap_timer_timeout,
+        dMap_timer_frame = window.requestAnimationFrame || function (callback) {
+      setTimeout(callback, 17);
+    };
+
+    function dMap_timer(callback, delay, then) {
+      var n = arguments.length;
+      if (n < 2) delay = 0;
+      if (n < 3) then = Date.now();
+      var time = then + delay,
+          timer = {
+        c: callback,
+        t: time,
+        n: null
+      };
+      if (dMap_timer_queueTail) dMap_timer_queueTail.n = timer;else dMap_timer_queueHead = timer;
+      dMap_timer_queueTail = timer;
+
+      if (!dMap_timer_interval) {
+        dMap_timer_timeout = clearTimeout(dMap_timer_timeout);
+        dMap_timer_interval = 1;
+        dMap_timer_frame(dMap_timer_step);
+      }
+
+      return timer;
+    }
+
+    function dMap_timer_step() {
+      var now = dMap_timer_mark(),
+          delay = dMap_timer_sweep() - now;
+
+      if (delay > 24) {
+        if (isFinite(delay)) {
+          clearTimeout(dMap_timer_timeout);
+          dMap_timer_timeout = setTimeout(dMap_timer_step, delay);
+        }
+
+        dMap_timer_interval = 0;
+      } else {
+        dMap_timer_interval = 1;
+        dMap_timer_frame(dMap_timer_step);
+      }
+    }
+
+    dMap_timer.flush = function () {
+      dMap_timer_mark();
+      dMap_timer_sweep();
+    };
+
+    function dMap_timer_mark() {
+      var now = Date.now(),
+          timer = dMap_timer_queueHead;
+
+      while (timer) {
+        if (now >= timer.t && timer.c(now - timer.t)) timer.c = null;
+        timer = timer.n;
+      }
+
+      return now;
+    }
+
+    function dMap_timer_sweep() {
+      var t0,
+          t1 = dMap_timer_queueHead,
+          time = Infinity;
+
+      while (t1) {
+        if (t1.c) {
+          if (t1.t < time) time = t1.t;
+          t1 = (t0 = t1).n;
+        } else {
+          t1 = t0 ? t0.n = t1.n : dMap_timer_queueHead = t1.n;
+        }
+      }
+
+      dMap_timer_queueTail = t0;
+      return time;
+    }
+
+    return function () {
+      dMap_timer.apply(this, arguments);
+    };
+  }
+
   exports.PointLayer = PointLayer;
   exports.PolygonLayer = PolygonLayer;
   exports.MarkerLayer = MarkerLayer;
@@ -2854,6 +3114,7 @@ var dmap = (function (exports) {
   exports.canvasGridLayer = canvasGridLayer;
   exports.SVGGridLayer = SVGGridLayer;
   exports.CanvasPolylineLayer = CanvasPolylineLayer;
+  exports.TimelineLayer = TimelineLayer;
   exports.BaseLayer = BaseLayer;
   exports.OD = OD;
   exports.od = od;
@@ -2862,6 +3123,7 @@ var dmap = (function (exports) {
   exports.rgbColor = rgbColor;
   exports.ColorScale = ColorScale;
   exports.colorScale = colorScale;
+  exports.dTimer = dTimer;
 
   return exports;
 

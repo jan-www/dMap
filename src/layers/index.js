@@ -8,4 +8,5 @@ export {PolylineLayer} from './PolylineLayer.js'
 export {CanvasGridLayer, canvasGridLayer} from './CanvasGridLayer.js'
 export {SVGGridLayer} from './SVGGridLayer.js'
 export {CanvasPolylineLayer} from './CanvasPolylineLayer.js'
+export {TimelineLayer} from './TimelineLayer.js'
 export * from './vector/index';
