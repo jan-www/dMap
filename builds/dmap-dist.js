@@ -2030,19 +2030,29 @@ var dmap = (function (exports) {
       this.times2index = {};
       this._layers = [];
       this._curlayer = null;
-      this._map = mymap; // this.running = 1;//1:play,2:stop,3:pause
-
-      this.timeline = document.getElementById("timeline"); //timeline
-
-      timeline.style.visibility = "visible";
-      this.slider = document.getElementById("myRange");
-
-      this.output = document.getElementById("demo"); //output value
-
-      this.bt_play = document.getElementById("bt_play"); //play button
-      // this.bt_stop = document.getElementById("bt_stop");//stop button
-      // this.bt_pause = document.getElementById("bt_pause");//pause button
-
+      this._map = mymap;
+      this.timeline = document.createElement("div");
+      this.timeline.id = "timeline";
+      this.timeline.style.visibility = "visible";
+      document.body.appendChild(this.timeline);
+      this.slider = document.createElement("input");
+      this.slider.type = "range";
+      this.slider.min = 0;
+      this.slider.max = 4;
+      this.slider.value = 0;
+      this.slider.id = "myRange";
+      this.bt_play = document.createElement("button");
+      this.bt_play.type = "button";
+      this.bt_play.id = "bt_play";
+      this.bt_play.textContent = "play";
+      this.par = document.createElement("p");
+      this.par.textContent = "Vaule: ";
+      this.output = document.createElement("span");
+      this.output.id = "demo";
+      this.par.appendChild(this.output);
+      this.timeline.appendChild(this.slider);
+      this.timeline.appendChild(this.bt_play);
+      this.timeline.appendChild(this.par);
       this.setOption(options);
     }
 

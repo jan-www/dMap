@@ -6,15 +6,6 @@ maxZoom: 18,
 id: 'mapbox.streets'
 }).addTo(mymap);
 
-
-// var timeline = ['<div class="slidecontainer" id="timeline" style="visibility: hidden">',
-// '<input type="range" min="0" max="4" value="0" id="myRange">',
-// '<button type="button" id="bt_play" >play</button>',
-// ' <p>Value: <span id="demo"></span></p> ',
-// '</div>'].join('');
-
-// $('.document').append(timeline);
-
 option = {
     color: 'red',
     fillColor: '#f03',
