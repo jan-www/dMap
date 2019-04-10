@@ -46,6 +46,7 @@ export class TimelineLayer{
     data(time,data,fn){
         this._times = time;
         this._data = data;
+        this.slider.max = time.length-1;
         for(let i=0;i<time.length;i++){
             this.times2index[this._times[i]] = i;
         }
