@@ -11,22 +11,3 @@ export var PolylineLayer = BaseLayer.extend({
         );
     }
 })
-
-export class _PolylineLayer extends BaseLayer {
-    constructor(options) {
-        super(options)
-    }
-
-    // @method generate
-    // 
-    // Return Array of L.Polyline.
-    generate() {
-        return this._data.map(
-            (data)=>{
-                return L.polyline(
-                    data.coordinates, data.options
-                )
-            }
-        );
-    }
-}

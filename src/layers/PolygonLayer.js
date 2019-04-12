@@ -27,20 +27,3 @@ export var PolygonLayer = BaseLayer.extend({
         );
     }
 })
-
-export class _PolygonLayer extends BaseLayer {
-    constructor(options) {
-        super(options)
-    }
-
-    // @method generate
-    // 
-    // Return Array of L.polygon
-    generate() {
-        return this._data.map(
-            (data)=>{return L.polygon(
-                data.coordinates, data.options
-            )}
-        );
-    }
-}

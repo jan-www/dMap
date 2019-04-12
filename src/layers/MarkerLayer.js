@@ -25,23 +25,3 @@ export var MarkerLayer = BaseLayer.extend({
         )
     }
 })
-
-
-export class _MarkerLayer extends BaseLayer {
-    constructor(options) {
-        super(options)
-    }
-
-    // @method generate
-    // 
-    // Return Array of L.Marker.
-    generate() {
-        return this._data.map(
-            (data) => {
-                return L.marker(
-                    data.coordinate, data.options
-                )
-            }
-        );
-    }
-}

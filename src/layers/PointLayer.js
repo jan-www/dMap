@@ -3,22 +3,12 @@
 
 import {BaseLayer} from "./BaseLayer.js"
 
-export var PointLayer = BaseLayer.extend({
-    generate: function() {
-        return this._data.map(
-            (data)=>{return L.circleMarker(
-                data.coordinate, data.options
-            )}
-        );
-    }
-})
-
 /**
 var coords = [
     {name:'GanSu', geoCoord:[36.03, 103.73 ]},
     {name:'QingHai', geoCoord:[36.56, 101.74 ]},
     ...
-]
+] // full `coords` is after definition of PointLayer 
 
 let pLayer = new dmap.PointLayer();
 pLayer.data(coords, function(data) {
@@ -31,23 +21,16 @@ pLayer.data(coords, function(data) {
     console.log(data.name)
 }).addTo(map)
  */
-export class _PointLayer extends BaseLayer{ 
-    constructor(options) {
-        super(options);
-    }
 
-    // @method generate
-    // 
-    // Return Array of L.CircleMarker.
-    generate() {
+export var PointLayer = BaseLayer.extend({
+    generate: function() {
         return this._data.map(
             (data)=>{return L.circleMarker(
                 data.coordinate, data.options
             )}
         );
     }
-}
-
+})
 
 /**
  var coords = [
