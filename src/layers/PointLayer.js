@@ -1,7 +1,7 @@
 // PointLayer.js
 // Define PointLayer class.
 
-import {BaseLayer} from "./BaseLayer.js"
+import { GroupLayer } from "./GroupLayer.js";
 
 /**
 var coords = [
@@ -22,7 +22,7 @@ pLayer.data(coords, function(data) {
 }).addTo(map)
  */
 
-export var PointLayer = BaseLayer.extend({
+export var PointLayer = GroupLayer.extend({
     generate: function() {
         return this._data.map(
             (data)=>{return L.circleMarker(

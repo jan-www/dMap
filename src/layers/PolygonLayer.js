@@ -1,6 +1,6 @@
 // PolygonLayer.js
 
-import {BaseLayer} from "./BaseLayer.js"
+import { GroupLayer } from "./GroupLayer.js";
 
 
 /**
@@ -18,7 +18,7 @@ pLayer.data(states, function (data) {
 }).enter().addTo(map)
  */
 
-export var PolygonLayer = BaseLayer.extend({
+export var PolygonLayer = GroupLayer.extend({
     generate: function() {
         return this._data.map(
             (data)=>{return L.polygon(

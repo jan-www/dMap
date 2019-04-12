@@ -1,4 +1,4 @@
-import { BaseLayer } from "./BaseLayer.js"
+import { GroupLayer } from "./GroupLayer.js";
 
 /**
  * let capitals = [ 
@@ -10,7 +10,7 @@ import { BaseLayer } from "./BaseLayer.js"
  * 
  */
 
-export var MarkerLayer = BaseLayer.extend({
+export var MarkerLayer = GroupLayer.extend({
     /**
      * Generate method for BaseLayer.enter.
      * Return an Array of L.Marker.

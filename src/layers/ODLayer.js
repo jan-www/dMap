@@ -1,4 +1,4 @@
-import {BaseLayer} from './BaseLayer.js'
+import { GroupLayer } from "GroupLayer.js";
 import {od} from './vector/OD.js'
 
 
@@ -16,7 +16,7 @@ import {od} from './vector/OD.js'
  *      }
  * }).enter().addTo(map);
  */
-export var ODLayer = BaseLayer.extend({
+export var ODLayer = GroupLayer.extend({
     // @method generate
     // 
     // Return Array of L.od.

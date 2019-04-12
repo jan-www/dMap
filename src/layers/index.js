@@ -1,4 +1,5 @@
 export * from "./BaseLayer.js"
+export {GroupLayer} from "./GroupLayer.js"
 export {PointLayer} from "./PointLayer.js"
 export {PolygonLayer} from "./PolygonLayer.js"
 export {MarkerLayer} from "./MarkerLayer.js"
