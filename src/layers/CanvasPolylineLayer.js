@@ -30,24 +30,34 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
      * 
      */
     
-    data: function(data, fn) {
-        this._polylines = data.map(fn);
-        this._polylines.forEach(function(d) {
-            d.coordinates = d.coordinates.map(x => L.latLng(x));
-            d.latLngBounds = L.latLngBounds();
-            d.coordinates.forEach(x => d.latLngBounds.extend(x));
+    data: function(data, map_function) {
+        this._data = data.map(map_function, this);
+        return this;
+    }, 
 
-            d.options = Object.assign({
-                color: '#000000',
-                width: 1,
-                zoomLevel: 1
-            }, d.options)
+    enter: function() {
+        this._polylines = this._data.map((d) => {
+            let polyline = {
+                coordinates: d.coordinates.map(x => L.latLng(x)),
+                latLngBounds: L.latLngBounds(),
+                options: {
+                    color: '#000000',
+                    width: 1,
+                    zoomLevel: 1
+                }
+            }
+            polyline.coordinates.forEach(x => {polyline.latLngBounds.extend(x)});
+            L.setOptions(polyline, d.options);
+
+            return polyline;
         });
+
+        // calculate new bounds
         this._bounds = undefined;
         this.getBounds();
-        
-        this.needRedraw();
-    },
+
+        return this;
+    }, 
 
     _updateOpacity: function() {
         L.DomUtil.setOpacity(this._canvas, this.options.opacity);
@@ -123,6 +133,7 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
     onLayerDidMount: function() {
         this._enableIdentify();
         this._map.getContainer().style.cursor = this.options.cursor;
+        this.needRedraw();
     },
 
     onLayerWillUnmount: function() {
@@ -214,6 +225,8 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
             dividePolylinesPart = undefined,
             latlng = this._map.containerPointToLatLng(point);
         
+        if (!this._map) return undefined;
+
         for (let i = 0; i < this._divideBoundsParts.length; ++i) {
             if (this._divideBoundsParts[i].contains(latlng)) {
                 dividePolylinesPart = this._dividePolylinesParts[i];

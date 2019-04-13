@@ -7,245 +7,85 @@ var dmap = (function (exports) {
     // Base class of all dmap.layer.
     var BaseLayer = L.Layer.extend({
       initialize: function initialize(options) {
-        if ((this instanceof initialize ? this.constructor : void 0) === BaseLayer) {
-          throw new Error('Class BaseLayer cannot be initialized.');
-        }
-
         L.Util.setOptions(this, options);
-        this._data = []; // {}
-
-        this._layer_group = undefined;
         console.log('Layer init with options: ', options);
       },
-      on: function on(event_type, callback) {
+      data: function data(_data, fn) {
+        throw new Error('this method must be override.');
+      },
+      enter: function enter() {
+        throw new Error('this method must be override.');
+      },
+      exit: function exit() {
+        throw new Error('this method must be override.');
+      }
+    });
+
+    var GroupLayer = BaseLayer.extend({
+      initialize: function initialize(options) {
+        this._data = []; // {}
+
+        this._layer_group = undefined; // BaseLayer.prototype.initialize.call(this, options)
+      },
+      on: function on(event_type, callback_function) {
         var _this = this;
 
-        if (this._layer_group !== undefined) {
-          (function () {
-            var layers = _this._layer_group.getLayers();
+        if (this._layer_group == undefined) return this;
 
-            var _loop = function _loop(i) {
-              layers[i].on(event_type, function () {
-                callback(this._data[i], i, layers[i]);
-              }, _this); //bind
-            };
-
-            for (var i = 0; i < layers.length; ++i) {
-              _loop(i);
-            }
-          })();
-        }
+        this._layer_group.getLayers().forEach(function (layer, index) {
+          layer.on(event_type, function () {
+            callback_function(_this._data[index], index, layer);
+          }, _this);
+        });
 
         return this;
       },
-      setElementOptions: function setElementOptions(data, fn) {
-        var array_options = data.map(fn),
+      // set options for each element in this._data
+      // not for Leaflet components.
+      setElementOptions: function setElementOptions(data, map_function) {
+        var array_options = data.map(map_function, this),
             i = 0;
 
-        for (i = 0; i < this._data.length; ++i) {
-          this._data[i].options = this._data[i].options || {};
-
-          if (i < data.length) {
-            Object.assign(this._data[i].options, array_options[i]);
-          }
+        for (i = 0; i < Math.min(data.length, this._data.length); ++i) {
+          L.Util.setOptions(this._data[i], array_options[i]);
         }
 
         return this;
       },
-      data: function data(_data, fn) {
-        this._data = _data.map(fn);
+      data: function data(_data, map_function) {
+        this._data = _data.map(map_function, this);
         return this;
       },
-      addTo: function addTo(leaflet_map) {
-        //this._map = leaflet_map; // for ODLayer update
-        this._layer_group.addTo(leaflet_map);
+      addTo: function addTo(map) {
+        this._layer_group.addTo(map);
 
         return this;
       },
       enter: function enter() {
-        if (this._layer_group !== undefined) {
-          this.remove();
-        } // maybe delete this._layer_group ? 
-
-
-        this._layer_group = L.featureGroup(this.generate() // rename would fit well
-        );
+        this._layer_group !== undefined && this.remove();
+        this._layer_group = L.featureGroup(this.generate());
         return this;
       },
       exit: function exit() {
         this.remove();
         return this;
       },
-      generate: function generate() {
-        return [];
-      },
       remove: function remove() {
-        if (this._layer_group !== undefined) {
-          this._layer_group.remove();
-        }
-
+        this._layer_group !== undefined && this._layer_group.remove();
         return this;
       },
       getBounds: function getBounds() {
-        return this._layer_group.getBounds();
+        return this._layer_group ? this._layer_group.getBounds() : undefined;
       }
     });
 
-    function _classCallCheck(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-        throw new TypeError("Cannot call a class as a function");
-      }
-    }
-
-    function _defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor) descriptor.writable = true;
-        Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }
-
-    function _createClass(Constructor, protoProps, staticProps) {
-      if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-      if (staticProps) _defineProperties(Constructor, staticProps);
-      return Constructor;
-    }
-
-    function _defineProperty(obj, key, value) {
-      if (key in obj) {
-        Object.defineProperty(obj, key, {
-          value: value,
-          enumerable: true,
-          configurable: true,
-          writable: true
-        });
-      } else {
-        obj[key] = value;
-      }
-
-      return obj;
-    }
-
-    function _inherits(subClass, superClass) {
-      if (typeof superClass !== "function" && superClass !== null) {
-        throw new TypeError("Super expression must either be null or a function");
-      }
-
-      subClass.prototype = Object.create(superClass && superClass.prototype, {
-        constructor: {
-          value: subClass,
-          writable: true,
-          configurable: true
-        }
-      });
-      if (superClass) _setPrototypeOf(subClass, superClass);
-    }
-
-    function _getPrototypeOf(o) {
-      _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
-        return o.__proto__ || Object.getPrototypeOf(o);
-      };
-      return _getPrototypeOf(o);
-    }
-
-    function _setPrototypeOf(o, p) {
-      _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
-        o.__proto__ = p;
-        return o;
-      };
-
-      return _setPrototypeOf(o, p);
-    }
-
-    function _assertThisInitialized(self) {
-      if (self === void 0) {
-        throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
-
-      return self;
-    }
-
-    function _possibleConstructorReturn(self, call) {
-      if (call && (typeof call === "object" || typeof call === "function")) {
-        return call;
-      }
-
-      return _assertThisInitialized(self);
-    }
-
-    function _slicedToArray(arr, i) {
-      return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
-    }
-
-    function _toConsumableArray(arr) {
-      return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
-    }
-
-    function _arrayWithoutHoles(arr) {
-      if (Array.isArray(arr)) {
-        for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
-
-        return arr2;
-      }
-    }
-
-    function _arrayWithHoles(arr) {
-      if (Array.isArray(arr)) return arr;
-    }
-
-    function _iterableToArray(iter) {
-      if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
-    }
-
-    function _iterableToArrayLimit(arr, i) {
-      var _arr = [];
-      var _n = true;
-      var _d = false;
-      var _e = undefined;
-
-      try {
-        for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-          _arr.push(_s.value);
-
-          if (i && _arr.length === i) break;
-        }
-      } catch (err) {
-        _d = true;
-        _e = err;
-      } finally {
-        try {
-          if (!_n && _i["return"] != null) _i["return"]();
-        } finally {
-          if (_d) throw _e;
-        }
-      }
-
-      return _arr;
-    }
-
-    function _nonIterableSpread() {
-      throw new TypeError("Invalid attempt to spread non-iterable instance");
-    }
-
-    function _nonIterableRest() {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance");
-    }
-
-    var PointLayer = BaseLayer.extend({
-      generate: function generate() {
-        return this._data.map(function (data) {
-          return L.circleMarker(data.coordinate, data.options);
-        });
-      }
-    });
+    // PointLayer.js
     /**
     var coords = [
         {name:'GanSu', geoCoord:[36.03, 103.73 ]},
         {name:'QingHai', geoCoord:[36.56, 101.74 ]},
         ...
-    ]
+    ] // full `coords` is after definition of PointLayer 
 
     let pLayer = new dmap.PointLayer();
     pLayer.data(coords, function(data) {
@@ -259,31 +99,13 @@ var dmap = (function (exports) {
     }).addTo(map)
      */
 
-    var _PointLayer =
-    /*#__PURE__*/
-    function (_BaseLayer) {
-      _inherits(_PointLayer, _BaseLayer);
-
-      function _PointLayer(options) {
-        _classCallCheck(this, _PointLayer);
-
-        return _possibleConstructorReturn(this, _getPrototypeOf(_PointLayer).call(this, options));
-      } // @method generate
-      // 
-      // Return Array of L.CircleMarker.
-
-
-      _createClass(_PointLayer, [{
-        key: "generate",
-        value: function generate() {
-          return this._data.map(function (data) {
-            return L.circleMarker(data.coordinate, data.options);
-          });
-        }
-      }]);
-
-      return _PointLayer;
-    }(BaseLayer);
+    var PointLayer = GroupLayer.extend({
+      generate: function generate() {
+        return this._data.map(function (data) {
+          return L.circleMarker(data.coordinate, data.options);
+        });
+      }
+    });
     /**
      var coords = [
         {name:'甘肃', geoCoord:[36.03, 103.73 ]},
@@ -323,6 +145,7 @@ var dmap = (function (exports) {
     ]
      */
 
+    // PolygonLayer.js
     /**
     var states = [
         ["Alaska", [[70.0187, -141.0205], ...],
@@ -338,38 +161,13 @@ var dmap = (function (exports) {
     }).enter().addTo(map)
      */
 
-    var PolygonLayer = BaseLayer.extend({
+    var PolygonLayer = GroupLayer.extend({
       generate: function generate() {
         return this._data.map(function (data) {
           return L.polygon(data.coordinates, data.options);
         });
       }
     });
-    var _PolygonLayer =
-    /*#__PURE__*/
-    function (_BaseLayer) {
-      _inherits(_PolygonLayer, _BaseLayer);
-
-      function _PolygonLayer(options) {
-        _classCallCheck(this, _PolygonLayer);
-
-        return _possibleConstructorReturn(this, _getPrototypeOf(_PolygonLayer).call(this, options));
-      } // @method generate
-      // 
-      // Return Array of L.polygon
-
-
-      _createClass(_PolygonLayer, [{
-        key: "generate",
-        value: function generate() {
-          return this._data.map(function (data) {
-            return L.polygon(data.coordinates, data.options);
-          });
-        }
-      }]);
-
-      return _PolygonLayer;
-    }(BaseLayer);
 
     /**
      * let capitals = [ 
@@ -377,11 +175,13 @@ var dmap = (function (exports) {
      * ] 
      * let mLayer = new dmap.MarkerLayer(); 
      * 
-     * mLayer.data(capitals, (d)=>{return {coordinate: d}}).enter().addTo(map);
+     * mLayer.data(capitals, (d)=>{return {coordinate: d}})
+     *  .enter()
+     *  .addTo(map);
      * 
      */
 
-    var MarkerLayer = BaseLayer.extend({
+    var MarkerLayer = GroupLayer.extend({
       /**
        * Generate method for BaseLayer.enter.
        * Return an Array of L.Marker.
@@ -394,31 +194,6 @@ var dmap = (function (exports) {
         });
       }
     });
-    var _MarkerLayer =
-    /*#__PURE__*/
-    function (_BaseLayer) {
-      _inherits(_MarkerLayer, _BaseLayer);
-
-      function _MarkerLayer(options) {
-        _classCallCheck(this, _MarkerLayer);
-
-        return _possibleConstructorReturn(this, _getPrototypeOf(_MarkerLayer).call(this, options));
-      } // @method generate
-      // 
-      // Return Array of L.Marker.
-
-
-      _createClass(_MarkerLayer, [{
-        key: "generate",
-        value: function generate() {
-          return this._data.map(function (data) {
-            return L.marker(data.coordinate, data.options);
-          });
-        }
-      }]);
-
-      return _MarkerLayer;
-    }(BaseLayer);
 
     /*
      * @class OD
@@ -904,7 +679,7 @@ var dmap = (function (exports) {
      * }).enter().addTo(map);
      */
 
-    var ODLayer = BaseLayer.extend({
+    var ODLayer = GroupLayer.extend({
       // @method generate
       // 
       // Return Array of L.od.
@@ -930,88 +705,14 @@ var dmap = (function (exports) {
         return this;
       }
     });
-    /*
-     * @class ODLayer
-     * @inherits BaseLayer
-     *
-     */
 
-    var _ODLayer =
-    /*#__PURE__*/
-    function (_BaseLayer) {
-      _inherits(_ODLayer, _BaseLayer);
-
-      function _ODLayer(options) {
-        _classCallCheck(this, _ODLayer);
-
-        return _possibleConstructorReturn(this, _getPrototypeOf(_ODLayer).call(this, options));
-      } // @method generate
-      // 
-      // Return Array of L.od.
-
-
-      _createClass(_ODLayer, [{
-        key: "generate",
-        value: function generate() {
-          return this._data.map(function (data) {
-            return od(data.origin, data.destination, data.options);
-          });
-        } // use prefix before event type: 'org_click'
-        // or several space-separated types: 'org_click mouseover'
-
-      }, {
-        key: "on",
-        value: function on(event_type, callback) {
-          var types = event_type.split('_');
-          var item_type = types[0]; //specify the type of item
-
-          var real_event_type = types[1]; //specify the type of event
-
-          if (this._layer_group !== undefined) {
-            this._layer_group.eachLayer(function (layer) {
-              layer.getItem(item_type).on(real_event_type, callback);
-            });
-          }
-
-          return this;
-        }
-      }]);
-
-      return _ODLayer;
-    }(BaseLayer);
-
-    var PolylineLayer = BaseLayer.extend({
+    var PolylineLayer = GroupLayer.extend({
       generate: function generate() {
         return this._data.map(function (data) {
           return L.polyline(data.coordinates, data.options);
         });
       }
     });
-    var _PolylineLayer =
-    /*#__PURE__*/
-    function (_BaseLayer) {
-      _inherits(_PolylineLayer, _BaseLayer);
-
-      function _PolylineLayer(options) {
-        _classCallCheck(this, _PolylineLayer);
-
-        return _possibleConstructorReturn(this, _getPrototypeOf(_PolylineLayer).call(this, options));
-      } // @method generate
-      // 
-      // Return Array of L.Polyline.
-
-
-      _createClass(_PolylineLayer, [{
-        key: "generate",
-        value: function generate() {
-          return this._data.map(function (data) {
-            return L.polyline(data.coordinates, data.options);
-          });
-        }
-      }]);
-
-      return _PolylineLayer;
-    }(BaseLayer);
 
     function HeatmapLayer(options) {
 
@@ -1952,6 +1653,148 @@ var dmap = (function (exports) {
       return heatmapLayer;
     }
 
+    function _classCallCheck(instance, Constructor) {
+      if (!(instance instanceof Constructor)) {
+        throw new TypeError("Cannot call a class as a function");
+      }
+    }
+
+    function _defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    function _createClass(Constructor, protoProps, staticProps) {
+      if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) _defineProperties(Constructor, staticProps);
+      return Constructor;
+    }
+
+    function _defineProperty(obj, key, value) {
+      if (key in obj) {
+        Object.defineProperty(obj, key, {
+          value: value,
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
+      } else {
+        obj[key] = value;
+      }
+
+      return obj;
+    }
+
+    function _inherits(subClass, superClass) {
+      if (typeof superClass !== "function" && superClass !== null) {
+        throw new TypeError("Super expression must either be null or a function");
+      }
+
+      subClass.prototype = Object.create(superClass && superClass.prototype, {
+        constructor: {
+          value: subClass,
+          writable: true,
+          configurable: true
+        }
+      });
+      if (superClass) _setPrototypeOf(subClass, superClass);
+    }
+
+    function _getPrototypeOf(o) {
+      _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+        return o.__proto__ || Object.getPrototypeOf(o);
+      };
+      return _getPrototypeOf(o);
+    }
+
+    function _setPrototypeOf(o, p) {
+      _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+        o.__proto__ = p;
+        return o;
+      };
+
+      return _setPrototypeOf(o, p);
+    }
+
+    function _assertThisInitialized(self) {
+      if (self === void 0) {
+        throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+      }
+
+      return self;
+    }
+
+    function _possibleConstructorReturn(self, call) {
+      if (call && (typeof call === "object" || typeof call === "function")) {
+        return call;
+      }
+
+      return _assertThisInitialized(self);
+    }
+
+    function _slicedToArray(arr, i) {
+      return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
+    }
+
+    function _toConsumableArray(arr) {
+      return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
+    }
+
+    function _arrayWithoutHoles(arr) {
+      if (Array.isArray(arr)) {
+        for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+        return arr2;
+      }
+    }
+
+    function _arrayWithHoles(arr) {
+      if (Array.isArray(arr)) return arr;
+    }
+
+    function _iterableToArray(iter) {
+      if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+    }
+
+    function _iterableToArrayLimit(arr, i) {
+      var _arr = [];
+      var _n = true;
+      var _d = false;
+      var _e = undefined;
+
+      try {
+        for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+          _arr.push(_s.value);
+
+          if (i && _arr.length === i) break;
+        }
+      } catch (err) {
+        _d = true;
+        _e = err;
+      } finally {
+        try {
+          if (!_n && _i["return"] != null) _i["return"]();
+        } finally {
+          if (_d) throw _e;
+        }
+      }
+
+      return _arr;
+    }
+
+    function _nonIterableSpread() {
+      throw new TypeError("Invalid attempt to spread non-iterable instance");
+    }
+
+    function _nonIterableRest() {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance");
+    }
+
     /**
      * A class to parse color values
      * @author Stoyan Stefanov <sstoo@gmail.com>
@@ -2295,7 +2138,7 @@ var dmap = (function (exports) {
       copyright Stanislav Sumbera,  2016 , sumbera.com , license MIT
       originally created and motivated by L.CanvasOverlay  available here: https://gist.github.com/Sumbera/11114288
     */
-    var CanvasLayer = L.Layer.extend({
+    var CanvasLayer = BaseLayer.extend({
       // -- initialized is called on prototype
       initialize: function initialize(options) {
         this._map = null;
@@ -2864,27 +2707,33 @@ var dmap = (function (exports) {
        * 
        * 
        */
-      data: function data(_data, fn) {
-        this._polylines = _data.map(fn);
-
-        this._polylines.forEach(function (d) {
-          d.coordinates = d.coordinates.map(function (x) {
-            return L.latLng(x);
+      data: function data(_data, map_function) {
+        this._data = _data.map(map_function, this);
+        return this;
+      },
+      enter: function enter() {
+        this._polylines = this._data.map(function (d) {
+          var polyline = {
+            coordinates: d.coordinates.map(function (x) {
+              return L.latLng(x);
+            }),
+            latLngBounds: L.latLngBounds(),
+            options: {
+              color: '#000000',
+              width: 1,
+              zoomLevel: 1
+            }
+          };
+          polyline.coordinates.forEach(function (x) {
+            polyline.latLngBounds.extend(x);
           });
-          d.latLngBounds = L.latLngBounds();
-          d.coordinates.forEach(function (x) {
-            return d.latLngBounds.extend(x);
-          });
-          d.options = Object.assign({
-            color: '#000000',
-            width: 1,
-            zoomLevel: 1
-          }, d.options);
-        });
+          L.setOptions(polyline, d.options);
+          return polyline;
+        }); // calculate new bounds
 
         this._bounds = undefined;
         this.getBounds();
-        this.needRedraw();
+        return this;
       },
       _updateOpacity: function _updateOpacity() {
         L.DomUtil.setOpacity(this._canvas, this.options.opacity);
@@ -2966,6 +2815,7 @@ var dmap = (function (exports) {
         this._enableIdentify();
 
         this._map.getContainer().style.cursor = this.options.cursor;
+        this.needRedraw();
       },
       onLayerWillUnmount: function onLayerWillUnmount() {
         this._disableIdentify();
@@ -3047,6 +2897,8 @@ var dmap = (function (exports) {
             ret_polyline = undefined,
             dividePolylinesPart = undefined,
             latlng = this._map.containerPointToLatLng(point);
+
+        if (!this._map) return undefined;
 
         for (var i = 0; i < this._divideBoundsParts.length; ++i) {
           if (this._divideBoundsParts[i].contains(latlng)) {
@@ -4520,6 +4372,7 @@ var dmap = (function (exports) {
       }
     */
 
+    exports.GroupLayer = GroupLayer;
     exports.PointLayer = PointLayer;
     exports.PolygonLayer = PolygonLayer;
     exports.MarkerLayer = MarkerLayer;

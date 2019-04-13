@@ -6,7 +6,9 @@
   originally created and motivated by L.CanvasOverlay  available here: https://gist.github.com/Sumbera/11114288
 */
 
-export var CanvasLayer = L.Layer.extend({
+import { BaseLayer } from "../BaseLayer.js";
+
+export var CanvasLayer = BaseLayer.extend({
     // -- initialized is called on prototype
     initialize: function (options) {
         this._map = null;

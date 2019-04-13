@@ -35,17 +35,17 @@ function resetEmphasis() {
 
 
 var c = new dmap.CanvasPolylineLayer({
-    // onClick: function(e) {
-    //     console.log(e.polyline)
-    //     polyline = e.polyline;
-    //     if (polyline) emphasisPolyline(polyline);
-    //     // c.needRedraw();
-    // },
+    onClick: function(e) {
+        console.log(e.polyline)
+        polyline = e.polyline;
+        if (polyline) emphasisPolyline(polyline);
+        c.needRedraw();
+    },
     cursor: 'auto',
     divideParts: 4
 })
 
-c.addTo(map)
+// c.addTo(map)
  
 $.getJSON('newyorkcity_streetcenterline.json', function(json) {
     c.data(json.data, function(d) {
@@ -66,7 +66,7 @@ $.getJSON('newyorkcity_streetcenterline.json', function(json) {
             },
             data: d
         }
-    });
+    }).enter().addTo(map);
     map.fitBounds(c.getBounds());
     map.on('dblclick', function() {
         resetEmphasis();
