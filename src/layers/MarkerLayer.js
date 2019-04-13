@@ -6,7 +6,9 @@ import { GroupLayer } from "./GroupLayer.js";
  * ] 
  * let mLayer = new dmap.MarkerLayer(); 
  * 
- * mLayer.data(capitals, (d)=>{return {coordinate: d}}).enter().addTo(map);
+ * mLayer.data(capitals, (d)=>{return {coordinate: d}})
+ *  .enter()
+ *  .addTo(map);
  * 
  */
 

@@ -4,6 +4,7 @@ export var GroupLayer = BaseLayer.extend({
     initialize: function(options) {
         this._data = [];  // {}
         this._layer_group = undefined;
+        // BaseLayer.prototype.initialize.call(this, options)
     }, 
 
     on: function(event_type, callback_function) {

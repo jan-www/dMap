@@ -1,4 +1,4 @@
-import { GroupLayer } from "GroupLayer.js";
+import { GroupLayer } from "./GroupLayer.js";
 import {od} from './vector/OD.js'
 
 
