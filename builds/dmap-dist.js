@@ -6,8 +6,13 @@ var dmap = (function (exports) {
     // @class BaseLayer
     // Base class of all dmap.layer.
     var BaseLayer = L.Layer.extend({
+      options: {
+        theme: undefined,
+        zIndex: 1
+      },
       initialize: function initialize(options) {
-        L.Util.setOptions(this, options);
+        L.Util.setOptions(this, options); // this.setZIndex(this.options.zIndex);
+
         console.log('Layer init with options: ', options);
       },
       data: function data(_data, fn) {
@@ -18,6 +23,9 @@ var dmap = (function (exports) {
       },
       exit: function exit() {
         throw new Error('this method must be override.');
+      },
+      setZIndex: function setZIndex(zindex) {
+        return this;
       }
     });
 
@@ -25,7 +33,8 @@ var dmap = (function (exports) {
       initialize: function initialize(options) {
         this._data = []; // {}
 
-        this._layer_group = undefined; // BaseLayer.prototype.initialize.call(this, options)
+        this._layer_group = undefined;
+        BaseLayer.prototype.initialize.call(this, options);
       },
       on: function on(event_type, callback_function) {
         var _this = this;
@@ -64,6 +73,7 @@ var dmap = (function (exports) {
       enter: function enter() {
         this._layer_group !== undefined && this.remove();
         this._layer_group = L.featureGroup(this.generate());
+        this.setZIndex();
         return this;
       },
       exit: function exit() {
@@ -76,6 +86,10 @@ var dmap = (function (exports) {
       },
       getBounds: function getBounds() {
         return this._layer_group ? this._layer_group.getBounds() : undefined;
+      },
+      setZIndex: function setZIndex(zindex) {
+        this._layer_group && this._layer_group.setZIndex(zindex ? zindex : this.options.zindex);
+        return this;
       }
     });
 
@@ -2145,7 +2159,8 @@ var dmap = (function (exports) {
         this._canvas = null;
         this._frame = null;
         this._delegate = null;
-        L.setOptions(this, options);
+        L.Util.setOptions(this, options);
+        BaseLayer.prototype.initialize.call(this, options);
       },
       delegate: function delegate(del) {
         this._delegate = del;
@@ -2202,6 +2217,7 @@ var dmap = (function (exports) {
         var del = this._delegate || this;
         del.onLayerDidMount && del.onLayerDidMount(); // -- callback
 
+        this.setZIndex();
         this.needRedraw();
       },
       //-------------------------------------------------------------
@@ -2255,6 +2271,11 @@ var dmap = (function (exports) {
         var offset = this._map._latLngToNewLayerPoint(this._map.getBounds().getNorthWest(), e.zoom, e.center);
 
         L.DomUtil.setTransform(this._canvas, offset, scale);
+      },
+      setZIndex: function setZIndex(zindex) {
+        zindex = zindex ? zindex : this.options.zindex;
+        if (this._canvas) this._canvas.style.zIndex = zindex;
+        return this;
       }
     });
 
@@ -2272,19 +2293,16 @@ var dmap = (function (exports) {
         opacity: 1,
         onClick: null,
         onMouseMove: null,
-        inFilter: null,
-        border: false,
-        borderWidth: 0.5,
-        borderColor: '#000000',
-        borderOpacity: 0.99
+        inFilter: null
       },
-      initialize: function initialize(field, options) {
+      initialize: function initialize(options) {
         L.Util.setOptions(this, options);
         this._visible = true;
-
-        if (field) {
-          this.setData(field);
-        }
+        CanvasLayer.prototype.initialize.call(this, options);
+      },
+      data: function data(field) {
+        this.setData(field);
+        return this;
       },
       getEvents: function getEvents() {
         var events = CanvasLayer.prototype.getEvents.call(this);
@@ -2417,6 +2435,8 @@ var dmap = (function (exports) {
         return this;
       },
       getBounds: function getBounds() {
+        if (!this._field) return undefined;
+
         var bb = this._field.extent();
 
         var southWest = L.latLng(bb[1], bb[0]),
@@ -2462,6 +2482,9 @@ var dmap = (function (exports) {
 
         g.clearRect(0, 0, this._canvas.width, this._canvas.height);
         return g;
+      },
+      enter: function enter() {
+        return this;
       }
     });
     /**
@@ -2474,7 +2497,11 @@ var dmap = (function (exports) {
         // [colormap|vector]
         color: null,
         // function colorFor(value) [e.g. chromajs.scale],
-        controlBar: false
+        controlBar: false,
+        border: false,
+        borderWidth: 0.5,
+        borderColor: '#000000',
+        borderOpacity: 0.99
       },
       initialize: function initialize(scalarField, options) {
         FieldMap.prototype.initialize.call(this, scalarField, options);
@@ -2593,21 +2620,13 @@ var dmap = (function (exports) {
 
     var SVGGridLayer =
     /*#__PURE__*/
-    function (_BaseLayer) {
-      _inherits(SVGGridLayer, _BaseLayer);
+    function (_GroupLayer) {
+      _inherits(SVGGridLayer, _GroupLayer);
 
-      function SVGGridLayer(field, options) {
-        var _this;
-
+      function SVGGridLayer() {
         _classCallCheck(this, SVGGridLayer);
 
-        _this = _possibleConstructorReturn(this, _getPrototypeOf(SVGGridLayer).call(this, options));
-        _this._field = field;
-        console.log(field);
-
-        _this.makeData();
-
-        return _this;
+        return _possibleConstructorReturn(this, _getPrototypeOf(SVGGridLayer).apply(this, arguments));
       }
 
       _createClass(SVGGridLayer, [{
@@ -2625,8 +2644,7 @@ var dmap = (function (exports) {
       }, {
         key: "_defaultColorScale",
         value: function _defaultColorScale() {
-
-          return colorScale(['white', 'black']).domain(this._field.range); // return new ColorRangeFunction(this._field.range).fn;
+          return colorScale(['white', 'black']).domain(this._field.range);
         }
       }, {
         key: "_getColorFor",
@@ -2642,8 +2660,10 @@ var dmap = (function (exports) {
           return color;
         }
       }, {
-        key: "makeData",
-        value: function makeData() {
+        key: "data",
+        value: function data(field) {
+          this.setField(field);
+
           this._ensureColor();
 
           this._data = [];
@@ -2652,21 +2672,23 @@ var dmap = (function (exports) {
             for (var j = 0; j < this._field.nCols; ++j) {
               var value = this._field.grid[i][j];
               if (value === null) continue;
-              console.log(value);
 
-              var color = this._getColorFor(value);
-
-              var point = {
+              var color = this._getColorFor(value),
+                  point = {
                 coordinates: [[this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize], [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize]],
                 options: {
                   fillOpacity: 0.9,
-                  fillColor: color
+                  fillColor: color,
+                  color: '#111111',
+                  weight: 0.21
                 }
               };
 
               this._data.push(point);
             }
           }
+
+          return this;
         }
       }, {
         key: "generate",
@@ -2678,17 +2700,13 @@ var dmap = (function (exports) {
       }]);
 
       return SVGGridLayer;
-    }(BaseLayer);
+    }(GroupLayer);
 
     var CanvasPolylineLayer = CanvasLayer.extend({
       options: {
         onClick: null,
         cursor: 'grab',
         divideParts: 2
-      },
-      // polylines is an Array of polyline, which is an Array of L.latlng.
-      initialize: function initialize(options) {
-        L.Util.setOptions(this, options);
       },
 
       /**

@@ -5,6 +5,10 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 var l = undefined;
 
+let svgidentify = function(polygon, index, layer) {
+  console.log(layer)
+}
+
 d3.text('data/out.asc', function (asc) {
     let s = dmap.ScalarField.fromASCIIGrid(asc);
     
@@ -19,7 +23,7 @@ d3.text('data/out.asc', function (asc) {
       };
 
       // Bilinear interpolation
-      let interpolated = dmap.canvasGridLayer(s, {
+      let interpolated = new dmap.CanvasGridLayer({
         opacity: 0.78,
         border: true,
         color: dmap.colorScale(['#FFFFB2', '#E31A1C']).domain([0, 27]),
@@ -28,8 +32,11 @@ d3.text('data/out.asc', function (asc) {
         borderOpacity: 0.7,
         controlBar: true
       });
-      interpolated.on('click', identify);
-      interpolated.addTo(map);
+      interpolated
+      .data(s)
+      .enter()
+      .addTo(map)
+      .on('click', identify);
       map.fitBounds(interpolated.getBounds());
 
       l = interpolated;

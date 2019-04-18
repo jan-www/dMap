@@ -4,7 +4,7 @@ export var GroupLayer = BaseLayer.extend({
     initialize: function(options) {
         this._data = [];  // {}
         this._layer_group = undefined;
-        // BaseLayer.prototype.initialize.call(this, options)
+        BaseLayer.prototype.initialize.call(this, options)
     }, 
 
     on: function(event_type, callback_function) {
@@ -43,6 +43,7 @@ export var GroupLayer = BaseLayer.extend({
         this._layer_group !== undefined && this.remove();
 
         this._layer_group = L.featureGroup(this.generate());
+        this.setZIndex();
         return this;
     },
 
@@ -58,6 +59,11 @@ export var GroupLayer = BaseLayer.extend({
 
     getBounds: function() {
         return this._layer_group ? this._layer_group.getBounds() : undefined;
+    },
+
+    setZIndex: function(zindex) {
+        this._layer_group && this._layer_group.setZIndex(zindex ? zindex : this.options.zindex);
+        return this;
     }
 
 })

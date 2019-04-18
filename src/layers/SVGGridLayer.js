@@ -1,15 +1,9 @@
-import {BaseLayer} from './BaseLayer'
 import {RGBColor, colorScale} from '../utils/Util'
+import { GroupLayer } from './GroupLayer';
 
 // write generate()
 
-export class SVGGridLayer extends BaseLayer{
-    constructor(field, options) {
-        super(options);
-        this._field = field;
-        console.log(field)
-        this.makeData();
-    }
+export class SVGGridLayer extends GroupLayer{
 
     setField(field) {
         this._field = field;
@@ -22,16 +16,7 @@ export class SVGGridLayer extends BaseLayer{
     }
 
     _defaultColorScale() {
-        function ColorRangeFunction(range) {
-            var _range = range;
-            this.fn = function(v) {
-                var data = Math.floor(255*(_range[1]-v)/(_range[1]-_range[0]))
-                .toString(16);
-                return '#'+ data + data + data;
-            }
-        }
         return colorScale(['white', 'black']).domain(this._field.range);
-        // return new ColorRangeFunction(this._field.range).fn;
     }
 
     _getColorFor(v) {
@@ -43,7 +28,8 @@ export class SVGGridLayer extends BaseLayer{
         return color;
     }
 
-    makeData() {
+    data(field) {
+        this.setField(field)
         this._ensureColor();
 
         this._data = [];
@@ -51,23 +37,25 @@ export class SVGGridLayer extends BaseLayer{
             for (let j = 0; j < this._field.nCols; ++j) {
                 let value = this._field.grid[i][j];
                 if (value === null) continue;
-                console.log(value)
-                let color = this._getColorFor(value);
-                let point = {
-                    coordinates: [
-                        [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize],
-                        [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize],
-                        [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize],
-                        [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize]
-                    ], 
-                    options: {
-                        fillOpacity: 0.9,
-                        fillColor: color
+                let color = this._getColorFor(value),
+                    point = {
+                        coordinates: [
+                            [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize],
+                            [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize],
+                            [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize],
+                            [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize]
+                        ], 
+                        options: {
+                            fillOpacity: 0.9,
+                            fillColor: color,
+                            color: '#111111',
+                            weight: 0.21
+                        }
                     }
-                }
                 this._data.push(point);
             }
         }
+        return this;
     }
 
     generate() {
@@ -78,6 +66,5 @@ export class SVGGridLayer extends BaseLayer{
         );
     }
 
-    
-    
+
 }

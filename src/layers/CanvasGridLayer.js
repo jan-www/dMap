@@ -14,19 +14,18 @@ var FieldMap = CanvasLayer.extend({
         opacity: 1,
         onClick: null,
         onMouseMove: null,
-        inFilter: null,
-        border: false,
-        borderWidth: 0.5,
-        borderColor: '#000000',
-        borderOpacity: 0.99
+        inFilter: null
     },
 
-    initialize: function(field, options) {
+    initialize: function(options) {
         L.Util.setOptions(this, options);
         this._visible = true;
-        if (field) {
-            this.setData(field);
-        }
+        CanvasLayer.prototype.initialize.call(this, options)
+    },
+
+    data: function(field) {
+        this.setData(field);
+        return this;
     },
 
     getEvents: function() {
@@ -162,6 +161,7 @@ var FieldMap = CanvasLayer.extend({
     },
 
     getBounds: function() {
+        if (!this._field) return undefined;
         let bb = this._field.extent();
 
         let southWest = L.latLng(bb[1], bb[0]),
@@ -208,6 +208,10 @@ var FieldMap = CanvasLayer.extend({
         let g = this._canvas.getContext('2d');
         g.clearRect(0, 0, this._canvas.width, this._canvas.height);
         return g;
+    }, 
+
+    enter: function() {
+        return this;
     }
 });
 
@@ -219,7 +223,11 @@ export var CanvasGridLayer = FieldMap.extend({
     options: {
         type: 'colormap', // [colormap|vector]
         color: null, // function colorFor(value) [e.g. chromajs.scale],
-        controlBar: false
+        controlBar: false,
+        border: false,
+        borderWidth: 0.5,
+        borderColor: '#000000',
+        borderOpacity: 0.99
     },
 
     initialize: function(scalarField, options) {

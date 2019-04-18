@@ -7,12 +7,6 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
         divideParts: 2
     },
 
-
-    // polylines is an Array of polyline, which is an Array of L.latlng.
-    initialize: function(options) {
-        L.Util.setOptions(this, options);
-    },
-
     /**
      * 
      * @param {Array} data 

@@ -6,8 +6,13 @@
 // Base class of all dmap.layer.
 
 export var BaseLayer = L.Layer.extend({
+    options: {
+        theme: undefined,
+        zIndex: 1
+    },
     initialize: function(options) {
         L.Util.setOptions(this, options);
+        // this.setZIndex(this.options.zIndex);
         console.log('Layer init with options: ', options)
     },
 
@@ -21,5 +26,9 @@ export var BaseLayer = L.Layer.extend({
 
     exit: function() {
         throw new Error('this method must be override.')
+    },
+
+    setZIndex: function(zindex) {
+        return this;
     }
 });

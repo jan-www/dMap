@@ -15,7 +15,8 @@ export var CanvasLayer = BaseLayer.extend({
         this._canvas = null;
         this._frame = null;
         this._delegate = null;
-        L.setOptions(this, options);
+        L.Util.setOptions(this, options);
+        BaseLayer.prototype.initialize.call(this, options)
     },
 
     delegate: function (del) {
@@ -73,6 +74,8 @@ export var CanvasLayer = BaseLayer.extend({
 
         var del = this._delegate || this;
         del.onLayerDidMount && del.onLayerDidMount(); // -- callback
+
+        this.setZIndex();
 
         this.needRedraw();
     },
@@ -133,5 +136,12 @@ export var CanvasLayer = BaseLayer.extend({
         var offset = this._map._latLngToNewLayerPoint(this._map.getBounds().getNorthWest(), e.zoom, e.center);
 
         L.DomUtil.setTransform(this._canvas, offset, scale);
+    },
+
+    setZIndex(zindex) {
+        zindex = zindex ? zindex : this.options.zindex;
+
+        if (this._canvas) this._canvas.style.zIndex = zindex;
+        return this;
     }
 });
