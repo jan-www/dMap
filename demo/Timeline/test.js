@@ -16,7 +16,7 @@ option = {
 options = {
     enableControl: true, //是否显示时间控制条，默认显示
     autoPlay: false, //是否自动播放
-    tickTime: 500,//时间过渡，毫秒
+    tickTime: 500	,//时间过渡，毫秒
     layerType: 'PointMap',//图层的类型
     layerOption: option
 };
@@ -28,12 +28,17 @@ let data = [  [[51.505, 0.1]], [[51.508, 0.1],[51.508, 0.2]], [[51.508, 0.1],[51
 
 timelineLayer = new dmap.TimelineLayer(mymap,options);
 timelineLayer.data(time, data, function(d){
-        return {coordinate: d, options: option}  
+        return {coordinate: d, options: option};
     }
 )
-timelineLayer.renderAtTime("2015/1/2")
-timelineLayer.on("timechage")
-timelineLayer.play("2015/1/1")
+timelineLayer.on("timechange",function(d,i,t,layer){
+	console.log(i);
+	console.log(d);
+	console.log(t);
+	console.log(layer);
+});
+timelineLayer.renderAtTime("2015/1/2");
+timelineLayer.play("2015/1/1");
 
 
 

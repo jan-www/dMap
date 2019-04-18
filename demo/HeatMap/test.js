@@ -29,8 +29,8 @@ maxZoom: 18,
 id: 'mapbox.streets'
 }).addTo(mymap);
 
-var heatmapLayer = new HeatmapOverlay(cfg);
-// var heatmapLayer = new dmap.HeatmapLayer(cfg);
+// var heatmapLayer = new HeatmapOverlay(cfg);
+var heatmapLayer = new dmap.HeatmapLayer(cfg);
 heatmapLayer.addTo(mymap);
 heatmapLayer.setData(testData);
 

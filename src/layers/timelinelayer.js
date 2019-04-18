@@ -8,7 +8,10 @@ export class TimelineLayer{
         this._layers = [];
         this._curlayer = null;
         this._map = mymap;
-        
+
+        this._isrunning = false;
+        this.timechangefun = function(d,i,t,layer){};
+
         this.timeline = document.createElement("div");
         this.timeline.id = "timeline";
         this.timeline.style.visibility = "visible";
@@ -37,6 +40,11 @@ export class TimelineLayer{
         this.timeline.appendChild(this.par); 
 
         this.setOption(options);
+
+        var tmp = this;
+        this.slider.onclick = function(){
+            tmp.renderAtTime(tmp.output.innerHTML,tmp._map);
+        }
     }
 
     setOption(options){
@@ -46,7 +54,7 @@ export class TimelineLayer{
     data(time,data,fn){
         this._times = time;
         this._data = data;
-        this.slider.max = time.length;
+        this.slider.max = time.length-1;
         for(let i=0;i<time.length;i++){
             this.times2index[this._times[i]] = i;
         }
@@ -116,27 +124,28 @@ export class TimelineLayer{
         }     
         this.slider.value = this.times2index[time_index];
         this.output.innerHTML = time_index;  
+
+        let index = Number(this.slider.value);
+        this.timechangefun(this._data[index],index,this._times[index],this._curlayer);
     }
 
-    on(event){
-        if(event="timechage"){
-            var tmp = this
-            this.slider.onclick = function(){
-                tmp.renderAtTime(tmp.output.innerHTML,tmp._map)
-            }
+    on(event,f){
+        if(event==="timechange"){
+            this.timechangefun = f;
         }
     }
 
     play(time){
         let index = this.times2index[time];
-
-        //es6 promise
-        for (let i=index; i<this._times.length; i++) {
-            var tmp = this;
-            (function () {
-                setTimeout(() => tmp.renderAtTime(tmp._times[i],tmp._map), tmp.options.tickTime*i)
-            })()
+        if(this._isrunning==false){
+            this._isrunning=true;
+            //es6 promise
+            for (let i=index; i<this._times.length; i++) {
+                var tmp = this;
+                (function () {
+                    setTimeout(() => {tmp.renderAtTime(tmp._times[i],tmp._map);if(i==tmp._times.length-1){tmp._isrunning=false}}, tmp.options.tickTime*i)
+                })();
+            }
         }
-
     }
 }
