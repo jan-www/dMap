@@ -147,13 +147,98 @@ var dmap = (function (exports) {
   // Define BaseLayer class and basic methods here.
   // @class BaseLayer
   // Base class of all dmap.layer.
-  var BaseLayer =
+  var BaseLayer = L.Class.extend({
+    initialize: function initialize(options) {
+      if ((this instanceof initialize ? this.constructor : void 0) === BaseLayer) {
+        throw new Error('Class BaseLayer cannot be initialized.');
+      }
+
+      L.Util.setOptions(this, options);
+      this._data = []; // {}
+
+      this._layer_group = undefined;
+      console.log('Layer init');
+    },
+    on: function on(event_type, callback) {
+      var _this = this;
+
+      if (this._layer_group !== undefined) {
+        (function () {
+          var layers = _this._layer_group.getLayers();
+
+          var _loop = function _loop(i) {
+            layers[i].on(event_type, function () {
+              callback(this._data[i], i, layers[i]);
+            }, _this); //bind
+          };
+
+          for (var i = 0; i < layers.length; ++i) {
+            _loop(i);
+          }
+        })();
+      }
+
+      return this;
+    },
+    setElementOptions: function setElementOptions(data, fn) {
+      var array_options = data.map(fn),
+          i = 0;
+
+      for (i = 0; i < this._data.length; ++i) {
+        this._data[i].options = this._data[i].options || {};
+
+        if (i < data.length) {
+          Object.assign(this._data[i].options, array_options[i]);
+        }
+      }
+
+      return this;
+    },
+    data: function data(_data, fn) {
+      this._data = _data.map(fn);
+      return this;
+    },
+    addTo: function addTo(leaflet_map) {
+      //this._map = leaflet_map; // for ODLayer update
+      this._layer_group.addTo(leaflet_map);
+
+      return this;
+    },
+    enter: function enter() {
+      if (this._layer_group !== undefined) {
+        this.remove();
+      } // maybe delete this._layer_group ? 
+
+
+      this._layer_group = L.featureGroup(this.generate() // rename would fit well
+      );
+      return this;
+    },
+    exit: function exit() {
+      this.remove();
+      return this;
+    },
+    generate: function generate() {
+      return [];
+    },
+    remove: function remove() {
+      if (this._layer_group !== undefined) {
+        this._layer_group.remove();
+      }
+
+      return this; // return what??
+    },
+    getBounds: function getBounds() {
+      return this._layer_group.getBounds();
+    }
+  });
+  var _BaseLayer =
   /*#__PURE__*/
   function () {
-    function BaseLayer(options) {
-      _classCallCheck(this, BaseLayer);
+    function _BaseLayer(options) {
+      _classCallCheck(this, _BaseLayer);
 
-      if ((this instanceof BaseLayer ? this.constructor : void 0) === BaseLayer) {
+      if ((this instanceof _BaseLayer ? this.constructor : void 0) === BaseLayer) {
         throw new Error('Class BaseLayer cannot be initialized.');
       }
 
@@ -168,23 +253,23 @@ var dmap = (function (exports) {
     // Bind callback function to every element.
 
 
-    _createClass(BaseLayer, [{
+    _createClass(_BaseLayer, [{
       key: "on",
       value: function on(event_type, callback) {
-        var _this = this;
+        var _this2 = this;
 
         if (this._layer_group !== undefined) {
           (function () {
-            var layers = _this._layer_group.getLayers();
+            var layers = _this2._layer_group.getLayers();
 
-            var _loop = function _loop(i) {
+            var _loop2 = function _loop2(i) {
               layers[i].on(event_type, function () {
                 callback(this._data[i], i, layers[i]);
-              }, _this); //bind
+              }, _this2); //bind
             };
 
             for (var i = 0; i < layers.length; ++i) {
-              _loop(i);
+              _loop2(i);
             }
           })();
         }
@@ -239,8 +324,8 @@ var dmap = (function (exports) {
 
     }, {
       key: "data",
-      value: function data(_data, fn) {
-        this._data = _data.map(fn);
+      value: function data(_data2, fn) {
+        this._data = _data2.map(fn);
         return this;
       } // @method addTo
       // @parameter leaflet_map: L.map
@@ -305,24 +390,31 @@ var dmap = (function (exports) {
       }
     }]);
 
-    return BaseLayer;
+    return _BaseLayer;
   }();
 
-  var PointLayer =
+  var PointLayer = BaseLayer.extend({
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.circleMarker(data.coordinate, data.options);
+      });
+    }
+  });
+  var _PointLayer =
   /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(PointLayer, _BaseLayer);
+  function (_BaseLayer$$1) {
+    _inherits(_PointLayer, _BaseLayer$$1);
 
-    function PointLayer(options) {
-      _classCallCheck(this, PointLayer);
+    function _PointLayer(options) {
+      _classCallCheck(this, _PointLayer);
 
-      return _possibleConstructorReturn(this, _getPrototypeOf(PointLayer).call(this, options));
+      return _possibleConstructorReturn(this, _getPrototypeOf(_PointLayer).call(this, options));
     } // @method generate
     // 
     // Return Array of L.circle.
 
 
-    _createClass(PointLayer, [{
+    _createClass(_PointLayer, [{
       key: "generate",
       value: function generate() {
         return this._data.map(function (data) {
@@ -331,24 +423,31 @@ var dmap = (function (exports) {
       }
     }]);
 
-    return PointLayer;
+    return _PointLayer;
   }(BaseLayer);
 
-  var PolygonLayer =
+  var PolygonLayer = BaseLayer.extend({
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.polygon(data.coordinates, data.options);
+      });
+    }
+  });
+  var _PolygonLayer =
   /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(PolygonLayer, _BaseLayer);
+  function (_BaseLayer$$1) {
+    _inherits(_PolygonLayer, _BaseLayer$$1);
 
-    function PolygonLayer(options) {
-      _classCallCheck(this, PolygonLayer);
+    function _PolygonLayer(options) {
+      _classCallCheck(this, _PolygonLayer);
 
-      return _possibleConstructorReturn(this, _getPrototypeOf(PolygonLayer).call(this, options));
+      return _possibleConstructorReturn(this, _getPrototypeOf(_PolygonLayer).call(this, options));
     } // @method generate
     // 
     // Return Array of L.polygon
 
 
-    _createClass(PolygonLayer, [{
+    _createClass(_PolygonLayer, [{
       key: "generate",
       value: function generate() {
         return this._data.map(function (data) {
@@ -357,24 +456,31 @@ var dmap = (function (exports) {
       }
     }]);
 
-    return PolygonLayer;
+    return _PolygonLayer;
   }(BaseLayer);
 
-  var MarkerLayer =
+  var MarkerLayer = BaseLayer.extend({
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.marker(data.coordinate, data.options);
+      });
+    }
+  });
+  var _MarkerLayer =
   /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(MarkerLayer, _BaseLayer);
+  function (_BaseLayer$$1) {
+    _inherits(_MarkerLayer, _BaseLayer$$1);
 
-    function MarkerLayer(options) {
-      _classCallCheck(this, MarkerLayer);
+    function _MarkerLayer(options) {
+      _classCallCheck(this, _MarkerLayer);
 
-      return _possibleConstructorReturn(this, _getPrototypeOf(MarkerLayer).call(this, options));
+      return _possibleConstructorReturn(this, _getPrototypeOf(_MarkerLayer).call(this, options));
     } // @method generate
     // 
     // Return Array of L.Marker.
 
 
-    _createClass(MarkerLayer, [{
+    _createClass(_MarkerLayer, [{
       key: "generate",
       value: function generate() {
         return this._data.map(function (data) {
@@ -383,7 +489,7 @@ var dmap = (function (exports) {
       }
     }]);
 
-    return MarkerLayer;
+    return _MarkerLayer;
   }(BaseLayer);
 
   /*
@@ -855,27 +961,53 @@ var dmap = (function (exports) {
     }
   });
 
+  var ODLayer = BaseLayer.extend({
+    // @method generate
+    // 
+    // Return Array of L.od.
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return od(data.origin, data.destination, data.options);
+      });
+    },
+    // use prefix before event type: 'org_click'
+    // or several space-separated types: 'org_click mouseover'
+    on: function on(event_type, callback) {
+      var types = event_type.split('_');
+      var item_type = types[0]; //specify the type of item
+
+      var real_event_type = types[1]; //specify the type of event
+
+      if (this._layer_group !== undefined) {
+        this._layer_group.eachLayer(function (layer) {
+          layer.getItem(item_type).on(real_event_type, callback);
+        });
+      }
+
+      return this;
+    }
+  });
   /*
    * @class ODLayer
    * @inherits BaseLayer
    *
    */
 
-  var ODLayer =
+  var _ODLayer =
   /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(ODLayer, _BaseLayer);
+  function (_BaseLayer$$1) {
+    _inherits(_ODLayer, _BaseLayer$$1);
 
-    function ODLayer(options) {
-      _classCallCheck(this, ODLayer);
+    function _ODLayer(options) {
+      _classCallCheck(this, _ODLayer);
 
-      return _possibleConstructorReturn(this, _getPrototypeOf(ODLayer).call(this, options));
+      return _possibleConstructorReturn(this, _getPrototypeOf(_ODLayer).call(this, options));
     } // @method generate
     // 
     // Return Array of L.od.
 
 
-    _createClass(ODLayer, [{
+    _createClass(_ODLayer, [{
       key: "generate",
       value: function generate() {
         return this._data.map(function (data) {
@@ -902,24 +1034,31 @@ var dmap = (function (exports) {
       }
     }]);
 
-    return ODLayer;
+    return _ODLayer;
   }(BaseLayer);
 
-  var PolylineLayer =
+  var PolylineLayer = BaseLayer.extend({
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.polyline(data.coordinates, data.options);
+      });
+    }
+  });
+  var _PolylineLayer =
   /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(PolylineLayer, _BaseLayer);
+  function (_BaseLayer$$1) {
+    _inherits(_PolylineLayer, _BaseLayer$$1);
 
-    function PolylineLayer(options) {
-      _classCallCheck(this, PolylineLayer);
+    function _PolylineLayer(options) {
+      _classCallCheck(this, _PolylineLayer);
 
-      return _possibleConstructorReturn(this, _getPrototypeOf(PolylineLayer).call(this, options));
+      return _possibleConstructorReturn(this, _getPrototypeOf(_PolylineLayer).call(this, options));
     } // @method generate
     // 
-    // Return Array of L.Marker.
+    // Return Array of L.Polyline.
 
 
-    _createClass(PolylineLayer, [{
+    _createClass(_PolylineLayer, [{
       key: "generate",
       value: function generate() {
         return this._data.map(function (data) {
@@ -928,7 +1067,7 @@ var dmap = (function (exports) {
       }
     }]);
 
-    return PolylineLayer;
+    return _PolylineLayer;
   }(BaseLayer);
 
   function HeatmapLayer(options) {
@@ -2669,8 +2808,8 @@ var dmap = (function (exports) {
 
   var SVGGridLayer =
   /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(SVGGridLayer, _BaseLayer);
+  function (_BaseLayer$$1) {
+    _inherits(SVGGridLayer, _BaseLayer$$1);
 
     function SVGGridLayer(field, options) {
       var _this;
@@ -2758,7 +2897,9 @@ var dmap = (function (exports) {
 
   var CanvasPolylineLayer = CanvasLayer.extend({
     options: {
-      onClick: null
+      onClick: null,
+      cursor: 'grab',
+      divideParts: 2
     },
     // polylines is an Array of polyline, which is an Array of L.latlng.
     initialize: function initialize(options) {
@@ -2800,6 +2941,7 @@ var dmap = (function (exports) {
       });
 
       this._bounds = undefined;
+      this.getBounds();
       this.needRedraw();
     },
     _updateOpacity: function _updateOpacity() {
@@ -2815,8 +2957,6 @@ var dmap = (function (exports) {
       return this;
     },
     getBounds: function getBounds() {
-      if (this._map === undefined) return undefined;
-
       if (this._bounds === undefined) {
         var bounds = L.latLngBounds();
 
@@ -2825,9 +2965,52 @@ var dmap = (function (exports) {
         });
 
         this._bounds = bounds;
+
+        this._divideParts();
       }
 
       return this._bounds;
+    },
+    _divideParts: function _divideParts() {
+      var _this = this;
+
+      var n = this.options.divideParts,
+          west = this.getBounds().getWest(),
+          east = this.getBounds().getEast(),
+          north = this.getBounds().getNorth(),
+          south = this.getBounds().getSouth();
+      this._divideBoundsParts = [];
+      this._dividePolylinesParts = [];
+
+      for (var i = 0; i < n; ++i) {
+        var lat_rate_1 = i / n,
+            lat_rate_2 = (i + 1) / n;
+
+        for (var j = 0; j < n; ++j) {
+          var lng_rate_1 = j / n,
+              lng_rate_2 = (j + 1) / n,
+              _southWest = L.latLng(south + lat_rate_1 * (north - south), west + lng_rate_1 * (east - west)),
+              _northEast = L.latLng(south + lat_rate_2 * (north - south), west + lng_rate_2 * (east - west)),
+              divideBoundsPart = L.latLngBounds(_southWest, _northEast);
+
+          this._divideBoundsParts.push(divideBoundsPart);
+        }
+      }
+
+      var _loop = function _loop(_i) {
+        var divideBoundsPart = _this._divideBoundsParts[_i],
+            dividePolylinesPart = [];
+
+        _this._polylines.forEach(function (polyline) {
+          if (polyline.latLngBounds.intersects(divideBoundsPart)) dividePolylinesPart.push(polyline);
+        });
+
+        _this._dividePolylinesParts.push(dividePolylinesPart);
+      };
+
+      for (var _i in this._divideBoundsParts) {
+        _loop(_i);
+      }
     },
     onDrawLayer: function onDrawLayer(viewInfo) {
       // if (!this.isVisible()) return;
@@ -2839,9 +3022,13 @@ var dmap = (function (exports) {
     },
     onLayerDidMount: function onLayerDidMount() {
       this._enableIdentify();
+
+      this._map.getContainer().style.cursor = this.options.cursor;
     },
     onLayerWillUnmount: function onLayerWillUnmount() {
       this._disableIdentify();
+
+      this._map.getContainer().style.cursor = '';
     },
     _enableIdentify: function _enableIdentify() {
       // Everytime when CLICK on `this._map`, `this` will 
@@ -2867,7 +3054,7 @@ var dmap = (function (exports) {
         CanvasLayer.prototype.needRedraw.call(this);
       }
     },
-    _displayPolyline: function _displayPolyline(polyline) {
+    _isDisplayPolyline: function _isDisplayPolyline(polyline) {
       return this._map.getZoom() >= polyline.options.zoomLevel;
     },
     _drawPolylines: function _drawPolylines() {
@@ -2876,7 +3063,7 @@ var dmap = (function (exports) {
       var ctx = this._getDrawingContext();
 
       for (var i = 0; i < this._polylines.length; ++i) {
-        if (!this._displayPolyline(this._polylines[i])) continue;
+        if (!this._isDisplayPolyline(this._polylines[i])) continue;
 
         var latlngs = this._polylines[i].coordinates.map(function (x) {
           return L.latLng(x);
@@ -2915,11 +3102,22 @@ var dmap = (function (exports) {
     },
     _polylineAt: function _polylineAt(point) {
       var min_precision = undefined,
-          ret_polyline = undefined;
+          ret_polyline = undefined,
+          dividePolylinesPart = undefined,
+          latlng = this._map.containerPointToLatLng(point);
 
-      for (var i = 0; i < this._polylines.length; ++i) {
-        var polyline = this._polylines[i];
-        if (!this._displayPolyline(polyline)) continue;
+      for (var i = 0; i < this._divideBoundsParts.length; ++i) {
+        if (this._divideBoundsParts[i].contains(latlng)) {
+          dividePolylinesPart = this._dividePolylinesParts[i];
+          break;
+        }
+      }
+
+      if (dividePolylinesPart === undefined) return undefined;
+
+      for (var _i2 = 0; _i2 < dividePolylinesPart.length; ++_i2) {
+        var polyline = dividePolylinesPart[_i2];
+        if (!this._isDisplayPolyline(polyline)) continue;
 
         var precision = this._pointIsOnPolyline(point, polyline);
 
@@ -2932,12 +3130,12 @@ var dmap = (function (exports) {
       return ret_polyline;
     },
     _pointIsOnPolyline: function _pointIsOnPolyline(pt, polyline) {
-      var _this = this;
+      var _this2 = this;
 
       var latlngs = polyline.coordinates,
           lineWidth = polyline.options.width,
           containerPoints = latlngs.map(function (latlng) {
-        return _this._map.latLngToContainerPoint(latlng);
+        return _this2._map.latLngToContainerPoint(latlng);
       });
       var ret = false;
       if (polyline.latLngBounds && !polyline.latLngBounds.contains(this._map.containerPointToLatLng(pt))) return ret;
@@ -4407,6 +4605,7 @@ var dmap = (function (exports) {
   exports.CanvasPolylineLayer = CanvasPolylineLayer;
   exports.TimelineLayer = TimelineLayer;
   exports.BaseLayer = BaseLayer;
+  exports._BaseLayer = _BaseLayer;
   exports.OD = OD;
   exports.od = od;
   exports.ScalarField = ScalarField;
