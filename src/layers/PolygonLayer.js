@@ -2,7 +2,33 @@
 
 import {BaseLayer} from "./BaseLayer.js"
 
-export class PolygonLayer extends BaseLayer {
+
+/**
+var states = [
+    ["Alaska", [[70.0187, -141.0205], ...],
+    ["...", ...],
+    ...
+]
+var pLayer = new dmap.PolygonLayer();
+pLayer.data(states, function (data) {
+    return {
+        name: data[0],
+        coordinates: data[1]
+    }
+}).enter().addTo(map)
+ */
+
+export var PolygonLayer = BaseLayer.extend({
+    generate: function() {
+        return this._data.map(
+            (data)=>{return L.polygon(
+                data.coordinates, data.options
+            )}
+        );
+    }
+})
+
+export class _PolygonLayer extends BaseLayer {
     constructor(options) {
         super(options)
     }
@@ -13,7 +39,7 @@ export class PolygonLayer extends BaseLayer {
     generate() {
         return this._data.map(
             (data)=>{return L.polygon(
-                data.coordinations, data.options
+                data.coordinates, data.options
             )}
         );
     }

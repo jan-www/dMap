@@ -2,6 +2,9 @@ import {CanvasLayer} from './vector/CanvasLayer'
 
 export var CanvasPolylineLayer = CanvasLayer.extend({
     options: {
+        onClick: null,
+        cursor: 'grab',
+        divideParts: 2
     },
 
 
@@ -29,15 +32,20 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
     
     data: function(data, fn) {
         this._polylines = data.map(fn);
-
         this._polylines.forEach(function(d) {
             d.coordinates = d.coordinates.map(x => L.latLng(x));
+            d.latLngBounds = L.latLngBounds();
+            d.coordinates.forEach(x => d.latLngBounds.extend(x));
+
             d.options = Object.assign({
                 color: '#000000',
                 width: 1,
                 zoomLevel: 1
             }, d.options)
         });
+        this._bounds = undefined;
+        this.getBounds();
+        
         this.needRedraw();
     },
 
@@ -54,43 +62,115 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
         return this;
     },
 
-    // getBounds: function() {
-    //     if (this._bounds === undefined) {
-    //         let bounds = undefined;
-    //         for (let i = 0; i < this._polylines.length; ++i) {
-    //             for (let j = 0; j < this._polylines[i].coordinates.length; ++j) {
-    //                 bounds = bounds ? bounds : L.bounds(this._polylines[i].coordinates[j]);
-    //                 console.log(bounds.max, bounds.min)
-    //                 bounds.extend(this._polylines[i].coordinates[j]);
-    //             }
-    //         }
-    //         this._bounds = bounds;
-    //     }
-    //     return this._bounds;
-    // },
+    getBounds: function() {
+        if (this._bounds === undefined) {
+            let bounds = L.latLngBounds();
+            this._polylines.forEach(function(pl) {
+                bounds.extend(pl.latLngBounds);
+            })
+            this._bounds = bounds;
+            this._divideParts();
+        }
+        return this._bounds;
+    },
+
+    _divideParts() {
+        let n = this.options.divideParts,
+            west = this.getBounds().getWest(),
+            east = this.getBounds().getEast(),
+            north = this.getBounds().getNorth(),
+            south = this.getBounds().getSouth();
+
+        this._divideBoundsParts = [];
+        this._dividePolylinesParts = [];
+
+        for (let i = 0; i < n; ++i) {
+            let lat_rate_1 = i / n, lat_rate_2 = (i + 1) / n;
+            for (let j = 0; j < n; ++j) {
+                let lng_rate_1 = j / n, lng_rate_2 = (j + 1) / n,
+                    _southWest = L.latLng(
+                        south + lat_rate_1 * (north - south),
+                        west + lng_rate_1 * (east - west)
+                    ),
+                    _northEast = L.latLng(
+                        south + lat_rate_2 * (north - south),
+                        west + lng_rate_2 * (east - west)
+                    ),
+                    divideBoundsPart = L.latLngBounds(_southWest, _northEast);
+
+                    this._divideBoundsParts.push(divideBoundsPart);
+                }
+        }
+        for (let i in this._divideBoundsParts) {
+            let divideBoundsPart = this._divideBoundsParts[i],
+                dividePolylinesPart = [];
+
+            this._polylines.forEach(function(polyline) {
+                if (polyline.latLngBounds.intersects(divideBoundsPart)) dividePolylinesPart.push(polyline);
+            });
+            this._dividePolylinesParts.push(dividePolylinesPart);
+        }
+    },
+
     onDrawLayer: function(viewInfo) {
         // if (!this.isVisible()) return;
+        if (!this._map) return;
         this._updateOpacity();
 
         this._drawPolylines();
     },
 
+    onLayerDidMount: function() {
+        this._enableIdentify();
+        this._map.getContainer().style.cursor = this.options.cursor;
+    },
+
+    onLayerWillUnmount: function() {
+        this._disableIdentify();
+        this._map.getContainer().style.cursor = '';
+    },
+
+    _enableIdentify: function() {
+        // Everytime when CLICK on `this._map`, `this` will 
+        // react on a CLICK event.
+       this._map.on('click', this._onClick, this);
+
+       // If there exists an `onClick` parameter, then bind this 
+       // function to CLICK event.
+       this.options.onClick && this.on('click', this.options.onClick, this);
+    },
+
+    _disableIdentify: function() {
+        this._map.off('click', this._onClick, this);
+        this.options.onClick && this.off('click', this.options.onClick, this);
+    },
+
+    _onClick: function(e) {
+        let v = this._queryPolyline(e);
+        this.fire('click', v);
+    },
+    
     needRedraw() {
         if (this._map) {
             CanvasLayer.prototype.needRedraw.call(this);
         }
     },
 
+    _isDisplayPolyline(polyline) {
+        return this._map.getZoom() >= polyline.options.zoomLevel;
+    },
+
     _drawPolylines: function() {
+        if (!this._polylines) return;
+        
         const ctx = this._getDrawingContext();
         
         for (let i = 0; i < this._polylines.length; ++i) {
-            if (this._map.getZoom() < this._polylines[i].options.zoomLevel) continue;
+            if (!this._isDisplayPolyline(this._polylines[i])) continue;
 
             let latlngs = this._polylines[i].coordinates.map(x=>L.latLng(x));
             this._prepareOptions(this._polylines[i], ctx);
             ctx.beginPath();
-            
             if (latlngs.length) ctx.moveTo(
                 this._map.latLngToContainerPoint(latlngs[0]).x,
                 this._map.latLngToContainerPoint(latlngs[0]).y
@@ -115,5 +195,68 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
     _prepareOptions: function(polyline, ctx) {
         ctx.lineWidth = polyline.options.width;
         ctx.strokeStyle = polyline.options.color;
+    },
+
+    _queryPolyline: function(e) {
+        let polyline = this._polylines && this.getBounds().contains(e.latlng)
+            ? this._polylineAt(e.containerPoint) 
+            : undefined;
+        return {
+            event: e,
+            polyline: polyline,
+            latlng: e.latlng
+        }
+    },
+
+    _polylineAt: function(point) {
+        let min_precision = undefined,
+            ret_polyline = undefined,
+            dividePolylinesPart = undefined,
+            latlng = this._map.containerPointToLatLng(point);
+        
+        for (let i = 0; i < this._divideBoundsParts.length; ++i) {
+            if (this._divideBoundsParts[i].contains(latlng)) {
+                dividePolylinesPart = this._dividePolylinesParts[i];
+                break;
+            }
+        }
+        if (dividePolylinesPart === undefined) return undefined;
+
+        for (let i = 0; i < dividePolylinesPart.length; ++i) {
+            let polyline = dividePolylinesPart[i];
+            if (!this._isDisplayPolyline(polyline)) continue;
+
+            let precision = this._pointIsOnPolyline(point, polyline);
+            if (precision === false) continue;  // point is not on this polyline
+
+            min_precision = Math.min(min_precision || precision, precision);
+            if (precision == min_precision) ret_polyline = polyline;
+        }
+        return ret_polyline;
+    },
+
+    _pointIsOnPolyline: function(pt, polyline) {
+        let latlngs = polyline.coordinates,
+            lineWidth = polyline.options.width,
+            containerPoints = latlngs.map(latlng => this._map.latLngToContainerPoint(latlng));
+        let ret = false;
+
+        if (polyline.latLngBounds && !polyline.latLngBounds.contains(
+            this._map.containerPointToLatLng(pt)
+        )) return ret;
+
+        for (let i = 0; i < containerPoints.length-1; ++i) {
+            let curPt = containerPoints[i], nextPt = containerPoints[i + 1];
+            if(pt.x >= Math.min(curPt.x, nextPt.x) - 10
+            && pt.x <= Math.max(curPt.x, nextPt.x) + 10
+            && pt.y >= Math.min(curPt.y, nextPt.y) - 10
+            && pt.y <= Math.max(curPt.y, nextPt.y) + 10) {
+                let precision = Math.abs((curPt.x - pt.x) / (curPt.y - pt.y) - (nextPt.x - pt.x)/(nextPt.y - pt.y));
+                if (precision <= 1.618 + Math.log10(c._map.getZoom())/10) {
+                    ret = Math.min(ret || precision, precision);
+                }
+            }
+        } 
+        return ret;
     }
 })

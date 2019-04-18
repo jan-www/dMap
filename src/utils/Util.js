@@ -7,7 +7,14 @@
 export function RGBColor(color_string)
 {
     this.ok = false;
-    if (color_string instanceof RGBColor) {
+    if (color_string instanceof Array) {
+        this.r = color_string[0];
+        this.g = color_string[1];
+        this.b = color_string[2];
+        this.a = color_string.length > 3 ? color_string[3] : 1;
+        this.ok = true;
+    }
+    else if (color_string instanceof RGBColor) {
         this.r = color_string.r;
         this.g = color_string.g;
         this.b = color_string.b;
@@ -187,7 +194,7 @@ export function RGBColor(color_string)
                         parseInt(bits[1]),
                         parseInt(bits[2]),
                         parseInt(bits[3]),
-                        null
+                        1
                     ];
                 }
             },
@@ -211,7 +218,7 @@ export function RGBColor(color_string)
                         parseInt(bits[1], 16),
                         parseInt(bits[2], 16),
                         parseInt(bits[3], 16),
-                        null
+                        1
                     ];
                 }
             },
@@ -223,7 +230,7 @@ export function RGBColor(color_string)
                         parseInt(bits[1] + bits[1], 16),
                         parseInt(bits[2] + bits[2], 16),
                         parseInt(bits[3] + bits[3], 16),
-                        null
+                        1
                     ];
                 }
             }
@@ -254,7 +261,7 @@ export function RGBColor(color_string)
     this.r = (this.r < 0 || isNaN(this.r)) ? 0 : ((this.r > 255) ? 255 : this.r);
     this.g = (this.g < 0 || isNaN(this.g)) ? 0 : ((this.g > 255) ? 255 : this.g);
     this.b = (this.b < 0 || isNaN(this.b)) ? 0 : ((this.b > 255) ? 255 : this.b);
-    this.a = (this.a < 0 || isNaN(this.a)) ? 0 : ((this.a > 1) ? 1 : this.a);
+    this.a = (this.a < 0 || isNaN(this.a)) ? 1 : ((this.a > 1) ? 1 : this.a);
     
     // some getters
     this.toRGB = function () {
@@ -270,10 +277,10 @@ export function RGBColor(color_string)
         return '#' + r + g + b;
     }
     this.toRGBA = function() {
-        return 'rgba(' + this.r + ', ' + this.g + ', ' + this.b + ', ' + (this.a === null ? 1 : this.a)+ ')';
+        return 'rgba(' + this.r + ', ' + this.g + ', ' + this.b + ', ' + this.a + ')';
     }
     this.toString = function() {
-        return this.a === null ? this.toHex() : this.toRGBA();
+        return this.a == 1 ? this.toHex() : this.toRGBA();
     }
     this.rgba = function() {
         return [
@@ -285,5 +292,60 @@ export function RGBColor(color_string)
     }
 }
 
+export var rgbColor = function(color_string) {
+    return new RGBColor(color_string);
+}
 
 // TODO: colorScale - D3
+
+
+export class ColorScale {
+    constructor(rgbColors) {
+        this._colors = rgbColors.map(color => new RGBColor(color));
+        this._values = undefined;
+    }
+
+    getColors() {
+        return this._colors;
+    }
+
+    domain(values) {
+        if (values.length != this._colors.length) {
+            throw new Error('Data length not match!');
+        }
+        let that = this;
+        let ret = function(value) {
+            let colors = that.getColors(),
+                index = 0;
+            if (colors.length == 1) return colors[0];
+
+            for (index = 0; index < colors.length && value > values[index]; ++index);
+            if (index == 0) index = 1;
+            if (index == colors.length) index -= 1;
+            
+            let v0 = values[index - 1], v1 = values[index],
+                c0 = colors[index - 1], c1 = colors[index],
+                dr = (c1.r - c0.r), dg = (c1.g - c0.g), db = (c1.b - c0.b),
+                rate = (value - v0) / (v1 - v0);
+            
+            let r = c0.r + Math.floor(dr * rate),
+                g = c0.g + Math.floor(dg * rate),
+                b = c0.b + Math.floor(db * rate);
+
+            return new RGBColor([r, g, b]);      
+        }
+        ret.getAttr = function() {
+            return {
+                values: values,
+                colors: that.getColors(),
+                colorScale: that
+            }
+        }
+        return ret;
+    }
+}
+
+export var colorScale = function(rgbColors) {
+    return new ColorScale(rgbColors);
+}
+

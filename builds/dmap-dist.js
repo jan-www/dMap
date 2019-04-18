@@ -147,13 +147,98 @@ var dmap = (function (exports) {
   // Define BaseLayer class and basic methods here.
   // @class BaseLayer
   // Base class of all dmap.layer.
-  var BaseLayer =
+  var BaseLayer = L.Class.extend({
+    initialize: function initialize(options) {
+      if ((this instanceof initialize ? this.constructor : void 0) === BaseLayer) {
+        throw new Error('Class BaseLayer cannot be initialized.');
+      }
+
+      L.Util.setOptions(this, options);
+      this._data = []; // {}
+
+      this._layer_group = undefined;
+      console.log('Layer init');
+    },
+    on: function on(event_type, callback) {
+      var _this = this;
+
+      if (this._layer_group !== undefined) {
+        (function () {
+          var layers = _this._layer_group.getLayers();
+
+          var _loop = function _loop(i) {
+            layers[i].on(event_type, function () {
+              callback(this._data[i], i, layers[i]);
+            }, _this); //bind
+          };
+
+          for (var i = 0; i < layers.length; ++i) {
+            _loop(i);
+          }
+        })();
+      }
+
+      return this;
+    },
+    setElementOptions: function setElementOptions(data, fn) {
+      var array_options = data.map(fn),
+          i = 0;
+
+      for (i = 0; i < this._data.length; ++i) {
+        this._data[i].options = this._data[i].options || {};
+
+        if (i < data.length) {
+          Object.assign(this._data[i].options, array_options[i]);
+        }
+      }
+
+      return this;
+    },
+    data: function data(_data, fn) {
+      this._data = _data.map(fn);
+      return this;
+    },
+    addTo: function addTo(leaflet_map) {
+      //this._map = leaflet_map; // for ODLayer update
+      this._layer_group.addTo(leaflet_map);
+
+      return this;
+    },
+    enter: function enter() {
+      if (this._layer_group !== undefined) {
+        this.remove();
+      } // maybe delete this._layer_group ? 
+
+
+      this._layer_group = L.featureGroup(this.generate() // rename would fit well
+      );
+      return this;
+    },
+    exit: function exit() {
+      this.remove();
+      return this;
+    },
+    generate: function generate() {
+      return [];
+    },
+    remove: function remove() {
+      if (this._layer_group !== undefined) {
+        this._layer_group.remove();
+      }
+
+      return this; // return what??
+    },
+    getBounds: function getBounds() {
+      return this._layer_group.getBounds();
+    }
+  });
+  var _BaseLayer =
   /*#__PURE__*/
   function () {
-    function BaseLayer(options) {
-      _classCallCheck(this, BaseLayer);
+    function _BaseLayer(options) {
+      _classCallCheck(this, _BaseLayer);
 
-      if ((this instanceof BaseLayer ? this.constructor : void 0) === BaseLayer) {
+      if ((this instanceof _BaseLayer ? this.constructor : void 0) === BaseLayer) {
         throw new Error('Class BaseLayer cannot be initialized.');
       }
 
@@ -168,23 +253,23 @@ var dmap = (function (exports) {
     // Bind callback function to every element.
 
 
-    _createClass(BaseLayer, [{
+    _createClass(_BaseLayer, [{
       key: "on",
       value: function on(event_type, callback) {
-        var _this = this;
+        var _this2 = this;
 
         if (this._layer_group !== undefined) {
           (function () {
-            var layers = _this._layer_group.getLayers();
+            var layers = _this2._layer_group.getLayers();
 
-            var _loop = function _loop(i) {
+            var _loop2 = function _loop2(i) {
               layers[i].on(event_type, function () {
                 callback(this._data[i], i, layers[i]);
-              }, _this); //bind
+              }, _this2); //bind
             };
 
             for (var i = 0; i < layers.length; ++i) {
-              _loop(i);
+              _loop2(i);
             }
           })();
         }
@@ -239,8 +324,8 @@ var dmap = (function (exports) {
 
     }, {
       key: "data",
-      value: function data(_data, fn) {
-        this._data = _data.map(fn);
+      value: function data(_data2, fn) {
+        this._data = _data2.map(fn);
         return this;
       } // @method addTo
       // @parameter leaflet_map: L.map
@@ -305,85 +390,106 @@ var dmap = (function (exports) {
       }
     }]);
 
-    return BaseLayer;
+    return _BaseLayer;
   }();
 
-  var PointLayer =
+  var PointLayer = BaseLayer.extend({
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.circleMarker(data.coordinate, data.options);
+      });
+    }
+  });
+  var _PointLayer =
   /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(PointLayer, _BaseLayer);
+  function (_BaseLayer$$1) {
+    _inherits(_PointLayer, _BaseLayer$$1);
 
-    function PointLayer(options) {
-      _classCallCheck(this, PointLayer);
+    function _PointLayer(options) {
+      _classCallCheck(this, _PointLayer);
 
-      return _possibleConstructorReturn(this, _getPrototypeOf(PointLayer).call(this, options));
+      return _possibleConstructorReturn(this, _getPrototypeOf(_PointLayer).call(this, options));
     } // @method generate
     // 
     // Return Array of L.circle.
 
 
-    _createClass(PointLayer, [{
+    _createClass(_PointLayer, [{
       key: "generate",
       value: function generate() {
         return this._data.map(function (data) {
-          return L.circleMarker(data.coordination, data.options);
+          return L.circleMarker(data.coordinate, data.options);
         });
       }
     }]);
 
-    return PointLayer;
+    return _PointLayer;
   }(BaseLayer);
 
-  var PolygonLayer =
+  var PolygonLayer = BaseLayer.extend({
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.polygon(data.coordinates, data.options);
+      });
+    }
+  });
+  var _PolygonLayer =
   /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(PolygonLayer, _BaseLayer);
+  function (_BaseLayer$$1) {
+    _inherits(_PolygonLayer, _BaseLayer$$1);
 
-    function PolygonLayer(options) {
-      _classCallCheck(this, PolygonLayer);
+    function _PolygonLayer(options) {
+      _classCallCheck(this, _PolygonLayer);
 
-      return _possibleConstructorReturn(this, _getPrototypeOf(PolygonLayer).call(this, options));
+      return _possibleConstructorReturn(this, _getPrototypeOf(_PolygonLayer).call(this, options));
     } // @method generate
     // 
     // Return Array of L.polygon
 
 
-    _createClass(PolygonLayer, [{
+    _createClass(_PolygonLayer, [{
       key: "generate",
       value: function generate() {
         return this._data.map(function (data) {
-          return L.polygon(data.coordinations, data.options);
+          return L.polygon(data.coordinates, data.options);
         });
       }
     }]);
 
-    return PolygonLayer;
+    return _PolygonLayer;
   }(BaseLayer);
 
-  var MarkerLayer =
+  var MarkerLayer = BaseLayer.extend({
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.marker(data.coordinate, data.options);
+      });
+    }
+  });
+  var _MarkerLayer =
   /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(MarkerLayer, _BaseLayer);
+  function (_BaseLayer$$1) {
+    _inherits(_MarkerLayer, _BaseLayer$$1);
 
-    function MarkerLayer(options) {
-      _classCallCheck(this, MarkerLayer);
+    function _MarkerLayer(options) {
+      _classCallCheck(this, _MarkerLayer);
 
-      return _possibleConstructorReturn(this, _getPrototypeOf(MarkerLayer).call(this, options));
+      return _possibleConstructorReturn(this, _getPrototypeOf(_MarkerLayer).call(this, options));
     } // @method generate
     // 
     // Return Array of L.Marker.
 
 
-    _createClass(MarkerLayer, [{
+    _createClass(_MarkerLayer, [{
       key: "generate",
       value: function generate() {
         return this._data.map(function (data) {
-          return L.marker(data.coordination, data.options);
+          return L.marker(data.coordinate, data.options);
         });
       }
     }]);
 
-    return MarkerLayer;
+    return _MarkerLayer;
   }(BaseLayer);
 
   /*
@@ -855,27 +961,53 @@ var dmap = (function (exports) {
     }
   });
 
+  var ODLayer = BaseLayer.extend({
+    // @method generate
+    // 
+    // Return Array of L.od.
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return od(data.origin, data.destination, data.options);
+      });
+    },
+    // use prefix before event type: 'org_click'
+    // or several space-separated types: 'org_click mouseover'
+    on: function on(event_type, callback) {
+      var types = event_type.split('_');
+      var item_type = types[0]; //specify the type of item
+
+      var real_event_type = types[1]; //specify the type of event
+
+      if (this._layer_group !== undefined) {
+        this._layer_group.eachLayer(function (layer) {
+          layer.getItem(item_type).on(real_event_type, callback);
+        });
+      }
+
+      return this;
+    }
+  });
   /*
    * @class ODLayer
    * @inherits BaseLayer
    *
    */
 
-  var ODLayer =
+  var _ODLayer =
   /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(ODLayer, _BaseLayer);
+  function (_BaseLayer$$1) {
+    _inherits(_ODLayer, _BaseLayer$$1);
 
-    function ODLayer(options) {
-      _classCallCheck(this, ODLayer);
+    function _ODLayer(options) {
+      _classCallCheck(this, _ODLayer);
 
-      return _possibleConstructorReturn(this, _getPrototypeOf(ODLayer).call(this, options));
+      return _possibleConstructorReturn(this, _getPrototypeOf(_ODLayer).call(this, options));
     } // @method generate
     // 
     // Return Array of L.od.
 
 
-    _createClass(ODLayer, [{
+    _createClass(_ODLayer, [{
       key: "generate",
       value: function generate() {
         return this._data.map(function (data) {
@@ -902,94 +1034,980 @@ var dmap = (function (exports) {
       }
     }]);
 
-    return ODLayer;
+    return _ODLayer;
   }(BaseLayer);
 
-  var PolylineLayer =
+  var PolylineLayer = BaseLayer.extend({
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.polyline(data.coordinates, data.options);
+      });
+    }
+  });
+  var _PolylineLayer =
   /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(PolylineLayer, _BaseLayer);
+  function (_BaseLayer$$1) {
+    _inherits(_PolylineLayer, _BaseLayer$$1);
 
-    function PolylineLayer(options) {
-      _classCallCheck(this, PolylineLayer);
+    function _PolylineLayer(options) {
+      _classCallCheck(this, _PolylineLayer);
 
-      return _possibleConstructorReturn(this, _getPrototypeOf(PolylineLayer).call(this, options));
+      return _possibleConstructorReturn(this, _getPrototypeOf(_PolylineLayer).call(this, options));
     } // @method generate
     // 
-    // Return Array of L.Marker.
+    // Return Array of L.Polyline.
 
 
-    _createClass(PolylineLayer, [{
+    _createClass(_PolylineLayer, [{
       key: "generate",
       value: function generate() {
         return this._data.map(function (data) {
-          return L.polyline(data.coordinations, data.options);
+          return L.polyline(data.coordinates, data.options);
         });
       }
     }]);
 
-    return PolylineLayer;
+    return _PolylineLayer;
   }(BaseLayer);
 
-  /**
-   *  Simple regular cell in a raster
-   */
-  var Cell =
-  /*#__PURE__*/
-  function () {
-    /**
-     * A simple cell with a numerical value
-     * @param {L.LatLng} center
-     * @param {Number|Vector} value
-     * @param {Number} xSize
-     * @param {Number} ySize
-     */
-    function Cell(center, value, xSize) {
-      var ySize = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : xSize;
+  function HeatmapLayer(options) {
 
-      _classCallCheck(this, Cell);
-
-      this.center = center;
-      this.value = value;
-      this.xSize = xSize;
-      this.ySize = ySize;
-    }
-
-    _createClass(Cell, [{
-      key: "equals",
-      value: function equals(anotherCell) {
-        return this.center.equals(anotherCell.center) && this._equalValues(this.value, anotherCell.value) && this.xSize === anotherCell.xSize && this.ySize === anotherCell.ySize;
+    (function (name, context, factory) {
+      // Supports UMD. AMD, CommonJS/Node.js and browser context
+      if (typeof module !== "undefined" && module.exports) {
+        module.exports = factory();
+      } else if (typeof define === "function" && define.amd) {
+        define(factory);
+      } else {
+        context[name] = factory();
       }
-    }, {
-      key: "_equalValues",
-      value: function _equalValues(value, anotherValue) {
-        var type = value.constructor.name;
-        var answerFor = {
-          Number: value === anotherValue,
-          Vector: value.u === anotherValue.u && value.v === anotherValue.v
+    })("h337", this, function () {
+      // Heatmap Config stores default values and will be merged with instance config
+      var HeatmapConfig = {
+        defaultRadius: 40,
+        defaultRenderer: 'canvas2d',
+        defaultGradient: {
+          0.25: "rgb(0,0,255)",
+          0.55: "rgb(0,255,0)",
+          0.85: "yellow",
+          1.0: "rgb(255,0,0)"
+        },
+        defaultMaxOpacity: 1,
+        defaultMinOpacity: 0,
+        defaultBlur: .85,
+        defaultXField: 'x',
+        defaultYField: 'y',
+        defaultValueField: 'value',
+        plugins: {}
+      };
+
+      var Store = function StoreClosure() {
+        var Store = function Store(config) {
+          this._coordinator = {};
+          this._data = [];
+          this._radi = [];
+          this._min = 10;
+          this._max = 1;
+          this._xField = config['xField'] || config.defaultXField;
+          this._yField = config['yField'] || config.defaultYField;
+          this._valueField = config['valueField'] || config.defaultValueField;
+
+          if (config["radius"]) {
+            this._cfgRadius = config["radius"];
+          }
         };
-        return answerFor[type];
-      }
-      /**
-       * Bounds for the cell
-       * @returns {LatLngBounds}
-       */
 
-    }, {
-      key: "getBounds",
-      value: function getBounds() {
-        var halfX = this.xSize / 2.0;
-        var halfY = this.ySize / 2.0;
-        var cLat = this.center.lat;
-        var cLng = this.center.lng;
-        var ul = L.latLng([cLat + halfY, cLng - halfX]);
-        var lr = L.latLng([cLat - halfY, cLng + halfX]);
-        return L.latLngBounds(L.latLng(lr.lat, ul.lng), L.latLng(ul.lat, lr.lng));
-      }
-    }]);
+        var defaultRadius = HeatmapConfig.defaultRadius;
+        Store.prototype = {
+          // when forceRender = false -> called from setData, omits renderall event
+          _organiseData: function _organiseData(dataPoint, forceRender) {
+            var x = dataPoint[this._xField];
+            var y = dataPoint[this._yField];
+            var radi = this._radi;
+            var store = this._data;
+            var max = this._max;
+            var min = this._min;
+            var value = dataPoint[this._valueField] || 1;
+            var radius = dataPoint.radius || this._cfgRadius || defaultRadius;
 
-    return Cell;
-  }();
+            if (!store[x]) {
+              store[x] = [];
+              radi[x] = [];
+            }
+
+            if (!store[x][y]) {
+              store[x][y] = value;
+              radi[x][y] = radius;
+            } else {
+              store[x][y] += value;
+            }
+
+            var storedVal = store[x][y];
+
+            if (storedVal > max) {
+              if (!forceRender) {
+                this._max = storedVal;
+              } else {
+                this.setDataMax(storedVal);
+              }
+
+              return false;
+            } else if (storedVal < min) {
+              if (!forceRender) {
+                this._min = storedVal;
+              } else {
+                this.setDataMin(storedVal);
+              }
+
+              return false;
+            } else {
+              return {
+                x: x,
+                y: y,
+                value: value,
+                radius: radius,
+                min: min,
+                max: max
+              };
+            }
+          },
+          _unOrganizeData: function _unOrganizeData() {
+            var unorganizedData = [];
+            var data = this._data;
+            var radi = this._radi;
+
+            for (var x in data) {
+              for (var y in data[x]) {
+                unorganizedData.push({
+                  x: x,
+                  y: y,
+                  radius: radi[x][y],
+                  value: data[x][y]
+                });
+              }
+            }
+
+            return {
+              min: this._min,
+              max: this._max,
+              data: unorganizedData
+            };
+          },
+          _onExtremaChange: function _onExtremaChange() {
+            this._coordinator.emit('extremachange', {
+              min: this._min,
+              max: this._max
+            });
+          },
+          addData: function addData() {
+            if (arguments[0].length > 0) {
+              var dataArr = arguments[0];
+              var dataLen = dataArr.length;
+
+              while (dataLen--) {
+                this.addData.call(this, dataArr[dataLen]);
+              }
+            } else {
+              // add to store  
+              var organisedEntry = this._organiseData(arguments[0], true);
+
+              if (organisedEntry) {
+                // if it's the first datapoint initialize the extremas with it
+                if (this._data.length === 0) {
+                  this._min = this._max = organisedEntry.value;
+                }
+
+                this._coordinator.emit('renderpartial', {
+                  min: this._min,
+                  max: this._max,
+                  data: [organisedEntry]
+                });
+              }
+            }
+
+            return this;
+          },
+          setData: function setData(data) {
+            var dataPoints = data.data;
+            var pointsLen = dataPoints.length; // reset data arrays
+
+            this._data = [];
+            this._radi = [];
+
+            for (var i = 0; i < pointsLen; i++) {
+              this._organiseData(dataPoints[i], false);
+            }
+
+            this._max = data.max;
+            this._min = data.min || 0;
+
+            this._onExtremaChange();
+
+            this._coordinator.emit('renderall', this._getInternalData());
+
+            return this;
+          },
+          removeData: function removeData() {// TODO: implement
+          },
+          setDataMax: function setDataMax(max) {
+            this._max = max;
+
+            this._onExtremaChange();
+
+            this._coordinator.emit('renderall', this._getInternalData());
+
+            return this;
+          },
+          setDataMin: function setDataMin(min) {
+            this._min = min;
+
+            this._onExtremaChange();
+
+            this._coordinator.emit('renderall', this._getInternalData());
+
+            return this;
+          },
+          setCoordinator: function setCoordinator(coordinator) {
+            this._coordinator = coordinator;
+          },
+          _getInternalData: function _getInternalData() {
+            return {
+              max: this._max,
+              min: this._min,
+              data: this._data,
+              radi: this._radi
+            };
+          },
+          getData: function getData() {
+            return this._unOrganizeData();
+          }
+          /*,
+             TODO: rethink.
+          getValueAt: function(point) {
+             var value;
+             var radius = 100;
+             var x = point.x;
+             var y = point.y;
+             var data = this._data;
+             if (data[x] && data[x][y]) {
+             return data[x][y];
+             } else {
+             var values = [];
+             // radial search for datapoints based on default radius
+             for(var distance = 1; distance < radius; distance++) {
+                 var neighbors = distance * 2 +1;
+                 var startX = x - distance;
+                 var startY = y - distance;
+                 for(var i = 0; i < neighbors; i++) {
+                 for (var o = 0; o < neighbors; o++) {
+                     if ((i == 0 || i == neighbors-1) || (o == 0 || o == neighbors-1)) {
+                     if (data[startY+i] && data[startY+i][startX+o]) {
+                         values.push(data[startY+i][startX+o]);
+                     }
+                     } else {
+                     continue;
+                     } 
+                 }
+                 }
+             }
+             if (values.length > 0) {
+                 return Math.max.apply(Math, values);
+             }
+             }
+             return false;
+          }*/
+
+        };
+        return Store;
+      }();
+
+      var Canvas2dRenderer = function Canvas2dRendererClosure() {
+        var _getColorPalette = function _getColorPalette(config) {
+          var gradientConfig = config.gradient || config.defaultGradient;
+          var paletteCanvas = document.createElement('canvas');
+          var paletteCtx = paletteCanvas.getContext('2d');
+          paletteCanvas.width = 256;
+          paletteCanvas.height = 1;
+          var gradient = paletteCtx.createLinearGradient(0, 0, 256, 1);
+
+          for (var key in gradientConfig) {
+            gradient.addColorStop(key, gradientConfig[key]);
+          }
+
+          paletteCtx.fillStyle = gradient;
+          paletteCtx.fillRect(0, 0, 256, 1);
+          return paletteCtx.getImageData(0, 0, 256, 1).data;
+        };
+
+        var _getPointTemplate = function _getPointTemplate(radius, blurFactor) {
+          var tplCanvas = document.createElement('canvas');
+          var tplCtx = tplCanvas.getContext('2d');
+          var x = radius;
+          var y = radius;
+          tplCanvas.width = tplCanvas.height = radius * 2;
+
+          if (blurFactor == 1) {
+            tplCtx.beginPath();
+            tplCtx.arc(x, y, radius, 0, 2 * Math.PI, false);
+            tplCtx.fillStyle = 'rgba(0,0,0,1)';
+            tplCtx.fill();
+          } else {
+            var gradient = tplCtx.createRadialGradient(x, y, radius * blurFactor, x, y, radius);
+            gradient.addColorStop(0, 'rgba(0,0,0,1)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            tplCtx.fillStyle = gradient;
+            tplCtx.fillRect(0, 0, 2 * radius, 2 * radius);
+          }
+
+          return tplCanvas;
+        };
+
+        var _prepareData = function _prepareData(data) {
+          var renderData = [];
+          var min = data.min;
+          var max = data.max;
+          var radi = data.radi;
+          var data = data.data;
+          var xValues = Object.keys(data);
+          var xValuesLen = xValues.length;
+
+          while (xValuesLen--) {
+            var xValue = xValues[xValuesLen];
+            var yValues = Object.keys(data[xValue]);
+            var yValuesLen = yValues.length;
+
+            while (yValuesLen--) {
+              var yValue = yValues[yValuesLen];
+              var value = data[xValue][yValue];
+              var radius = radi[xValue][yValue];
+              renderData.push({
+                x: xValue,
+                y: yValue,
+                value: value,
+                radius: radius
+              });
+            }
+          }
+
+          return {
+            min: min,
+            max: max,
+            data: renderData
+          };
+        };
+
+        function Canvas2dRenderer(config) {
+          var container = config.container;
+          var shadowCanvas = this.shadowCanvas = document.createElement('canvas');
+          var canvas = this.canvas = config.canvas || document.createElement('canvas');
+          var renderBoundaries = this._renderBoundaries = [10000, 10000, 0, 0];
+          var computed = getComputedStyle(config.container) || {};
+          canvas.className = 'heatmap-canvas';
+          this._width = canvas.width = shadowCanvas.width = config.width || +computed.width.replace(/px/, '');
+          this._height = canvas.height = shadowCanvas.height = config.height || +computed.height.replace(/px/, '');
+          this.shadowCtx = shadowCanvas.getContext('2d');
+          this.ctx = canvas.getContext('2d'); // @TODO:
+          // conditional wrapper
+
+          canvas.style.cssText = shadowCanvas.style.cssText = 'position:absolute;left:0;top:0;';
+          container.style.position = 'relative';
+          container.appendChild(canvas);
+          this._palette = _getColorPalette(config);
+          this._templates = {};
+
+          this._setStyles(config);
+        }
+        Canvas2dRenderer.prototype = {
+          renderPartial: function renderPartial(data) {
+            if (data.data.length > 0) {
+              this._drawAlpha(data);
+
+              this._colorize();
+            }
+          },
+          renderAll: function renderAll(data) {
+            // reset render boundaries
+            this._clear();
+
+            if (data.data.length > 0) {
+              this._drawAlpha(_prepareData(data));
+
+              this._colorize();
+            }
+          },
+          _updateGradient: function _updateGradient(config) {
+            this._palette = _getColorPalette(config);
+          },
+          updateConfig: function updateConfig(config) {
+            if (config['gradient']) {
+              this._updateGradient(config);
+            }
+
+            this._setStyles(config);
+          },
+          setDimensions: function setDimensions(width, height) {
+            this._width = width;
+            this._height = height;
+            this.canvas.width = this.shadowCanvas.width = width;
+            this.canvas.height = this.shadowCanvas.height = height;
+          },
+          _clear: function _clear() {
+            this.shadowCtx.clearRect(0, 0, this._width, this._height);
+            this.ctx.clearRect(0, 0, this._width, this._height);
+          },
+          _setStyles: function _setStyles(config) {
+            this._blur = config.blur == 0 ? 0 : config.blur || config.defaultBlur;
+
+            if (config.backgroundColor) {
+              this.canvas.style.backgroundColor = config.backgroundColor;
+            }
+
+            this._width = this.canvas.width = this.shadowCanvas.width = config.width || this._width;
+            this._height = this.canvas.height = this.shadowCanvas.height = config.height || this._height;
+            this._opacity = (config.opacity || 0) * 255;
+            this._maxOpacity = (config.maxOpacity || config.defaultMaxOpacity) * 255;
+            this._minOpacity = (config.minOpacity || config.defaultMinOpacity) * 255;
+            this._useGradientOpacity = !!config.useGradientOpacity;
+          },
+          _drawAlpha: function _drawAlpha(data) {
+            var min = this._min = data.min;
+            var max = this._max = data.max;
+            var data = data.data || [];
+            var dataLen = data.length; // on a point basis?
+
+            var blur = 1 - this._blur;
+
+            while (dataLen--) {
+              var point = data[dataLen];
+              var x = point.x;
+              var y = point.y;
+              var radius = point.radius; // if value is bigger than max
+              // use max as value
+
+              var value = Math.min(point.value, max);
+              var rectX = x - radius;
+              var rectY = y - radius;
+              var shadowCtx = this.shadowCtx;
+              var tpl;
+
+              if (!this._templates[radius]) {
+                this._templates[radius] = tpl = _getPointTemplate(radius, blur);
+              } else {
+                tpl = this._templates[radius];
+              } // value from minimum / value range
+              // => [0, 1]
+
+
+              var templateAlpha = (value - min) / (max - min); // this fixes #176: small values are not visible because globalAlpha < .01 cannot be read from imageData
+
+              shadowCtx.globalAlpha = templateAlpha < .01 ? .01 : templateAlpha;
+              shadowCtx.drawImage(tpl, rectX, rectY); // update renderBoundaries
+
+              if (rectX < this._renderBoundaries[0]) {
+                this._renderBoundaries[0] = rectX;
+              }
+
+              if (rectY < this._renderBoundaries[1]) {
+                this._renderBoundaries[1] = rectY;
+              }
+
+              if (rectX + 2 * radius > this._renderBoundaries[2]) {
+                this._renderBoundaries[2] = rectX + 2 * radius;
+              }
+
+              if (rectY + 2 * radius > this._renderBoundaries[3]) {
+                this._renderBoundaries[3] = rectY + 2 * radius;
+              }
+            }
+          },
+          _colorize: function _colorize() {
+            var x = this._renderBoundaries[0];
+            var y = this._renderBoundaries[1];
+            var width = this._renderBoundaries[2] - x;
+            var height = this._renderBoundaries[3] - y;
+            var maxWidth = this._width;
+            var maxHeight = this._height;
+            var opacity = this._opacity;
+            var maxOpacity = this._maxOpacity;
+            var minOpacity = this._minOpacity;
+            var useGradientOpacity = this._useGradientOpacity;
+
+            if (x < 0) {
+              x = 0;
+            }
+
+            if (y < 0) {
+              y = 0;
+            }
+
+            if (x + width > maxWidth) {
+              width = maxWidth - x;
+            }
+
+            if (y + height > maxHeight) {
+              height = maxHeight - y;
+            }
+
+            var img = this.shadowCtx.getImageData(x, y, width, height);
+            var imgData = img.data;
+            var len = imgData.length;
+            var palette = this._palette;
+
+            for (var i = 3; i < len; i += 4) {
+              var alpha = imgData[i];
+              var offset = alpha * 4;
+
+              if (!offset) {
+                continue;
+              }
+
+              var finalAlpha;
+
+              if (opacity > 0) {
+                finalAlpha = opacity;
+              } else {
+                if (alpha < maxOpacity) {
+                  if (alpha < minOpacity) {
+                    finalAlpha = minOpacity;
+                  } else {
+                    finalAlpha = alpha;
+                  }
+                } else {
+                  finalAlpha = maxOpacity;
+                }
+              }
+
+              imgData[i - 3] = palette[offset];
+              imgData[i - 2] = palette[offset + 1];
+              imgData[i - 1] = palette[offset + 2];
+              imgData[i] = useGradientOpacity ? palette[offset + 3] : finalAlpha;
+            }
+
+            img.data = imgData;
+            this.ctx.putImageData(img, x, y);
+            this._renderBoundaries = [1000, 1000, 0, 0];
+          },
+          getValueAt: function getValueAt(point) {
+            var value;
+            var shadowCtx = this.shadowCtx;
+            var img = shadowCtx.getImageData(point.x, point.y, 1, 1);
+            var data = img.data[3];
+            var max = this._max;
+            var min = this._min;
+            value = Math.abs(max - min) * (data / 255) >> 0;
+            return value;
+          },
+          getDataURL: function getDataURL() {
+            return this.canvas.toDataURL();
+          }
+        };
+        return Canvas2dRenderer;
+      }();
+
+      var Renderer = function RendererClosure() {
+        var rendererFn = false;
+
+        if (HeatmapConfig['defaultRenderer'] === 'canvas2d') {
+          rendererFn = Canvas2dRenderer;
+        }
+
+        return rendererFn;
+      }();
+
+      var Util = {
+        merge: function merge() {
+          var merged = {};
+          var argsLen = arguments.length;
+
+          for (var i = 0; i < argsLen; i++) {
+            var obj = arguments[i];
+
+            for (var key in obj) {
+              merged[key] = obj[key];
+            }
+          }
+
+          return merged;
+        }
+      }; // Heatmap Constructor
+
+      var Heatmap = function HeatmapClosure() {
+        var Coordinator = function CoordinatorClosure() {
+          function Coordinator() {
+            this.cStore = {};
+          }
+          Coordinator.prototype = {
+            on: function on(evtName, callback, scope) {
+              var cStore = this.cStore;
+
+              if (!cStore[evtName]) {
+                cStore[evtName] = [];
+              }
+
+              cStore[evtName].push(function (data) {
+                return callback.call(scope, data);
+              });
+            },
+            emit: function emit(evtName, data) {
+              var cStore = this.cStore;
+
+              if (cStore[evtName]) {
+                var len = cStore[evtName].length;
+
+                for (var i = 0; i < len; i++) {
+                  var callback = cStore[evtName][i];
+                  callback(data);
+                }
+              }
+            }
+          };
+          return Coordinator;
+        }();
+
+        var _connect = function _connect(scope) {
+          var renderer = scope._renderer;
+          var coordinator = scope._coordinator;
+          var store = scope._store;
+          coordinator.on('renderpartial', renderer.renderPartial, renderer);
+          coordinator.on('renderall', renderer.renderAll, renderer);
+          coordinator.on('extremachange', function (data) {
+            scope._config.onExtremaChange && scope._config.onExtremaChange({
+              min: data.min,
+              max: data.max,
+              gradient: scope._config['gradient'] || scope._config['defaultGradient']
+            });
+          });
+          store.setCoordinator(coordinator);
+        };
+
+        function Heatmap() {
+          var config = this._config = Util.merge(HeatmapConfig, arguments[0] || {});
+          this._coordinator = new Coordinator();
+
+          if (config['plugin']) {
+            var pluginToLoad = config['plugin'];
+
+            if (!HeatmapConfig.plugins[pluginToLoad]) {
+              throw new Error('Plugin \'' + pluginToLoad + '\' not found. Maybe it was not registered.');
+            } else {
+              var plugin = HeatmapConfig.plugins[pluginToLoad]; // set plugin renderer and store
+
+              this._renderer = new plugin.renderer(config);
+              this._store = new plugin.store(config);
+            }
+          } else {
+            this._renderer = new Renderer(config);
+            this._store = new Store(config);
+          }
+
+          _connect(this);
+        }
+        // add API documentation
+
+        Heatmap.prototype = {
+          addData: function addData() {
+            this._store.addData.apply(this._store, arguments);
+
+            return this;
+          },
+          removeData: function removeData() {
+            this._store.removeData && this._store.removeData.apply(this._store, arguments);
+            return this;
+          },
+          setData: function setData() {
+            this._store.setData.apply(this._store, arguments);
+
+            return this;
+          },
+          setDataMax: function setDataMax() {
+            this._store.setDataMax.apply(this._store, arguments);
+
+            return this;
+          },
+          setDataMin: function setDataMin() {
+            this._store.setDataMin.apply(this._store, arguments);
+
+            return this;
+          },
+          configure: function configure(config) {
+            this._config = Util.merge(this._config, config);
+
+            this._renderer.updateConfig(this._config);
+
+            this._coordinator.emit('renderall', this._store._getInternalData());
+
+            return this;
+          },
+          repaint: function repaint() {
+            this._coordinator.emit('renderall', this._store._getInternalData());
+
+            return this;
+          },
+          getData: function getData() {
+            return this._store.getData();
+          },
+          getDataURL: function getDataURL() {
+            return this._renderer.getDataURL();
+          },
+          getValueAt: function getValueAt(point) {
+            if (this._store.getValueAt) {
+              return this._store.getValueAt(point);
+            } else if (this._renderer.getValueAt) {
+              return this._renderer.getValueAt(point);
+            } else {
+              return null;
+            }
+          }
+        };
+        return Heatmap;
+      }(); // core
+
+
+      var heatmapFactory = {
+        create: function create(config) {
+          return new Heatmap(config);
+        },
+        register: function register(pluginKey, plugin) {
+          HeatmapConfig.plugins[pluginKey] = plugin;
+        }
+      };
+      return heatmapFactory;
+    });
+
+    (function (name, context, factory) {
+      // Supports UMD. AMD, CommonJS/Node.js and browser context
+      if (typeof module !== "undefined" && module.exports) {
+        module.exports = factory();
+      } else if (typeof define === "function" && define.amd) {
+        define(factory);
+      } else {
+        context[name] = factory();
+      }
+    })("HeatmapOverlay", this, function () {
+      // Leaflet < 0.8 compatibility
+      if (typeof L.Layer === 'undefined') {
+        L.Layer = L.Class;
+      }
+
+      var HeatmapOverlay = L.Layer.extend({
+        initialize: function initialize(config) {
+          this.cfg = config;
+          this._el = L.DomUtil.create('div', 'leaflet-zoom-hide');
+          this._data = [];
+          this._max = 1;
+          this._min = 0;
+          this.cfg.container = this._el;
+        },
+        onAdd: function onAdd(map) {
+          var size = map.getSize();
+          var h337 = typeof require !== 'undefined' ? require('heatmap.js') : window.h337;
+          this._map = map;
+          this._width = size.x;
+          this._height = size.y;
+          this._el.style.width = size.x + 'px';
+          this._el.style.height = size.y + 'px';
+          this._el.style.position = 'absolute';
+
+          this._resetOrigin();
+
+          map.getPanes().overlayPane.appendChild(this._el);
+
+          if (!this._heatmap) {
+            this._heatmap = h337.create(this.cfg);
+          } // this resets the origin and redraws whenever
+          // the zoom changed or the map has been moved
+
+
+          map.on('moveend', this._resetOrigin, this);
+
+          this._draw();
+        },
+        addTo: function addTo(map) {
+          map.addLayer(this);
+          return this;
+        },
+        onRemove: function onRemove(map) {
+          // remove layer's DOM elements and listeners
+          map.getPanes().overlayPane.removeChild(this._el);
+          map.off('moveend', this._resetOrigin, this);
+        },
+        _draw: function _draw() {
+          if (!this._map) {
+            return;
+          }
+
+          var mapPane = this._map.getPanes().mapPane;
+
+          var point = mapPane._leaflet_pos; // reposition the layer
+
+          this._el.style[HeatmapOverlay.CSS_TRANSFORM] = 'translate(' + -Math.round(point.x) + 'px,' + -Math.round(point.y) + 'px)';
+
+          this._update();
+        },
+        _update: function _update() {
+          var bounds, zoom, scale;
+          var generatedData = {
+            max: this._max,
+            min: this._min,
+            data: []
+          };
+          bounds = this._map.getBounds();
+          zoom = this._map.getZoom();
+          scale = Math.pow(2, zoom);
+
+          if (this._data.length == 0) {
+            if (this._heatmap) {
+              this._heatmap.setData(generatedData);
+            }
+
+            return;
+          }
+
+          var latLngPoints = [];
+          var radiusMultiplier = this.cfg.scaleRadius ? scale : 1;
+          var localMax = 0;
+          var localMin = 0;
+          var valueField = this.cfg.valueField;
+          var len = this._data.length;
+
+          while (len--) {
+            var entry = this._data[len];
+            var value = entry[valueField];
+            var latlng = entry.latlng; // we don't wanna render points that are not even on the map ;-)
+
+            if (!bounds.contains(latlng)) {
+              continue;
+            } // local max is the maximum within current bounds
+
+
+            localMax = Math.max(value, localMax);
+            localMin = Math.min(value, localMin);
+
+            var point = this._map.latLngToContainerPoint(latlng);
+
+            var latlngPoint = {
+              x: Math.round(point.x),
+              y: Math.round(point.y)
+            };
+            latlngPoint[valueField] = value;
+            var radius;
+
+            if (entry.radius) {
+              radius = entry.radius * radiusMultiplier;
+            } else {
+              radius = (this.cfg.radius || 2) * radiusMultiplier;
+            }
+
+            latlngPoint.radius = radius;
+            latLngPoints.push(latlngPoint);
+          }
+
+          if (this.cfg.useLocalExtrema) {
+            generatedData.max = localMax;
+            generatedData.min = localMin;
+          }
+
+          generatedData.data = latLngPoints;
+
+          this._heatmap.setData(generatedData);
+        },
+        setData: function setData(data) {
+          this._max = data.max || this._max;
+          this._min = data.min || this._min;
+          var latField = this.cfg.latField || 'lat';
+          var lngField = this.cfg.lngField || 'lng';
+          var valueField = this.cfg.valueField || 'value'; // transform data to latlngs
+
+          var data = data.data;
+          var len = data.length;
+          var d = [];
+
+          while (len--) {
+            var entry = data[len];
+            var latlng = new L.LatLng(entry[latField], entry[lngField]);
+            var dataObj = {
+              latlng: latlng
+            };
+            dataObj[valueField] = entry[valueField];
+
+            if (entry.radius) {
+              dataObj.radius = entry.radius;
+            }
+
+            d.push(dataObj);
+          }
+
+          this._data = d;
+
+          this._draw();
+        },
+        // experimential... not ready.
+        addData: function addData(pointOrArray) {
+          if (pointOrArray.length > 0) {
+            var len = pointOrArray.length;
+
+            while (len--) {
+              this.addData(pointOrArray[len]);
+            }
+          } else {
+            var latField = this.cfg.latField || 'lat';
+            var lngField = this.cfg.lngField || 'lng';
+            var valueField = this.cfg.valueField || 'value';
+            var entry = pointOrArray;
+            var latlng = new L.LatLng(entry[latField], entry[lngField]);
+            var dataObj = {
+              latlng: latlng
+            };
+            dataObj[valueField] = entry[valueField];
+            this._max = Math.max(this._max, dataObj[valueField]);
+            this._min = Math.min(this._min, dataObj[valueField]);
+
+            if (entry.radius) {
+              dataObj.radius = entry.radius;
+            }
+
+            this._data.push(dataObj);
+
+            this._draw();
+          }
+        },
+        _resetOrigin: function _resetOrigin() {
+          this._origin = this._map.layerPointToLatLng(new L.Point(0, 0));
+
+          var size = this._map.getSize();
+
+          if (this._width !== size.x || this._height !== size.y) {
+            this._width = size.x;
+            this._height = size.y;
+            this._el.style.width = this._width + 'px';
+            this._el.style.height = this._height + 'px';
+          }
+
+          this._draw();
+        }
+      });
+
+      HeatmapOverlay.CSS_TRANSFORM = function () {
+        var div = document.createElement('div');
+        var props = ['transform', 'WebkitTransform', 'MozTransform', 'OTransform', 'msTransform'];
+
+        for (var i = 0; i < props.length; i++) {
+          var prop = props[i];
+
+          if (div.style[prop] !== undefined) {
+            return prop;
+          }
+        }
+
+        return props[0];
+      }();
+
+      return HeatmapOverlay;
+    });
+
+    var heatmapLayer = new HeatmapOverlay(options);
+    return heatmapLayer;
+  }
 
   /**
    * A class to parse color values
@@ -1000,7 +2018,13 @@ var dmap = (function (exports) {
   function RGBColor(color_string) {
     this.ok = false;
 
-    if (color_string instanceof RGBColor) {
+    if (color_string instanceof Array) {
+      this.r = color_string[0];
+      this.g = color_string[1];
+      this.b = color_string[2];
+      this.a = color_string.length > 3 ? color_string[3] : 1;
+      this.ok = true;
+    } else if (color_string instanceof RGBColor) {
       this.r = color_string.r;
       this.g = color_string.g;
       this.b = color_string.b;
@@ -1175,7 +2199,7 @@ var dmap = (function (exports) {
         re: /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/,
         example: ['rgb(123, 234, 45)', 'rgb(255,234,245)'],
         process: function process(bits) {
-          return [parseInt(bits[1]), parseInt(bits[2]), parseInt(bits[3]), null];
+          return [parseInt(bits[1]), parseInt(bits[2]), parseInt(bits[3]), 1];
         }
       }, {
         re: /^rgba\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3}),\s*([01]\.?\d*?)\)$/,
@@ -1187,13 +2211,13 @@ var dmap = (function (exports) {
         re: /^(\w{2})(\w{2})(\w{2})$/,
         example: ['#00ff00', '336699'],
         process: function process(bits) {
-          return [parseInt(bits[1], 16), parseInt(bits[2], 16), parseInt(bits[3], 16), null];
+          return [parseInt(bits[1], 16), parseInt(bits[2], 16), parseInt(bits[3], 16), 1];
         }
       }, {
         re: /^(\w{1})(\w{1})(\w{1})$/,
         example: ['#fb0', 'f0f'],
         process: function process(bits) {
-          return [parseInt(bits[1] + bits[1], 16), parseInt(bits[2] + bits[2], 16), parseInt(bits[3] + bits[3], 16), null];
+          return [parseInt(bits[1] + bits[1], 16), parseInt(bits[2] + bits[2], 16), parseInt(bits[3] + bits[3], 16), 1];
         }
       }]; // search through the definitions to find a match
 
@@ -1221,7 +2245,7 @@ var dmap = (function (exports) {
     this.r = this.r < 0 || isNaN(this.r) ? 0 : this.r > 255 ? 255 : this.r;
     this.g = this.g < 0 || isNaN(this.g) ? 0 : this.g > 255 ? 255 : this.g;
     this.b = this.b < 0 || isNaN(this.b) ? 0 : this.b > 255 ? 255 : this.b;
-    this.a = this.a < 0 || isNaN(this.a) ? 0 : this.a > 1 ? 1 : this.a; // some getters
+    this.a = this.a < 0 || isNaN(this.a) ? 1 : this.a > 1 ? 1 : this.a; // some getters
 
     this.toRGB = function () {
       return 'rgb(' + this.r + ', ' + this.g + ', ' + this.b + ')';
@@ -1238,17 +2262,88 @@ var dmap = (function (exports) {
     };
 
     this.toRGBA = function () {
-      return 'rgba(' + this.r + ', ' + this.g + ', ' + this.b + ', ' + (this.a === null ? 1 : this.a) + ')';
+      return 'rgba(' + this.r + ', ' + this.g + ', ' + this.b + ', ' + this.a + ')';
     };
 
     this.toString = function () {
-      return this.a === null ? this.toHex() : this.toRGBA();
+      return this.a == 1 ? this.toHex() : this.toRGBA();
     };
 
     this.rgba = function () {
       return [this.r, this.g, this.b, this.a];
     };
-  } // TODO: colorScale - D3
+  }
+  var rgbColor = function rgbColor(color_string) {
+    return new RGBColor(color_string);
+  }; // TODO: colorScale - D3
+
+  var ColorScale =
+  /*#__PURE__*/
+  function () {
+    function ColorScale(rgbColors) {
+      _classCallCheck(this, ColorScale);
+
+      this._colors = rgbColors.map(function (color) {
+        return new RGBColor(color);
+      });
+      this._values = undefined;
+    }
+
+    _createClass(ColorScale, [{
+      key: "getColors",
+      value: function getColors() {
+        return this._colors;
+      }
+    }, {
+      key: "domain",
+      value: function domain(values) {
+        if (values.length != this._colors.length) {
+          throw new Error('Data length not match!');
+        }
+
+        var that = this;
+
+        var ret = function ret(value) {
+          var colors = that.getColors(),
+              index = 0;
+          if (colors.length == 1) return colors[0];
+
+          for (index = 0; index < colors.length && value > values[index]; ++index) {
+          }
+
+          if (index == 0) index = 1;
+          if (index == colors.length) index -= 1;
+          var v0 = values[index - 1],
+              v1 = values[index],
+              c0 = colors[index - 1],
+              c1 = colors[index],
+              dr = c1.r - c0.r,
+              dg = c1.g - c0.g,
+              db = c1.b - c0.b,
+              rate = (value - v0) / (v1 - v0);
+          var r = c0.r + Math.floor(dr * rate),
+              g = c0.g + Math.floor(dg * rate),
+              b = c0.b + Math.floor(db * rate);
+          return new RGBColor([r, g, b]);
+        };
+
+        ret.getAttr = function () {
+          return {
+            values: values,
+            colors: that.getColors(),
+            colorScale: that
+          };
+        };
+
+        return ret;
+      }
+    }]);
+
+    return ColorScale;
+  }();
+  var colorScale = function colorScale(rgbColors) {
+    return new ColorScale(rgbColors);
+  };
 
   /*
     1.0.1 (downloaded from https://github.com/Sumbera/gLayers.Leaflet/releases/tag/v1.0.1)
@@ -1415,6 +2510,8 @@ var dmap = (function (exports) {
       this._enableIdentify();
 
       this._ensureCanvasAlignment();
+
+      this._addControlBar();
     },
     show: function show() {
       this._visible = true;
@@ -1458,6 +2555,39 @@ var dmap = (function (exports) {
 
       this.options.onClick && this.off('click', this.options.onClick, this);
       this.options.onMouseMove && this.off('mousemove', this.options.onMouseMove, this);
+    },
+    _addControlBar: function _addControlBar() {
+      if (!this.options.controlBar || !this.options.color.getAttr) return;
+
+      if (!this._controlBar) {
+        var control = L.control({
+          position: 'bottomright'
+        }),
+            that = this;
+
+        control.onAdd = function (map) {
+          var div = L.DomUtil.create('div', 'controlbar');
+          var attrs = that.options.color.getAttr();
+
+          for (var i in attrs.colors) {
+            var color = attrs.colors[i].toHex(),
+                value = attrs.values[i],
+                innerDiv = L.DomUtil.create('div', 'controlbar-list', div),
+                leftColor = L.DomUtil.create('div', 'left', innerDiv),
+                rightValue = L.DomUtil.create('span', 'right', innerDiv);
+            leftColor.style.backgroundColor = color;
+            rightValue.innerHTML = value;
+          }
+
+          return div;
+        };
+
+        control.onRemove = function () {};
+
+        this._controlBar = control;
+      }
+
+      this._controlBar.addTo(this._map);
     },
     _ensureCanvasAlignment: function _ensureCanvasAlignment() {
       var topLeft = this._map.containerPointToLayerPoint([0, 0]);
@@ -1552,34 +2682,20 @@ var dmap = (function (exports) {
    * ScalarField on canvas (a 'Raster')
    */
 
-  var ScalarFieldMap = FieldMap.extend({
+  var CanvasGridLayer = FieldMap.extend({
     options: {
       type: 'colormap',
       // [colormap|vector]
       color: null,
       // function colorFor(value) [e.g. chromajs.scale],
-      interpolate: false,
-      // Change to use interpolation
-      vectorSize: 20,
-      // only used if 'vector'
-      arrowDirection: 'from' // [from|towards]
-
+      controlBar: false
     },
     initialize: function initialize(scalarField, options) {
       FieldMap.prototype.initialize.call(this, scalarField, options);
       L.Util.setOptions(this, options);
     },
     _defaultColorScale: function _defaultColorScale() {
-      function ColorRangeFunction(range) {
-        var _range = range;
-
-        this.fn = function (v) {
-          var data = Math.floor(255 * (_range[1] - v) / (_range[1] - _range[0])).toString(16);
-          return '#' + data + data + data;
-        };
-      }
-
-      return new ColorRangeFunction(this._field.range).fn; // return chroma.scale(['white', 'black']).domain(this._field.range);
+      return colorScale(['white', 'black']).domain(this._field.range); // return chroma.scale(['white', 'black']).domain(this._field.range);
     },
     setColor: function setColor(f) {
       this.options.color = f;
@@ -1685,9 +2801,590 @@ var dmap = (function (exports) {
       return color;
     }
   });
-  var scalarFieldMap = function scalarFieldMap(scalarField, options) {
-    return new ScalarFieldMap(scalarField, options);
+  var canvasGridLayer = function canvasGridLayer(scalarField, options) {
+    return new CanvasGridLayer(scalarField, options);
   };
+
+  var SVGGridLayer =
+  /*#__PURE__*/
+  function (_BaseLayer$$1) {
+    _inherits(SVGGridLayer, _BaseLayer$$1);
+
+    function SVGGridLayer(field, options) {
+      var _this;
+
+      _classCallCheck(this, SVGGridLayer);
+
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(SVGGridLayer).call(this, options));
+      _this._field = field;
+      console.log(field);
+
+      _this.makeData();
+
+      return _this;
+    }
+
+    _createClass(SVGGridLayer, [{
+      key: "setField",
+      value: function setField(field) {
+        this._field = field;
+      }
+    }, {
+      key: "_ensureColor",
+      value: function _ensureColor() {
+        if (this.options.color === undefined) {
+          this.options.color = this._defaultColorScale();
+        }
+      }
+    }, {
+      key: "_defaultColorScale",
+      value: function _defaultColorScale() {
+
+        return colorScale(['white', 'black']).domain(this._field.range); // return new ColorRangeFunction(this._field.range).fn;
+      }
+    }, {
+      key: "_getColorFor",
+      value: function _getColorFor(v) {
+        var c = this.options.color; // e.g. for a constant 'red'
+
+        if (typeof c === 'function') {
+          c = String(this.options.color(v));
+        }
+
+        var color = new RGBColor(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
+
+        return color;
+      }
+    }, {
+      key: "makeData",
+      value: function makeData() {
+        this._ensureColor();
+
+        this._data = [];
+
+        for (var i = 0; i < this._field.nRows; ++i) {
+          for (var j = 0; j < this._field.nCols; ++j) {
+            var value = this._field.grid[i][j];
+            if (value === null) continue;
+            console.log(value);
+
+            var color = this._getColorFor(value);
+
+            var point = {
+              coordinates: [[this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize], [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize]],
+              options: {
+                fillOpacity: 0.9,
+                fillColor: color
+              }
+            };
+
+            this._data.push(point);
+          }
+        }
+      }
+    }, {
+      key: "generate",
+      value: function generate() {
+        return this._data.map(function (data) {
+          return L.polygon(data.coordinates, data.options);
+        });
+      }
+    }]);
+
+    return SVGGridLayer;
+  }(BaseLayer);
+
+  var CanvasPolylineLayer = CanvasLayer.extend({
+    options: {
+      onClick: null,
+      cursor: 'grab',
+      divideParts: 2
+    },
+    // polylines is an Array of polyline, which is an Array of L.latlng.
+    initialize: function initialize(options) {
+      L.Util.setOptions(this, options);
+    },
+
+    /**
+     * 
+     * @param {Array} data 
+     * @param {function} fn 
+     * 
+     * var l = new CanvasPolylineLayer(options);
+     * var arr = [[[1, 2], [11, 12], [21, 22]], [another polyline]];
+     * l.data(arr, function(d) {
+     *      return {
+     *          coordinates: d.map(x => L.latLng(x)), 
+     *          options: { color: d.length > 2 ? 'gray' : 'black' }
+     *      }
+     *  });
+     * 
+     * 
+     */
+    data: function data(_data, fn) {
+      this._polylines = _data.map(fn);
+
+      this._polylines.forEach(function (d) {
+        d.coordinates = d.coordinates.map(function (x) {
+          return L.latLng(x);
+        });
+        d.latLngBounds = L.latLngBounds();
+        d.coordinates.forEach(function (x) {
+          return d.latLngBounds.extend(x);
+        });
+        d.options = Object.assign({
+          color: '#000000',
+          width: 1,
+          zoomLevel: 1
+        }, d.options);
+      });
+
+      this._bounds = undefined;
+      this.getBounds();
+      this.needRedraw();
+    },
+    _updateOpacity: function _updateOpacity() {
+      L.DomUtil.setOpacity(this._canvas, this.options.opacity);
+    },
+    setOpacity: function setOpacity(opacity) {
+      this.options.opacity = opacity;
+
+      if (this._canvas) {
+        this._updateOpacity();
+      }
+
+      return this;
+    },
+    getBounds: function getBounds() {
+      if (this._bounds === undefined) {
+        var bounds = L.latLngBounds();
+
+        this._polylines.forEach(function (pl) {
+          bounds.extend(pl.latLngBounds);
+        });
+
+        this._bounds = bounds;
+
+        this._divideParts();
+      }
+
+      return this._bounds;
+    },
+    _divideParts: function _divideParts() {
+      var _this = this;
+
+      var n = this.options.divideParts,
+          west = this.getBounds().getWest(),
+          east = this.getBounds().getEast(),
+          north = this.getBounds().getNorth(),
+          south = this.getBounds().getSouth();
+      this._divideBoundsParts = [];
+      this._dividePolylinesParts = [];
+
+      for (var i = 0; i < n; ++i) {
+        var lat_rate_1 = i / n,
+            lat_rate_2 = (i + 1) / n;
+
+        for (var j = 0; j < n; ++j) {
+          var lng_rate_1 = j / n,
+              lng_rate_2 = (j + 1) / n,
+              _southWest = L.latLng(south + lat_rate_1 * (north - south), west + lng_rate_1 * (east - west)),
+              _northEast = L.latLng(south + lat_rate_2 * (north - south), west + lng_rate_2 * (east - west)),
+              divideBoundsPart = L.latLngBounds(_southWest, _northEast);
+
+          this._divideBoundsParts.push(divideBoundsPart);
+        }
+      }
+
+      var _loop = function _loop(_i) {
+        var divideBoundsPart = _this._divideBoundsParts[_i],
+            dividePolylinesPart = [];
+
+        _this._polylines.forEach(function (polyline) {
+          if (polyline.latLngBounds.intersects(divideBoundsPart)) dividePolylinesPart.push(polyline);
+        });
+
+        _this._dividePolylinesParts.push(dividePolylinesPart);
+      };
+
+      for (var _i in this._divideBoundsParts) {
+        _loop(_i);
+      }
+    },
+    onDrawLayer: function onDrawLayer(viewInfo) {
+      // if (!this.isVisible()) return;
+      if (!this._map) return;
+
+      this._updateOpacity();
+
+      this._drawPolylines();
+    },
+    onLayerDidMount: function onLayerDidMount() {
+      this._enableIdentify();
+
+      this._map.getContainer().style.cursor = this.options.cursor;
+    },
+    onLayerWillUnmount: function onLayerWillUnmount() {
+      this._disableIdentify();
+
+      this._map.getContainer().style.cursor = '';
+    },
+    _enableIdentify: function _enableIdentify() {
+      // Everytime when CLICK on `this._map`, `this` will 
+      // react on a CLICK event.
+      this._map.on('click', this._onClick, this); // If there exists an `onClick` parameter, then bind this 
+      // function to CLICK event.
+
+
+      this.options.onClick && this.on('click', this.options.onClick, this);
+    },
+    _disableIdentify: function _disableIdentify() {
+      this._map.off('click', this._onClick, this);
+
+      this.options.onClick && this.off('click', this.options.onClick, this);
+    },
+    _onClick: function _onClick(e) {
+      var v = this._queryPolyline(e);
+
+      this.fire('click', v);
+    },
+    needRedraw: function needRedraw() {
+      if (this._map) {
+        CanvasLayer.prototype.needRedraw.call(this);
+      }
+    },
+    _isDisplayPolyline: function _isDisplayPolyline(polyline) {
+      return this._map.getZoom() >= polyline.options.zoomLevel;
+    },
+    _drawPolylines: function _drawPolylines() {
+      if (!this._polylines) return;
+
+      var ctx = this._getDrawingContext();
+
+      for (var i = 0; i < this._polylines.length; ++i) {
+        if (!this._isDisplayPolyline(this._polylines[i])) continue;
+
+        var latlngs = this._polylines[i].coordinates.map(function (x) {
+          return L.latLng(x);
+        });
+
+        this._prepareOptions(this._polylines[i], ctx);
+
+        ctx.beginPath();
+        if (latlngs.length) ctx.moveTo(this._map.latLngToContainerPoint(latlngs[0]).x, this._map.latLngToContainerPoint(latlngs[0]).y);
+
+        for (var j = 1; j < latlngs.length; ++j) {
+          ctx.lineTo(this._map.latLngToContainerPoint(latlngs[j]).x, this._map.latLngToContainerPoint(latlngs[j]).y);
+        }
+
+        ctx.stroke();
+        ctx.closePath();
+      }
+    },
+    _getDrawingContext: function _getDrawingContext() {
+      var g = this._canvas.getContext('2d');
+
+      g.clearRect(0, 0, this._canvas.width, this._canvas.height);
+      return g;
+    },
+    _prepareOptions: function _prepareOptions(polyline, ctx) {
+      ctx.lineWidth = polyline.options.width;
+      ctx.strokeStyle = polyline.options.color;
+    },
+    _queryPolyline: function _queryPolyline(e) {
+      var polyline = this._polylines && this.getBounds().contains(e.latlng) ? this._polylineAt(e.containerPoint) : undefined;
+      return {
+        event: e,
+        polyline: polyline,
+        latlng: e.latlng
+      };
+    },
+    _polylineAt: function _polylineAt(point) {
+      var min_precision = undefined,
+          ret_polyline = undefined,
+          dividePolylinesPart = undefined,
+          latlng = this._map.containerPointToLatLng(point);
+
+      for (var i = 0; i < this._divideBoundsParts.length; ++i) {
+        if (this._divideBoundsParts[i].contains(latlng)) {
+          dividePolylinesPart = this._dividePolylinesParts[i];
+          break;
+        }
+      }
+
+      if (dividePolylinesPart === undefined) return undefined;
+
+      for (var _i2 = 0; _i2 < dividePolylinesPart.length; ++_i2) {
+        var polyline = dividePolylinesPart[_i2];
+        if (!this._isDisplayPolyline(polyline)) continue;
+
+        var precision = this._pointIsOnPolyline(point, polyline);
+
+        if (precision === false) continue; // point is not on this polyline
+
+        min_precision = Math.min(min_precision || precision, precision);
+        if (precision == min_precision) ret_polyline = polyline;
+      }
+
+      return ret_polyline;
+    },
+    _pointIsOnPolyline: function _pointIsOnPolyline(pt, polyline) {
+      var _this2 = this;
+
+      var latlngs = polyline.coordinates,
+          lineWidth = polyline.options.width,
+          containerPoints = latlngs.map(function (latlng) {
+        return _this2._map.latLngToContainerPoint(latlng);
+      });
+      var ret = false;
+      if (polyline.latLngBounds && !polyline.latLngBounds.contains(this._map.containerPointToLatLng(pt))) return ret;
+
+      for (var i = 0; i < containerPoints.length - 1; ++i) {
+        var curPt = containerPoints[i],
+            nextPt = containerPoints[i + 1];
+
+        if (pt.x >= Math.min(curPt.x, nextPt.x) - 10 && pt.x <= Math.max(curPt.x, nextPt.x) + 10 && pt.y >= Math.min(curPt.y, nextPt.y) - 10 && pt.y <= Math.max(curPt.y, nextPt.y) + 10) {
+          var precision = Math.abs((curPt.x - pt.x) / (curPt.y - pt.y) - (nextPt.x - pt.x) / (nextPt.y - pt.y));
+
+          if (precision <= 1.618 + Math.log10(c._map.getZoom()) / 10) {
+            ret = Math.min(ret || precision, precision);
+          }
+        }
+      }
+
+      return ret;
+    }
+  });
+
+  var TimelineLayer =
+  /*#__PURE__*/
+  function () {
+    function TimelineLayer(mymap, options) {
+      _classCallCheck(this, TimelineLayer);
+
+      this._times = [];
+      this._data = [];
+      this.times2index = {};
+      this._layers = [];
+      this._curlayer = null;
+      this._map = mymap;
+      this.timeline = document.createElement("div");
+      this.timeline.id = "timeline";
+      this.timeline.style.visibility = "visible";
+      document.body.appendChild(this.timeline);
+      this.slider = document.createElement("input");
+      this.slider.type = "range";
+      this.slider.min = 0;
+      this.slider.max = 4;
+      this.slider.value = 0;
+      this.slider.id = "myRange";
+      this.bt_play = document.createElement("button");
+      this.bt_play.type = "button";
+      this.bt_play.id = "bt_play";
+      this.bt_play.textContent = "play";
+      this.par = document.createElement("p");
+      this.par.textContent = "Vaule: ";
+      this.output = document.createElement("span");
+      this.output.id = "demo";
+      this.par.appendChild(this.output);
+      this.timeline.appendChild(this.slider);
+      this.timeline.appendChild(this.bt_play);
+      this.timeline.appendChild(this.par);
+      this.setOption(options);
+    }
+
+    _createClass(TimelineLayer, [{
+      key: "setOption",
+      value: function setOption(options) {
+        this.options = options;
+      }
+    }, {
+      key: "data",
+      value: function data(time, _data, fn) {
+        this._times = time;
+        this._data = _data;
+        this.slider.max = time.length;
+
+        for (var i = 0; i < time.length; i++) {
+          this.times2index[this._times[i]] = i;
+        }
+
+        for (var _i = 0; _i < time.length; _i++) {
+          var l = new PointLayer();
+          this._layers[_i] = l.data(_data[_i], fn).enter();
+        }
+
+        this.listen();
+        return this;
+      }
+    }, {
+      key: "listen",
+      value: function listen() {
+        //添加slider监听事件
+        var tmp = this;
+
+        this.slider.oninput = function () {
+          tmp.output.innerHTML = tmp._times[tmp.slider.value];
+          return tmp.output.innerHTML;
+        };
+
+        this.output.innerHTML = this._times[this.slider.value]; // Display the default slider value
+        //the timeline is(not) visible
+
+        if (this.options.enableControl == false) {
+          timeline.style.visibility = "hidden";
+        } else {
+          timeline.style.visibility = "visible";
+        } //是否自动播放
+
+
+        if (this.options.autoPlay == true) {
+          this.play(this._times[0], this._map);
+        } else {
+          this.renderAtTime(this._times[0], this._map);
+        } //添加播放按钮监听事件
+
+
+        var tmp = this;
+
+        this.bt_play.onclick = function () {
+          // tmp.running = 1;
+          tmp.play(tmp._times[0], tmp._map);
+        }; // this.bt_stop.onclick = function(){
+        //     tmp.running = 2;
+        // }
+        // this.bt_pause.onclick = function(){
+        //     tmp.running = 3;
+        // }
+
+      }
+    }, {
+      key: "renderAtTime",
+      value: function renderAtTime(time_index) {
+        if (this._curlayer != null) {
+          this._curlayer.remove();
+        }
+
+        switch (this.options.layerType) {
+          case "PointMap":
+            this._layers[this.times2index[time_index]].addTo(this._map);
+
+            this._curlayer = this._layers[this.times2index[time_index]];
+            break;
+
+          case "heatmap":
+            this._curlayer = new HeatmapOverlay(this.options.layerOption).addTo(this._map);
+
+            this._curlayer.setData(this._data[this.times2index[time_index]]);
+
+            break;
+
+          default:
+            throw new Error(this.options.layerType + 'is not exist in the timelinelayer');
+        }
+
+        this.slider.value = this.times2index[time_index];
+        this.output.innerHTML = time_index;
+      }
+    }, {
+      key: "on",
+      value: function on(event) {
+        if (event = "timechage") {
+          var tmp = this;
+
+          this.slider.onclick = function () {
+            tmp.renderAtTime(tmp.output.innerHTML, tmp._map);
+          };
+        }
+      }
+    }, {
+      key: "play",
+      value: function play(time) {
+        var _this = this;
+
+        var index = this.times2index[time]; //es6 promise
+
+        var _loop = function _loop(i) {
+          tmp = _this;
+
+          (function () {
+            setTimeout(function () {
+              return tmp.renderAtTime(tmp._times[i], tmp._map);
+            }, tmp.options.tickTime * i);
+          })();
+        };
+
+        for (var i = index; i < this._times.length; i++) {
+          var tmp;
+
+          _loop(i);
+        }
+      }
+    }]);
+
+    return TimelineLayer;
+  }();
+
+  /**
+   *  Simple regular cell in a raster
+   */
+  var Cell =
+  /*#__PURE__*/
+  function () {
+    /**
+     * A simple cell with a numerical value
+     * @param {L.LatLng} center
+     * @param {Number|Vector} value
+     * @param {Number} xSize
+     * @param {Number} ySize
+     */
+    function Cell(center, value, xSize) {
+      var ySize = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : xSize;
+
+      _classCallCheck(this, Cell);
+
+      this.center = center;
+      this.value = value;
+      this.xSize = xSize;
+      this.ySize = ySize;
+    }
+
+    _createClass(Cell, [{
+      key: "equals",
+      value: function equals(anotherCell) {
+        return this.center.equals(anotherCell.center) && this._equalValues(this.value, anotherCell.value) && this.xSize === anotherCell.xSize && this.ySize === anotherCell.ySize;
+      }
+    }, {
+      key: "_equalValues",
+      value: function _equalValues(value, anotherValue) {
+        var type = value.constructor.name;
+        var answerFor = {
+          Number: value === anotherValue,
+          Vector: value.u === anotherValue.u && value.v === anotherValue.v
+        };
+        return answerFor[type];
+      }
+      /**
+       * Bounds for the cell
+       * @returns {LatLngBounds}
+       */
+
+    }, {
+      key: "getBounds",
+      value: function getBounds() {
+        var halfX = this.xSize / 2.0;
+        var halfY = this.ySize / 2.0;
+        var cLat = this.center.lat;
+        var cLng = this.center.lng;
+        var ul = L.latLng([cLat + halfY, cLng - halfX]);
+        var lr = L.latLng([cLat - halfY, cLng + halfX]);
+        return L.latLngBounds(L.latLng(lr.lat, ul.lng), L.latLng(ul.lat, lr.lng));
+      }
+    }]);
+
+    return Cell;
+  }();
+
   /**
    *  Abstract class for a set of values (Vector | Scalar)
    *  assigned to a regular 2D-grid (lon-lat), aka 'a Raster source'
@@ -1946,69 +3643,6 @@ var dmap = (function (exports) {
         return !this.contains(lon, lat);
       }
       /**
-       * Interpolated value at lon-lat coordinates (bilinear method)
-       * @param   {Number} longitude
-       * @param   {Number} latitude
-       * @returns {Vector|Number} [u, v, magnitude]
-       *                          
-       * Source: https://github.com/cambecc/earth > product.js
-       */
-
-    }, {
-      key: "interpolatedValueAt",
-      value: function interpolatedValueAt(lon, lat) {
-        if (this.notContains(lon, lat)) return null;
-
-        var _this$_getDecimalInde = this._getDecimalIndexes(lon, lat),
-            _this$_getDecimalInde2 = _slicedToArray(_this$_getDecimalInde, 2),
-            i = _this$_getDecimalInde2[0],
-            j = _this$_getDecimalInde2[1];
-
-        return this.interpolatedValueAtIndexes(i, j);
-      }
-      /**
-       * Interpolated value at i-j indexes (bilinear method)
-       * @param   {Number} i
-       * @param   {Number} j
-       * @returns {Vector|Number} [u, v, magnitude]
-       *
-       * Source: https://github.com/cambecc/earth > product.js
-       */
-
-    }, {
-      key: "interpolatedValueAtIndexes",
-      value: function interpolatedValueAtIndexes(i, j) {
-        //         1      2           After converting λ and φ to fractional grid indexes i and j, we find the
-        //        fi  i   ci          four points 'G' that enclose point (i, j). These points are at the four
-        //         | =1.4 |           corners specified by the floor and ceiling of i and j. For example, given
-        //      ---G--|---G--- fj 8   i = 1.4 and j = 8.3, the four surrounding grid points are (1, 8), (2, 8),
-        //    j ___|_ .   |           (1, 9) and (2, 9).
-        //  =8.3   |      |
-        //      ---G------G--- cj 9   Note that for wrapped grids, the first column is duplicated as the last
-        //         |      |           column, so the index ci can be used without taking a modulo.
-        var indexes = this._getFourSurroundingIndexes(i, j);
-
-        var _indexes = _slicedToArray(indexes, 4),
-            fi = _indexes[0],
-            ci = _indexes[1],
-            fj = _indexes[2],
-            cj = _indexes[3];
-
-        var values = this._getFourSurroundingValues(fi, ci, fj, cj);
-
-        if (values) {
-          var _values = _slicedToArray(values, 4),
-              g00 = _values[0],
-              g10 = _values[1],
-              g01 = _values[2],
-              g11 = _values[3];
-
-          return this._doInterpolation(i - fi, j - fj, g00, g10, g01, g11);
-        }
-
-        return null;
-      }
-      /**
        * Get decimal indexes
        * @private
        * @param {Number} lon
@@ -2028,68 +3662,6 @@ var dmap = (function (exports) {
         return [i, j];
       }
       /**
-       * Get surrounding indexes (integer), clampling on borders
-       * @private
-       * @param   {Number} i - decimal index
-       * @param   {Number} j - decimal index
-       * @returns {Array} [fi, ci, fj, cj]
-       */
-
-    }, {
-      key: "_getFourSurroundingIndexes",
-      value: function _getFourSurroundingIndexes(i, j) {
-        var fi = Math.floor(i);
-        var ci = fi + 1; // duplicate colum to simplify interpolation logic (wrapped value)
-
-        if (this.isContinuous && ci >= this.nCols) {
-          ci = 0;
-        }
-
-        ci = this._clampColumnIndex(ci);
-
-        var fj = this._clampRowIndex(Math.floor(j));
-
-        var cj = this._clampRowIndex(fj + 1);
-
-        return [fi, ci, fj, cj];
-      }
-      /**
-       * Get four surrounding values or null if not available,
-       * from 4 integer indexes
-       * @private
-       * @param   {Number} fi
-       * @param   {Number} ci
-       * @param   {Number} fj
-       * @param   {Number} cj
-       * @returns {Array} 
-       */
-
-    }, {
-      key: "_getFourSurroundingValues",
-      value: function _getFourSurroundingValues(fi, ci, fj, cj) {
-        var row;
-
-        if (row = this.grid[fj]) {
-          // upper row ^^
-          var g00 = row[fi]; // << left
-
-          var g10 = row[ci]; // right >>
-
-          if (this._isValid(g00) && this._isValid(g10) && (row = this.grid[cj])) {
-            // lower row vv
-            var g01 = row[fi]; // << left
-
-            var g11 = row[ci]; // right >>
-
-            if (this._isValid(g01) && this._isValid(g11)) {
-              return [g00, g10, g01, g11]; // 4 values found!
-            }
-          }
-        }
-
-        return null;
-      }
-      /**
        * Nearest value at lon-lat coordinates
        * @param   {Number} longitude
        * @param   {Number} latitude
@@ -2101,10 +3673,10 @@ var dmap = (function (exports) {
       value: function valueAt(lon, lat) {
         if (this.notContains(lon, lat)) return null;
 
-        var _this$_getDecimalInde3 = this._getDecimalIndexes(lon, lat),
-            _this$_getDecimalInde4 = _slicedToArray(_this$_getDecimalInde3, 2),
-            i = _this$_getDecimalInde4[0],
-            j = _this$_getDecimalInde4[1];
+        var _this$_getDecimalInde = this._getDecimalIndexes(lon, lat),
+            _this$_getDecimalInde2 = _slicedToArray(_this$_getDecimalInde, 2),
+            i = _this$_getDecimalInde2[0],
+            j = _this$_getDecimalInde2[1];
 
         var ii = Math.floor(i);
         var jj = Math.floor(j);
@@ -2579,228 +4151,453 @@ var dmap = (function (exports) {
     return ScalarField;
   }(Field);
 
-  var SVGGridLayer =
-  /*#__PURE__*/
-  function (_BaseLayer) {
-    _inherits(SVGGridLayer, _BaseLayer);
+  /**
+   * A class to define animation queue
+   * @author Stoyan Stefanov <sstoo@gmail.com>
+   * @link   http://www.phpied.com/rgb-color-parser-in-javascript/
+   * @license MIT license
+   */
 
-    function SVGGridLayer(field, options) {
-      var _this;
+  /*
+  Usage: var timer = new dTimer() //similiar to setInterval
+  timer(function(elapsed){
+      //TO DO : elapsed = Animation trigger time - Animation start time
+      return True; //If you want timer stop, please return True value
+  }, delay, then)
+  */
+  function dTimer() {
+    var dMap_timer_queueHead,
+        dMap_timer_queueTail,
+        dMap_timer_interval,
+        dMap_timer_timeout,
+        dMap_timer_frame = window.requestAnimationFrame || function (callback) {
+      setTimeout(callback, 17);
+    };
 
-      _classCallCheck(this, SVGGridLayer);
+    function dMap_timer(callback, delay, then) {
+      var n = arguments.length;
+      if (n < 2) delay = 0;
+      if (n < 3) then = Date.now();
+      var time = then + delay,
+          timer = {
+        c: callback,
+        t: time,
+        n: null
+      };
+      if (dMap_timer_queueTail) dMap_timer_queueTail.n = timer;else dMap_timer_queueHead = timer;
+      dMap_timer_queueTail = timer;
 
-      _this = _possibleConstructorReturn(this, _getPrototypeOf(SVGGridLayer).call(this, options));
-      _this._field = field;
-      console.log(field);
+      if (!dMap_timer_interval) {
+        dMap_timer_timeout = clearTimeout(dMap_timer_timeout);
+        dMap_timer_interval = 1;
+        dMap_timer_frame(dMap_timer_step);
+      }
 
-      _this.makeData();
-
-      return _this;
+      return timer;
     }
 
-    _createClass(SVGGridLayer, [{
-      key: "setField",
-      value: function setField(field) {
-        this._field = field;
-      }
-    }, {
-      key: "_ensureColor",
-      value: function _ensureColor() {
-        if (this.options.color === undefined) {
-          this.options.color = this._defaultColorScale();
-        }
-      }
-    }, {
-      key: "_defaultColorScale",
-      value: function _defaultColorScale() {
-        function ColorRangeFunction(range) {
-          var _range = range;
+    function dMap_timer_step() {
+      var now = dMap_timer_mark(),
+          delay = dMap_timer_sweep() - now;
 
-          this.fn = function (v) {
-            var data = Math.floor(255 * (_range[1] - v) / (_range[1] - _range[0])).toString(16);
-            return '#' + data + data + data;
-          };
+      if (delay > 24) {
+        if (isFinite(delay)) {
+          clearTimeout(dMap_timer_timeout);
+          dMap_timer_timeout = setTimeout(dMap_timer_step, delay);
         }
 
-        return new ColorRangeFunction(this._field.range).fn;
+        dMap_timer_interval = 0;
+      } else {
+        dMap_timer_interval = 1;
+        dMap_timer_frame(dMap_timer_step);
       }
-    }, {
-      key: "_getColorFor",
-      value: function _getColorFor(v) {
-        var c = this.options.color; // e.g. for a constant 'red'
+    }
 
-        if (typeof c === 'function') {
-          c = String(this.options.color(v));
+    dMap_timer.flush = function () {
+      dMap_timer_mark();
+      dMap_timer_sweep();
+    };
+
+    function dMap_timer_mark() {
+      var now = Date.now(),
+          timer = dMap_timer_queueHead;
+
+      while (timer) {
+        if (now >= timer.t && timer.c(now - timer.t)) timer.c = null;
+        timer = timer.n;
+      }
+
+      return now;
+    }
+
+    function dMap_timer_sweep() {
+      var t0,
+          t1 = dMap_timer_queueHead,
+          time = Infinity;
+
+      while (t1) {
+        if (t1.c) {
+          if (t1.t < time) time = t1.t;
+          t1 = (t0 = t1).n;
+        } else {
+          t1 = t0 ? t0.n = t1.n : dMap_timer_queueHead = t1.n;
         }
-
-        var color = new RGBColor(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
-
-        return color;
       }
-    }, {
-      key: "makeData",
-      value: function makeData() {
-        this._ensureColor();
 
-        this._data = [];
+      dMap_timer_queueTail = t0;
+      return time;
+    }
 
-        for (var i = 0; i < this._field.nRows; ++i) {
-          for (var j = 0; j < this._field.nCols; ++j) {
-            var value = this._field.grid[i][j];
-            if (value === null) continue;
-            console.log(value);
+    return function () {
+      dMap_timer.apply(this, arguments);
+    };
+  }
+  /*
+  d3 transition source code
 
-            var color = this._getColorFor(value);
-
-            var point = {
-              coordinations: [[this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize], [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize]],
-              options: {
-                fillOpacity: 0.9,
-                fillColor: color
-              }
-            };
-
-            this._data.push(point);
+    function d3_transition(groups, ns, id) {
+      d3_subclass(groups, d3_transitionPrototype);
+      groups.namespace = ns;
+      groups.id = id;
+      return groups;
+    }
+    var d3_transitionPrototype = [], d3_transitionId = 0, d3_transitionInheritId, d3_transitionInherit;
+    d3_transitionPrototype.call = d3_selectionPrototype.call;
+    d3_transitionPrototype.empty = d3_selectionPrototype.empty;
+    d3_transitionPrototype.node = d3_selectionPrototype.node;
+    d3_transitionPrototype.size = d3_selectionPrototype.size;
+    d3.transition = function(selection, name) {
+      return selection && selection.transition ? d3_transitionInheritId ? selection.transition(name) : selection : d3.selection().transition(selection);
+    };
+    d3.transition.prototype = d3_transitionPrototype;
+    d3_transitionPrototype.select = function(selector) {
+      var id = this.id, ns = this.namespace, subgroups = [], subgroup, subnode, node;
+      selector = d3_selection_selector(selector);
+      for (var j = -1, m = this.length; ++j < m; ) {
+        subgroups.push(subgroup = []);
+        for (var group = this[j], i = -1, n = group.length; ++i < n; ) {
+          if ((node = group[i]) && (subnode = selector.call(node, node.__data__, i, j))) {
+            if ("__data__" in node) subnode.__data__ = node.__data__;
+            d3_transitionNode(subnode, i, ns, id, node[ns][id]);
+            subgroup.push(subnode);
+          } else {
+            subgroup.push(null);
           }
         }
       }
-    }, {
-      key: "generate",
-      value: function generate() {
-        return this._data.map(function (data) {
-          return L.polygon(data.coordinations, data.options);
-        });
-      }
-    }]);
-
-    return SVGGridLayer;
-  }(BaseLayer);
-
-  var CanvasPolylineLayer = CanvasLayer.extend({
-    options: {},
-    // polylines is an Array of polyline, which is an Array of L.latlng.
-    initialize: function initialize(options) {
-      L.Util.setOptions(this, options);
-    },
-
-    /**
-     * 
-     * @param {Array} data 
-     * @param {function} fn 
-     * 
-     * var l = new CanvasPolylineLayer(options);
-     * var arr = [[[1, 2], [11, 12], [21, 22]], [another polyline]];
-     * l.data(arr, function(d) {
-     *      return {
-     *          coordinates: d.map(x => L.latLng(x)), 
-     *          options: { color: d.length > 2 ? 'gray' : 'black' }
-     *      }
-     *  });
-     * 
-     * 
-     */
-    data: function data(_data, fn) {
-      this._polylines = _data.map(fn);
-
-      this._polylines.forEach(function (d) {
-        d.coordinates = d.coordinates.map(function (x) {
-          return L.latLng(x);
-        });
-        d.options = Object.assign({
-          color: '#000000',
-          width: 1,
-          zoomLevel: 1
-        }, d.options);
-      });
-
-      this.needRedraw();
-    },
-    _updateOpacity: function _updateOpacity() {
-      L.DomUtil.setOpacity(this._canvas, this.options.opacity);
-    },
-    setOpacity: function setOpacity(opacity) {
-      this.options.opacity = opacity;
-
-      if (this._canvas) {
-        this._updateOpacity();
-      }
-
-      return this;
-    },
-    // getBounds: function() {
-    //     if (this._bounds === undefined) {
-    //         let bounds = undefined;
-    //         for (let i = 0; i < this._polylines.length; ++i) {
-    //             for (let j = 0; j < this._polylines[i].coordinates.length; ++j) {
-    //                 bounds = bounds ? bounds : L.bounds(this._polylines[i].coordinates[j]);
-    //                 console.log(bounds.max, bounds.min)
-    //                 bounds.extend(this._polylines[i].coordinates[j]);
-    //             }
-    //         }
-    //         this._bounds = bounds;
-    //     }
-    //     return this._bounds;
-    // },
-    onDrawLayer: function onDrawLayer(viewInfo) {
-      // if (!this.isVisible()) return;
-      this._updateOpacity();
-
-      this._drawPolylines();
-    },
-    needRedraw: function needRedraw() {
-      if (this._map) {
-        CanvasLayer.prototype.needRedraw.call(this);
-      }
-    },
-    _drawPolylines: function _drawPolylines() {
-      var ctx = this._getDrawingContext();
-
-      for (var i = 0; i < this._polylines.length; ++i) {
-        if (this._map.getZoom() < this._polylines[i].options.zoomLevel) continue;
-
-        var latlngs = this._polylines[i].coordinates.map(function (x) {
-          return L.latLng(x);
-        });
-
-        this._prepareOptions(this._polylines[i], ctx);
-
-        ctx.beginPath();
-        if (latlngs.length) ctx.moveTo(this._map.latLngToContainerPoint(latlngs[0]).x, this._map.latLngToContainerPoint(latlngs[0]).y);
-
-        for (var j = 1; j < latlngs.length; ++j) {
-          ctx.lineTo(this._map.latLngToContainerPoint(latlngs[j]).x, this._map.latLngToContainerPoint(latlngs[j]).y);
+      return d3_transition(subgroups, ns, id);
+    };
+    d3_transitionPrototype.selectAll = function(selector) {
+      var id = this.id, ns = this.namespace, subgroups = [], subgroup, subnodes, node, subnode, transition;
+      selector = d3_selection_selectorAll(selector);
+      for (var j = -1, m = this.length; ++j < m; ) {
+        for (var group = this[j], i = -1, n = group.length; ++i < n; ) {
+          if (node = group[i]) {
+            transition = node[ns][id];
+            subnodes = selector.call(node, node.__data__, i, j);
+            subgroups.push(subgroup = []);
+            for (var k = -1, o = subnodes.length; ++k < o; ) {
+              if (subnode = subnodes[k]) d3_transitionNode(subnode, k, ns, id, transition);
+              subgroup.push(subnode);
+            }
+          }
         }
-
-        ctx.stroke();
-        ctx.closePath();
       }
-    },
-    _getDrawingContext: function _getDrawingContext() {
-      var g = this._canvas.getContext('2d');
-
-      g.clearRect(0, 0, this._canvas.width, this._canvas.height);
-      return g;
-    },
-    _prepareOptions: function _prepareOptions(polyline, ctx) {
-      ctx.lineWidth = polyline.options.width;
-      ctx.strokeStyle = polyline.options.color;
+      return d3_transition(subgroups, ns, id);
+    };
+    d3_transitionPrototype.filter = function(filter) {
+      var subgroups = [], subgroup, group, node;
+      if (typeof filter !== "function") filter = d3_selection_filter(filter);
+      for (var j = 0, m = this.length; j < m; j++) {
+        subgroups.push(subgroup = []);
+        for (var group = this[j], i = 0, n = group.length; i < n; i++) {
+          if ((node = group[i]) && filter.call(node, node.__data__, i, j)) {
+            subgroup.push(node);
+          }
+        }
+      }
+      return d3_transition(subgroups, this.namespace, this.id);
+    };
+    d3_transitionPrototype.tween = function(name, tween) {
+      var id = this.id, ns = this.namespace;
+      if (arguments.length < 2) return this.node()[ns][id].tween.get(name);
+      return d3_selection_each(this, tween == null ? function(node) {
+        node[ns][id].tween.remove(name);
+      } : function(node) {
+        node[ns][id].tween.set(name, tween);
+      });
+    };
+    function d3_transition_tween(groups, name, value, tween) {
+      var id = groups.id, ns = groups.namespace;
+      return d3_selection_each(groups, typeof value === "function" ? function(node, i, j) {
+        node[ns][id].tween.set(name, tween(value.call(node, node.__data__, i, j)));
+      } : (value = tween(value), function(node) {
+        node[ns][id].tween.set(name, value);
+      }));
     }
-  });
+    d3_transitionPrototype.attr = function(nameNS, value) {
+      if (arguments.length < 2) {
+        for (value in nameNS) this.attr(value, nameNS[value]);
+        return this;
+      }
+      var interpolate = nameNS == "transform" ? d3_interpolateTransform : d3_interpolate, name = d3.ns.qualify(nameNS);
+      function attrNull() {
+        this.removeAttribute(name);
+      }
+      function attrNullNS() {
+        this.removeAttributeNS(name.space, name.local);
+      }
+      function attrTween(b) {
+        return b == null ? attrNull : (b += "", function() {
+          var a = this.getAttribute(name), i;
+          return a !== b && (i = interpolate(a, b), function(t) {
+            this.setAttribute(name, i(t));
+          });
+        });
+      }
+      function attrTweenNS(b) {
+        return b == null ? attrNullNS : (b += "", function() {
+          var a = this.getAttributeNS(name.space, name.local), i;
+          return a !== b && (i = interpolate(a, b), function(t) {
+            this.setAttributeNS(name.space, name.local, i(t));
+          });
+        });
+      }
+      return d3_transition_tween(this, "attr." + nameNS, value, name.local ? attrTweenNS : attrTween);
+    };
+    d3_transitionPrototype.attrTween = function(nameNS, tween) {
+      var name = d3.ns.qualify(nameNS);
+      function attrTween(d, i) {
+        var f = tween.call(this, d, i, this.getAttribute(name));
+        return f && function(t) {
+          this.setAttribute(name, f(t));
+        };
+      }
+      function attrTweenNS(d, i) {
+        var f = tween.call(this, d, i, this.getAttributeNS(name.space, name.local));
+        return f && function(t) {
+          this.setAttributeNS(name.space, name.local, f(t));
+        };
+      }
+      return this.tween("attr." + nameNS, name.local ? attrTweenNS : attrTween);
+    };
+    d3_transitionPrototype.style = function(name, value, priority) {
+      var n = arguments.length;
+      if (n < 3) {
+        if (typeof name !== "string") {
+          if (n < 2) value = "";
+          for (priority in name) this.style(priority, name[priority], value);
+          return this;
+        }
+        priority = "";
+      }
+      function styleNull() {
+        this.style.removeProperty(name);
+      }
+      function styleString(b) {
+        return b == null ? styleNull : (b += "", function() {
+          var a = d3_window(this).getComputedStyle(this, null).getPropertyValue(name), i;
+          return a !== b && (i = d3_interpolate(a, b), function(t) {
+            this.style.setProperty(name, i(t), priority);
+          });
+        });
+      }
+      return d3_transition_tween(this, "style." + name, value, styleString);
+    };
+    d3_transitionPrototype.styleTween = function(name, tween, priority) {
+      if (arguments.length < 3) priority = "";
+      function styleTween(d, i) {
+        var f = tween.call(this, d, i, d3_window(this).getComputedStyle(this, null).getPropertyValue(name));
+        return f && function(t) {
+          this.style.setProperty(name, f(t), priority);
+        };
+      }
+      return this.tween("style." + name, styleTween);
+    };
+    d3_transitionPrototype.text = function(value) {
+      return d3_transition_tween(this, "text", value, d3_transition_text);
+    };
+    function d3_transition_text(b) {
+      if (b == null) b = "";
+      return function() {
+        this.textContent = b;
+      };
+    }
+    d3_transitionPrototype.remove = function() {
+      var ns = this.namespace;
+      return this.each("end.transition", function() {
+        var p;
+        if (this[ns].count < 2 && (p = this.parentNode)) p.removeChild(this);
+      });
+    };
+    d3_transitionPrototype.ease = function(value) {
+      var id = this.id, ns = this.namespace;
+      if (arguments.length < 1) return this.node()[ns][id].ease;
+      if (typeof value !== "function") value = d3.ease.apply(d3, arguments);
+      return d3_selection_each(this, function(node) {
+        node[ns][id].ease = value;
+      });
+    };
+    d3_transitionPrototype.delay = function(value) {
+      var id = this.id, ns = this.namespace;
+      if (arguments.length < 1) return this.node()[ns][id].delay;
+      return d3_selection_each(this, typeof value === "function" ? function(node, i, j) {
+        node[ns][id].delay = +value.call(node, node.__data__, i, j);
+      } : (value = +value, function(node) {
+        node[ns][id].delay = value;
+      }));
+    };
+    d3_transitionPrototype.duration = function(value) {
+      var id = this.id, ns = this.namespace;
+      if (arguments.length < 1) return this.node()[ns][id].duration;
+      return d3_selection_each(this, typeof value === "function" ? function(node, i, j) {
+        node[ns][id].duration = Math.max(1, value.call(node, node.__data__, i, j));
+      } : (value = Math.max(1, value), function(node) {
+        node[ns][id].duration = value;
+      }));
+    };
+    d3_transitionPrototype.each = function(type, listener) {
+      var id = this.id, ns = this.namespace;
+      if (arguments.length < 2) {
+        var inherit = d3_transitionInherit, inheritId = d3_transitionInheritId;
+        try {
+          d3_transitionInheritId = id;
+          d3_selection_each(this, function(node, i, j) {
+            d3_transitionInherit = node[ns][id];
+            type.call(node, node.__data__, i, j);
+          });
+        } finally {
+          d3_transitionInherit = inherit;
+          d3_transitionInheritId = inheritId;
+        }
+      } else {
+        d3_selection_each(this, function(node) {
+          var transition = node[ns][id];
+          (transition.event || (transition.event = d3.dispatch("start", "end", "interrupt"))).on(type, listener);
+        });
+      }
+      return this;
+    };
+    d3_transitionPrototype.transition = function() {
+      var id0 = this.id, id1 = ++d3_transitionId, ns = this.namespace, subgroups = [], subgroup, group, node, transition;
+      for (var j = 0, m = this.length; j < m; j++) {
+        subgroups.push(subgroup = []);
+        for (var group = this[j], i = 0, n = group.length; i < n; i++) {
+          if (node = group[i]) {
+            transition = node[ns][id0];
+            d3_transitionNode(node, i, ns, id1, {
+              time: transition.time,
+              ease: transition.ease,
+              delay: transition.delay + transition.duration,
+              duration: transition.duration
+            });
+          }
+          subgroup.push(node);
+        }
+      }
+      return d3_transition(subgroups, ns, id1);
+    };
+    function d3_transitionNamespace(name) {
+      return name == null ? "__transition__" : "__transition_" + name + "__";
+    }
+    function d3_transitionNode(node, i, ns, id, inherit) {
+      var lock = node[ns] || (node[ns] = {
+        active: 0,
+        count: 0
+      }), transition = lock[id], time, timer, duration, ease, tweens;
+      function schedule(elapsed) {
+        var delay = transition.delay;
+        timer.t = delay + time;
+        if (delay <= elapsed) return start(elapsed - delay);
+        timer.c = start;
+      }
+      function start(elapsed) {
+        var activeId = lock.active, active = lock[activeId];
+        if (active) {
+          active.timer.c = null;
+          active.timer.t = NaN;
+          --lock.count;
+          delete lock[activeId];
+          active.event && active.event.interrupt.call(node, node.__data__, active.index);
+        }
+        for (var cancelId in lock) {
+          if (+cancelId < id) {
+            var cancel = lock[cancelId];
+            cancel.timer.c = null;
+            cancel.timer.t = NaN;
+            --lock.count;
+            delete lock[cancelId];
+          }
+        }
+        timer.c = tick;
+        d3_timer(function() {
+          if (timer.c && tick(elapsed || 1)) {
+            timer.c = null;
+            timer.t = NaN;
+          }
+          return 1;
+        }, 0, time);
+        lock.active = id;
+        transition.event && transition.event.start.call(node, node.__data__, i);
+        tweens = [];
+        transition.tween.forEach(function(key, value) {
+          if (value = value.call(node, node.__data__, i)) {
+            tweens.push(value);
+          }
+        });
+        ease = transition.ease;
+        duration = transition.duration;
+      }
+      function tick(elapsed) {
+        var t = elapsed / duration, e = ease(t), n = tweens.length;
+        while (n > 0) {
+          tweens[--n].call(node, e);
+        }
+        if (t >= 1) {
+          transition.event && transition.event.end.call(node, node.__data__, i);
+          if (--lock.count) delete lock[id]; else delete node[ns];
+          return 1;
+        }
+      }
+      if (!transition) {
+        time = inherit.time;
+        timer = d3_timer(schedule, 0, time);
+        transition = lock[id] = {
+          tween: new d3_Map(),
+          time: time,
+          timer: timer,
+          delay: inherit.delay,
+          duration: inherit.duration,
+          ease: inherit.ease,
+          index: i
+        };
+        inherit = null;
+        ++lock.count;
+      }
+    }
+  */
 
   exports.PointLayer = PointLayer;
   exports.PolygonLayer = PolygonLayer;
   exports.MarkerLayer = MarkerLayer;
   exports.ODLayer = ODLayer;
   exports.PolylineLayer = PolylineLayer;
-  exports.ScalarFieldMap = ScalarFieldMap;
-  exports.scalarFieldMap = scalarFieldMap;
-  exports.ScalarField = ScalarField;
+  exports.HeatmapLayer = HeatmapLayer;
+  exports.CanvasGridLayer = CanvasGridLayer;
+  exports.canvasGridLayer = canvasGridLayer;
   exports.SVGGridLayer = SVGGridLayer;
   exports.CanvasPolylineLayer = CanvasPolylineLayer;
+  exports.TimelineLayer = TimelineLayer;
   exports.BaseLayer = BaseLayer;
+  exports._BaseLayer = _BaseLayer;
   exports.OD = OD;
   exports.od = od;
+  exports.ScalarField = ScalarField;
   exports.RGBColor = RGBColor;
+  exports.rgbColor = rgbColor;
+  exports.ColorScale = ColorScale;
+  exports.colorScale = colorScale;
+  exports.dTimer = dTimer;
 
   return exports;
 
