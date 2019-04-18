@@ -1,8 +1,40 @@
-//var map = L.map('mapid').setView([51.505, -0.09], 13);
-var map = L.map('mapid').setView([51, 5], 5);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+// var map = L.map('mapid').setView([51.505, -0.09], 8);
+var map = L.map('mapid').setView([39.980, 116.341], 15)
+L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+  maxZoom: 18,
+  id: 'mapbox.streets'
 }).addTo(map);
+
+marker = new dmap.MarkerLayer();
+marker_data = [[39.9853, 116.3476], [39.9765, 116.3392]]
+marker.data(marker_data, function(d){
+    return {coordination: d, options: {opacity: 0.9}}
+}).enter();
+marker.addTo(map)
+// center = [53, 5];
+// org = L.circleMarker([53, 5]).addTo(map);
+
+point = new dmap.PointLayer();
+point_data = [[39.9812, 116.3348], [39.9843, 116.3440]]
+point.data(point_data, function(d){
+                            return {coordination: d, options:{color: 'red'}}//Here!!!! a spelling bug!
+                        })
+point.enter();
+point.addTo(map);
+
+polygon = new dmap.PolygonLayer();
+polygon_data = [[[[39.979808, 116.346889], [39.979677, 116.344314], [39.978082, 116.344314], [39.978197, 116.347007]], 'red']]
+polygon.data(polygon_data, function(d){return{coordinations: d[0], options: {color: d[1]}}}).enter();
+polygon.addTo(map);
+
+
+
+polyline = new dmap.PolylineLayer();
+polyline_data = [[[39.979866, 116.338091], [39.97985, 116.341867], [39.977942, 116.341932]]]
+polyline.data(polyline_data, function(d){
+                                    return {coordinations: d, options:{color: 'red'}}
+                                }).enter();
+polyline.addTo(map);
 
 // coordinates = [[51, 0], [51, 10]]
 // center = [53, 5];

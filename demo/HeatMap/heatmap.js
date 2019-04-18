@@ -475,7 +475,9 @@ var Canvas2dRenderer = (function Canvas2dRendererClosure() {
         height = maxHeight - y;
         }
 
+        console.log(this);
         var img = this.shadowCtx.getImageData(x, y, width, height);
+        console.log(img);
         var imgData = img.data;
         var len = imgData.length;
         var palette = this._palette;

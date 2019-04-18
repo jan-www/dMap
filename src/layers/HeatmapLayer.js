@@ -1,5 +1,5 @@
 export function HeatmapLayer(options){
-
+    var that = this;
     ;(function (name, context, factory) {
 
         // Supports UMD. AMD, CommonJS/Node.js and browser context
@@ -743,7 +743,7 @@ export function HeatmapLayer(options){
     
         onAdd: function (map) {
         var size = map.getSize();
-        var h337 = typeof require !== 'undefined' ? require('heatmap.js') : window.h337;
+        var h337 = typeof require !== 'undefined' ? require('heatmap.js') : that.h337;
     
         this._map = map;
     
@@ -942,6 +942,7 @@ export function HeatmapLayer(options){
     return HeatmapOverlay;
     });
 
-    var heatmapLayer = new HeatmapOverlay(options);
+
+    var heatmapLayer = new that.HeatmapOverlay(options);
     return heatmapLayer;
 }

@@ -729,6 +729,7 @@ var dmap = (function (exports) {
     });
 
     function HeatmapLayer(options) {
+      var that = this;
 
       (function (name, context, factory) {
         // Supports UMD. AMD, CommonJS/Node.js and browser context
@@ -1458,7 +1459,7 @@ var dmap = (function (exports) {
           },
           onAdd: function onAdd(map) {
             var size = map.getSize();
-            var h337 = typeof require !== 'undefined' ? require('heatmap.js') : window.h337;
+            var h337 = typeof require !== 'undefined' ? require('heatmap.js') : that.h337;
             this._map = map;
             this._width = size.x;
             this._height = size.y;
@@ -1663,7 +1664,7 @@ var dmap = (function (exports) {
         return HeatmapOverlay;
       });
 
-      var heatmapLayer = new HeatmapOverlay(options);
+      var heatmapLayer = new that.HeatmapOverlay(options);
       return heatmapLayer;
     }
 
@@ -2493,8 +2494,6 @@ var dmap = (function (exports) {
 
     var CanvasGridLayer = FieldMap.extend({
       options: {
-        type: 'colormap',
-        // [colormap|vector]
         color: null,
         // function colorFor(value) [e.g. chromajs.scale],
         controlBar: false,
@@ -2963,6 +2962,10 @@ var dmap = (function (exports) {
         this._layers = [];
         this._curlayer = null;
         this._map = mymap;
+        this._isrunning = false;
+
+        this.timechangefun = function (d, i, t, layer) {};
+
         this.timeline = document.createElement("div");
         this.timeline.id = "timeline";
         this.timeline.style.visibility = "visible";
@@ -2986,6 +2989,11 @@ var dmap = (function (exports) {
         this.timeline.appendChild(this.bt_play);
         this.timeline.appendChild(this.par);
         this.setOption(options);
+        var tmp = this;
+
+        this.slider.onclick = function () {
+          tmp.renderAtTime(tmp.output.innerHTML, tmp._map);
+        };
       }
 
       _createClass(TimelineLayer, [{
@@ -2998,7 +3006,7 @@ var dmap = (function (exports) {
         value: function data(time, _data, fn) {
           this._times = time;
           this._data = _data;
-          this.slider.max = time.length;
+          this.slider.max = time.length - 1;
 
           for (var i = 0; i < time.length; i++) {
             this.times2index[this._times[i]] = i;
@@ -3080,16 +3088,14 @@ var dmap = (function (exports) {
 
           this.slider.value = this.times2index[time_index];
           this.output.innerHTML = time_index;
+          var index = Number(this.slider.value);
+          this.timechangefun(this._data[index], index, this._times[index], this._curlayer);
         }
       }, {
         key: "on",
-        value: function on(event) {
-          if (event = "timechage") {
-            var tmp = this;
-
-            this.slider.onclick = function () {
-              tmp.renderAtTime(tmp.output.innerHTML, tmp._map);
-            };
+        value: function on(event, f) {
+          if (event === "timechange") {
+            this.timechangefun = f;
           }
         }
       }, {
@@ -3097,22 +3103,30 @@ var dmap = (function (exports) {
         value: function play(time) {
           var _this = this;
 
-          var index = this.times2index[time]; //es6 promise
+          var index = this.times2index[time];
 
-          var _loop = function _loop(i) {
-            tmp = _this;
+          if (this._isrunning == false) {
+            this._isrunning = true; //es6 promise
 
-            (function () {
-              setTimeout(function () {
-                return tmp.renderAtTime(tmp._times[i], tmp._map);
-              }, tmp.options.tickTime * i);
-            })();
-          };
+            var _loop = function _loop(i) {
+              tmp = _this;
 
-          for (var i = index; i < this._times.length; i++) {
-            var tmp;
+              (function () {
+                setTimeout(function () {
+                  tmp.renderAtTime(tmp._times[i], tmp._map);
 
-            _loop(i);
+                  if (i == tmp._times.length - 1) {
+                    tmp._isrunning = false;
+                  }
+                }, tmp.options.tickTime * i);
+              })();
+            };
+
+            for (var i = index; i < this._times.length; i++) {
+              var tmp;
+
+              _loop(i);
+            }
           }
         }
       }]);
