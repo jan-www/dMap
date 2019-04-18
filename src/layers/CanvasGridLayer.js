@@ -221,7 +221,6 @@ var FieldMap = CanvasLayer.extend({
  */
 export var CanvasGridLayer = FieldMap.extend({
     options: {
-        type: 'colormap', // [colormap|vector]
         color: null, // function colorFor(value) [e.g. chromajs.scale],
         controlBar: false,
         border: false,

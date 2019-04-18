@@ -2618,89 +2618,71 @@ var dmap = (function (exports) {
       return new CanvasGridLayer(scalarField, options);
     };
 
-    var SVGGridLayer =
-    /*#__PURE__*/
-    function (_GroupLayer) {
-      _inherits(SVGGridLayer, _GroupLayer);
+    var SVGGridLayer = GroupLayer.extend({
+      options: {
+        color: null,
+        border: false,
+        borderWidth: 0.5,
+        borderColor: '#000000',
+        borderOpacity: 0.99
+      },
+      setField: function setField(field) {
+        this._field = field;
+      },
+      _ensureColor: function _ensureColor() {
+        if (this.options.color === undefined) {
+          this.options.color = this._defaultColorScale();
+        }
+      },
+      _defaultColorScale: function _defaultColorScale() {
+        return colorScale(['white', 'black']).domain(this._field.range);
+      },
+      _getColorFor: function _getColorFor(v) {
+        var c = this.options.color; // e.g. for a constant 'red'
 
-      function SVGGridLayer() {
-        _classCallCheck(this, SVGGridLayer);
+        if (typeof c === 'function') {
+          c = String(this.options.color(v));
+        }
 
-        return _possibleConstructorReturn(this, _getPrototypeOf(SVGGridLayer).apply(this, arguments));
+        var color = new RGBColor(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
+
+        return color;
+      },
+      data: function data(field) {
+        this.setField(field);
+
+        this._ensureColor();
+
+        this._data = [];
+
+        for (var i = 0; i < this._field.nRows; ++i) {
+          for (var j = 0; j < this._field.nCols; ++j) {
+            var value = this._field.grid[i][j];
+            if (value === null) continue;
+
+            var color = this._getColorFor(value),
+                point = {
+              coordinates: [[this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize], [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize]],
+              options: {
+                fillOpacity: 0.9,
+                fillColor: color,
+                color: this.options.borderColor,
+                weight: this.options.border ? this.options.borderWidth : 0
+              }
+            };
+
+            this._data.push(point);
+          }
+        }
+
+        return this;
+      },
+      generate: function generate() {
+        return this._data.map(function (data) {
+          return L.polygon(data.coordinates, data.options);
+        });
       }
-
-      _createClass(SVGGridLayer, [{
-        key: "setField",
-        value: function setField(field) {
-          this._field = field;
-        }
-      }, {
-        key: "_ensureColor",
-        value: function _ensureColor() {
-          if (this.options.color === undefined) {
-            this.options.color = this._defaultColorScale();
-          }
-        }
-      }, {
-        key: "_defaultColorScale",
-        value: function _defaultColorScale() {
-          return colorScale(['white', 'black']).domain(this._field.range);
-        }
-      }, {
-        key: "_getColorFor",
-        value: function _getColorFor(v) {
-          var c = this.options.color; // e.g. for a constant 'red'
-
-          if (typeof c === 'function') {
-            c = String(this.options.color(v));
-          }
-
-          var color = new RGBColor(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
-
-          return color;
-        }
-      }, {
-        key: "data",
-        value: function data(field) {
-          this.setField(field);
-
-          this._ensureColor();
-
-          this._data = [];
-
-          for (var i = 0; i < this._field.nRows; ++i) {
-            for (var j = 0; j < this._field.nCols; ++j) {
-              var value = this._field.grid[i][j];
-              if (value === null) continue;
-
-              var color = this._getColorFor(value),
-                  point = {
-                coordinates: [[this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize], [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize]],
-                options: {
-                  fillOpacity: 0.9,
-                  fillColor: color,
-                  color: '#111111',
-                  weight: 0.21
-                }
-              };
-
-              this._data.push(point);
-            }
-          }
-
-          return this;
-        }
-      }, {
-        key: "generate",
-        value: function generate() {
-          return this._data.map(function (data) {
-            return L.polygon(data.coordinates, data.options);
-          });
-        }
-      }]);
-
-      return SVGGridLayer;
-    }(GroupLayer);
+    });
 
     var CanvasPolylineLayer = CanvasLayer.extend({
       options: {

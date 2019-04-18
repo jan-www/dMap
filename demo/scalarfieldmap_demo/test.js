@@ -23,20 +23,20 @@ d3.text('data/out.asc', function (asc) {
       };
 
       // Bilinear interpolation
-      let interpolated = new dmap.CanvasGridLayer({
+      let interpolated = new dmap.SVGGridLayer({
         opacity: 0.78,
-        border: true,
+        border: false,
         color: dmap.colorScale(['#FFFFB2', '#E31A1C']).domain([0, 27]),
         borderColor: '#111111',
-        borderWidth: 1,
+        borderWidth: 0.21,
         borderOpacity: 0.7,
-        controlBar: true
+        controlBar: true,
       });
       interpolated
       .data(s)
       .enter()
       .addTo(map)
-      .on('click', identify);
+      //.on('click', identify);
       map.fitBounds(interpolated.getBounds());
 
       l = interpolated;

@@ -3,32 +3,40 @@ import { GroupLayer } from './GroupLayer';
 
 // write generate()
 
-export class SVGGridLayer extends GroupLayer{
+export var SVGGridLayer = GroupLayer.extend({
 
-    setField(field) {
+    options: {
+        color: null, 
+        border: false,
+        borderWidth: 0.5,
+        borderColor: '#000000',
+        borderOpacity: 0.99
+    },
+
+    setField: function(field) {
         this._field = field;
-    }
+    },
 
-    _ensureColor() {
+    _ensureColor: function() {
         if (this.options.color === undefined) {
             this.options.color = this._defaultColorScale();
         }
-    }
+    },
 
-    _defaultColorScale() {
+    _defaultColorScale: function() {
         return colorScale(['white', 'black']).domain(this._field.range);
-    }
+    },
 
-    _getColorFor(v) {
+    _getColorFor: function(v) {
         let c = this.options.color; // e.g. for a constant 'red'
         if (typeof c === 'function') {
             c = String(this.options.color(v));
         }
         let color = new RGBColor(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
         return color;
-    }
+    },
 
-    data(field) {
+    data: function(field) {
         this.setField(field)
         this._ensureColor();
 
@@ -48,17 +56,17 @@ export class SVGGridLayer extends GroupLayer{
                         options: {
                             fillOpacity: 0.9,
                             fillColor: color,
-                            color: '#111111',
-                            weight: 0.21
+                            color: this.options.borderColor,
+                            weight: this.options.border ? this.options.borderWidth : 0
                         }
                     }
                 this._data.push(point);
             }
         }
         return this;
-    }
+    },
 
-    generate() {
+    generate: function() {
         return this._data.map(
             (data)=>{return L.polygon(
                 data.coordinates, data.options
@@ -67,4 +75,4 @@ export class SVGGridLayer extends GroupLayer{
     }
 
 
-}
+});
