@@ -11,8 +11,7 @@ var dmap = (function (exports) {
         zIndex: 1
       },
       initialize: function initialize(options) {
-        L.Util.setOptions(this, options); // this.setZIndex(this.options.zIndex);
-
+        L.Util.setOptions(this, options);
         console.log('Layer init with options: ', options);
       },
       data: function data(_data, fn) {
@@ -65,9 +64,8 @@ var dmap = (function (exports) {
         this._data = _data.map(map_function, this);
         return this;
       },
-      addTo: function addTo(map) {
-        this._layer_group.addTo(map);
-
+      onAdd: function onAdd(map) {
+        this._layer_group && this._layer_group.addTo(map);
         return this;
       },
       enter: function enter() {
@@ -2154,6 +2152,9 @@ var dmap = (function (exports) {
       originally created and motivated by L.CanvasOverlay  available here: https://gist.github.com/Sumbera/11114288
     */
     var CanvasLayer = BaseLayer.extend({
+      options: {
+        createPane: true
+      },
       // -- initialized is called on prototype
       initialize: function initialize(options) {
         this._map = null;
@@ -2210,9 +2211,11 @@ var dmap = (function (exports) {
         this._canvas.width = size.x;
         this._canvas.height = size.y;
         var animated = this._map.options.zoomAnimation && L.Browser.any3d;
-        L.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
+        L.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide')); // map._panes.overlayPane.appendChild(this._canvas);
 
-        map._panes.overlayPane.appendChild(this._canvas);
+        this._pane = this.options.createPane ? map.getPane(String(this._leaflet_id)) || map.createPane(String(this._leaflet_id)) : map.getPanes().overlayPane;
+
+        this._pane.appendChild(this._canvas);
 
         map.on(this.getEvents(), this);
         var del = this._delegate || this;
@@ -2273,9 +2276,8 @@ var dmap = (function (exports) {
 
         L.DomUtil.setTransform(this._canvas, offset, scale);
       },
-      setZIndex: function setZIndex(zindex) {
-        zindex = zindex ? zindex : this.options.zindex;
-        if (this._canvas) this._canvas.style.zIndex = zindex;
+      setZIndex: function setZIndex(zIndex) {
+        if (this._pane) this._pane.style.zIndex = zIndex ? zIndex : this.options.zIndex;
         return this;
       }
     });
@@ -2503,6 +2505,7 @@ var dmap = (function (exports) {
         borderOpacity: 0.99
       },
       initialize: function initialize(scalarField, options) {
+        console.log(scalarField, options);
         FieldMap.prototype.initialize.call(this, scalarField, options);
         L.Util.setOptions(this, options);
       },

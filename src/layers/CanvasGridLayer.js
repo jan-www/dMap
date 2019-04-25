@@ -229,11 +229,9 @@ export var CanvasGridLayer = FieldMap.extend({
         borderOpacity: 0.99
     },
 
-    initialize: function(scalarField, options) {
+    initialize: function(options) {
         FieldMap.prototype.initialize.call(
-            this,
-            scalarField,
-            options
+            this,options
         );
         L.Util.setOptions(this, options);
     },

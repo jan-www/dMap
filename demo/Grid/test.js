@@ -22,23 +22,22 @@ d3.text('data/out.asc', function (asc) {
         }
       };
 
-      // Bilinear interpolation
-      let interpolated = new dmap.SVGGridLayer({
+      let gridLayer = new dmap.CanvasGridLayer({
         opacity: 0.78,
-        border: false,
+        border: true,
         color: dmap.colorScale(['#FFFFB2', '#E31A1C']).domain([0, 27]),
         borderColor: '#111111',
-        borderWidth: 0.21,
+        borderWidth: 0.71,
         borderOpacity: 0.7,
         controlBar: true,
+        zIndex: 200
       });
-      interpolated
+      gridLayer
       .data(s)
       .enter()
       .addTo(map)
-      //.on('click', identify);
-      map.fitBounds(interpolated.getBounds());
+      .on('click', svgidentify);
+      map.fitBounds(gridLayer.getBounds());
 
-      l = interpolated;
-      // l.options.color = chroma.scale(['white', 'black']).domain(l._field.range);
+      l = gridLayer;
 });
