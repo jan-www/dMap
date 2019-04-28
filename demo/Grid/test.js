@@ -39,7 +39,7 @@ d3.text('data/out.asc', function (asc) {
       .on('click', function(v, index, e){
         // let html = `<span class="popupText">value: ${v}</span>`;
         // let popup = L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
-        console.log(v, index, e)
+        console.log('xxxxx')
       });
       map.fitBounds(gridLayer.getBounds());
 

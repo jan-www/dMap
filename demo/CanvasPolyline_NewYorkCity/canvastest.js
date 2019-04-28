@@ -41,7 +41,7 @@ function onClickCallBack(polyline, index, originData) {
 
 var c = new dmap.CanvasPolylineLayer({
     // onClick: onClickCallBack,
-    cursor: 'auto',
+    cursor: 'pointer',
     divideParts: 4
 })
 
@@ -73,12 +73,6 @@ $.getJSON('newyorkcity_streetcenterline.json', function(json) {
         // no need for c.needRedraw()
     })
     c.on('click', onClickCallBack, c);
-    c.on('mousemove', function(polyline) {
-        // let polyline = c._polylineAt(e.containerPoint);
-        if (polyline) {
-            c._map.getContainer().style.cursor = 'grab';
-        }
-        else c._map.getContainer().style.cursor = c.options.cursor
-    })
+
 })
 

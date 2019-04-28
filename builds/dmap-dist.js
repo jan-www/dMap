@@ -2214,17 +2214,29 @@ var dmap = (function (exports) {
   */
   var CanvasLayer = BaseLayer.extend({
     options: {
+      cursor: 'pointer',
       createPane: true,
       zIndex: 300
     },
     // -- initialized is called on prototype
     initialize: function initialize(options) {
+      L.Util.setOptions(this, options);
       this._map = null;
       this._canvas = null;
       this._frame = null;
       this._delegate = null;
-      L.Util.setOptions(this, options);
+      this._visible = true;
+      this.options.cursor && this.on('mousemove', this._changeCursorOn, this);
       BaseLayer.prototype.initialize.call(this, options);
+    },
+    _changeCursorOn: function _changeCursorOn(v) {
+      if (!this.isVisible()) return;
+      if (!this.options.cursor) return;
+      var cursor = this.options.cursor;
+
+      var style = this._map.getContainer().style;
+
+      style.cursor = v !== null ? cursor : 'grab';
     },
     delegate: function delegate(del) {
       this._delegate = del;
@@ -2306,11 +2318,17 @@ var dmap = (function (exports) {
     },
     // --------------------------------------------------------------------------------
     _delegateListeners: function _delegateListeners(map) {
+      map = map || this._map;
+      if (!map) return;
+
       for (var type in this._events) {
         map.on(type, this._enableIdentify, this);
       }
     },
     _unDelegateListeners: function _unDelegateListeners(map) {
+      map = map || this._map;
+      if (!map) return;
+
       for (var type in this._events) {
         map.off(type, this._enableIdentify, this);
       }
@@ -2320,6 +2338,33 @@ var dmap = (function (exports) {
         x: latlon.lng * 6378137 * Math.PI / 180,
         y: Math.log(Math.tan((90 + latlon.lat) * Math.PI / 360)) * 6378137
       };
+    },
+    show: function show() {
+      this._visible = true;
+
+      this._showCanvas();
+
+      this._delegateListeners();
+    },
+    hide: function hide() {
+      this._visible = false;
+
+      this._hideCanvas();
+
+      this._unDelegateListeners();
+    },
+    isVisible: function isVisible() {
+      return this._visible && this._map;
+    },
+    _showCanvas: function _showCanvas() {
+      if (this._canvas && this._visible) {
+        this._canvas.style.visibility = 'visible';
+      }
+    },
+    _hideCanvas: function _hideCanvas() {
+      if (this._canvas) {
+        this._canvas.style.visibility = 'hidden';
+      }
     },
     //------------------------------------------------------------------------------
     drawLayer: function drawLayer() {
@@ -2377,7 +2422,7 @@ var dmap = (function (exports) {
       BaseLayer.prototype.off.call(this, event_type, fn, context);
       this._events = this._events || [];
 
-      if (!this._events[event_type] && this._map) {
+      if (this._events[event_type] && this._map) {
         this._map.off(event_type, this._enableIdentify, this);
       }
 
@@ -3130,13 +3175,7 @@ var dmap = (function (exports) {
 
   var FieldMap = CanvasLayer.extend({
     options: {
-      mouseMoveCursor: {
-        value: 'pointer',
-        noValue: 'default'
-      },
       opacity: 1,
-      onClick: null,
-      onMouseMove: null,
       inFilter: null
     },
     initialize: function initialize(options) {
@@ -3154,31 +3193,6 @@ var dmap = (function (exports) {
       // this._enableIdentify();
       this._ensureCanvasAlignment(); // this._addControlBar();
 
-    },
-    show: function show() {
-      this._visible = true;
-
-      this._showCanvas(); // this._enableIdentify();
-
-    },
-    hide: function hide() {
-      this._visible = false;
-
-      this._hideCanvas(); // this._disableIdentify();
-
-    },
-    isVisible: function isVisible() {
-      return this._visible;
-    },
-    _showCanvas: function _showCanvas() {
-      if (this._canvas && this._visible) {
-        this._canvas.style.visibility = 'visible';
-      }
-    },
-    _hideCanvas: function _hideCanvas() {
-      if (this._canvas) {
-        this._canvas.style.visibility = 'hidden';
-      }
     },
     // _enableIdentify() {
     //     this._map.on('click', this._onClick, this);
@@ -3312,16 +3326,6 @@ var dmap = (function (exports) {
     //     this._changeCursorOn(v);
     //     this.fire('mousemove', v);
     // },
-    _changeCursorOn: function _changeCursorOn(v) {
-      if (!this.options.mouseMoveCursor) return;
-      var _this$options$mouseMo = this.options.mouseMoveCursor,
-          value = _this$options$mouseMo.value,
-          noValue = _this$options$mouseMo.noValue;
-
-      var style = this._map.getContainer().style;
-
-      style.cursor = v.value !== null ? value : noValue;
-    },
     _updateOpacity: function _updateOpacity() {
       L.DomUtil.setOpacity(this._canvas, this.options.opacity);
     },
@@ -3561,8 +3565,6 @@ var dmap = (function (exports) {
 
   var CanvasPolylineLayer = CanvasLayer.extend({
     options: {
-      onClick: null,
-      cursor: 'grab',
       divideParts: 2
     },
 
@@ -3757,7 +3759,7 @@ var dmap = (function (exports) {
     },
     _queryValue: function _queryValue(e) {
       if (!e) return e;
-      var polyline = this._polylines && this.getBounds().contains(e.latlng) ? this._polylineAt(e.containerPoint) : undefined,
+      var polyline = this._polylines && this.getBounds().contains(e.latlng) ? this._polylineAt(e.containerPoint) : null,
           index = polyline ? polyline.index : null;
       return _objectSpread({}, e, {
         value: polyline,
@@ -3768,11 +3770,11 @@ var dmap = (function (exports) {
     },
     _polylineAt: function _polylineAt(point) {
       var min_precision = undefined,
-          ret_polyline = undefined,
+          ret_polyline = null,
           dividePolylinesPart = undefined,
           latlng = this._map.containerPointToLatLng(point);
 
-      if (!this._map) return undefined;
+      if (!this._map) return null;
 
       for (var i = 0; i < this._divideBoundsParts.length; ++i) {
         if (this._divideBoundsParts[i].contains(latlng)) {
@@ -3781,7 +3783,7 @@ var dmap = (function (exports) {
         }
       }
 
-      if (dividePolylinesPart === undefined) return undefined;
+      if (dividePolylinesPart === undefined) return null;
 
       for (var _i2 = 0; _i2 < dividePolylinesPart.length; ++_i2) {
         var polyline = dividePolylinesPart[_i2];
@@ -3815,7 +3817,7 @@ var dmap = (function (exports) {
         if (pt.x >= Math.min(curPt.x, nextPt.x) - 10 && pt.x <= Math.max(curPt.x, nextPt.x) + 10 && pt.y >= Math.min(curPt.y, nextPt.y) - 10 && pt.y <= Math.max(curPt.y, nextPt.y) + 10) {
           var precision = Math.abs((curPt.x - pt.x) / (curPt.y - pt.y) - (nextPt.x - pt.x) / (nextPt.y - pt.y));
 
-          if (precision <= 1.618 + Math.log10(c._map.getZoom()) / 10) {
+          if (precision <= 1.618 + Math.log10(c._map.getZoom()) / 10 + lineWidth) {
             ret = Math.min(ret || precision, precision);
           }
         }

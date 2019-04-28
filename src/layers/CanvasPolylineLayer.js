@@ -2,8 +2,6 @@ import {CanvasLayer} from './vector/CanvasLayer'
 
 export var CanvasPolylineLayer = CanvasLayer.extend({
     options: {
-        onClick: null,
-        cursor: 'grab',
         divideParts: 2
     },
 
@@ -208,7 +206,7 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
         
         let polyline = this._polylines && this.getBounds().contains(e.latlng)
             ? this._polylineAt(e.containerPoint) 
-            : undefined,
+            : null,
             index = polyline ? polyline.index : null;
             
         return {
@@ -222,11 +220,11 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
 
     _polylineAt: function(point) {
         let min_precision = undefined,
-            ret_polyline = undefined,
+            ret_polyline = null,
             dividePolylinesPart = undefined,
             latlng = this._map.containerPointToLatLng(point);
         
-        if (!this._map) return undefined;
+        if (!this._map) return null;
 
         for (let i = 0; i < this._divideBoundsParts.length; ++i) {
             if (this._divideBoundsParts[i].contains(latlng)) {
@@ -234,7 +232,7 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
                 break;
             }
         }
-        if (dividePolylinesPart === undefined) return undefined;
+        if (dividePolylinesPart === undefined) return null;
 
         for (let i = 0; i < dividePolylinesPart.length; ++i) {
             let polyline = dividePolylinesPart[i];
@@ -266,7 +264,7 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
             && pt.y >= Math.min(curPt.y, nextPt.y) - 10
             && pt.y <= Math.max(curPt.y, nextPt.y) + 10) {
                 let precision = Math.abs((curPt.x - pt.x) / (curPt.y - pt.y) - (nextPt.x - pt.x)/(nextPt.y - pt.y));
-                if (precision <= 1.618 + Math.log10(c._map.getZoom())/10) {
+                if (precision <= 1.618 + Math.log10(c._map.getZoom())/10 + lineWidth) {
                     ret = Math.min(ret || precision, precision);
                 }
             }

@@ -11,19 +11,34 @@ import { BaseLayer } from "../BaseLayer.js";
 export var CanvasLayer = BaseLayer.extend({
 
     options: {
+        cursor: 'pointer',
         createPane: true,
         zIndex: 300
     },
 
     // -- initialized is called on prototype
     initialize: function (options) {
+        L.Util.setOptions(this, options);
         this._map = null;
         this._canvas = null;
         this._frame = null;
         this._delegate = null;
-        L.Util.setOptions(this, options);
+        this._visible = true;
+
+        this.options.cursor && this.on('mousemove', this._changeCursorOn, this);
+
         BaseLayer.prototype.initialize.call(this, options)
     },
+
+    _changeCursorOn: function (v) {
+        if (!this.isVisible()) return;
+        if (!this.options.cursor) return;
+
+        let cursor = this.options.cursor;
+        let style = this._map.getContainer().style;
+        style.cursor = v !== null ? cursor : 'grab';
+    },
+
 
     delegate: function (del) {
         this._delegate = del;
@@ -115,12 +130,18 @@ export var CanvasLayer = BaseLayer.extend({
     // --------------------------------------------------------------------------------
     
     _delegateListeners: function(map) {
+        map = map || this._map;
+        if (!map) return;
+
         for (var type in this._events) {
             map.on(type, this._enableIdentify, this);
         }
     },
 
     _unDelegateListeners: function(map) {
+        map = map || this._map;
+        if (!map) return;
+
         for (var type in this._events) {
             map.off(type, this._enableIdentify, this);
         }
@@ -133,6 +154,35 @@ export var CanvasLayer = BaseLayer.extend({
         };
     },
 
+    show() {
+        this._visible = true;
+        this._showCanvas();
+        this._delegateListeners();
+    },
+
+    hide() {
+        this._visible = false;
+        this._hideCanvas();
+        this._unDelegateListeners();
+    },
+
+    isVisible() {
+        return this._visible && this._map;
+    },
+
+    
+    _showCanvas() {
+        if (this._canvas && this._visible) {
+            this._canvas.style.visibility = 'visible';
+        }
+    },
+
+    _hideCanvas() {
+        if (this._canvas) {
+            this._canvas.style.visibility = 'hidden';
+        }
+    },
+    
     //------------------------------------------------------------------------------
     drawLayer: function () {
         // -- todo make the viewInfo properties  flat objects.
@@ -190,7 +240,7 @@ export var CanvasLayer = BaseLayer.extend({
     off: function(event_type, fn, context) {
         BaseLayer.prototype.off.call(this, event_type, fn, context);
         this._events = this._events || [];
-        if (!this._events[event_type] && this._map) {
+        if (this._events[event_type] && this._map) {
             this._map.off(event_type, this._enableIdentify, this);
         }
         return this;

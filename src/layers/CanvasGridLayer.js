@@ -8,13 +8,7 @@ import { ScalarField } from './vector/ScalarField';
  */
 var FieldMap = CanvasLayer.extend({
     options: {
-        mouseMoveCursor: {
-            value: 'pointer',
-            noValue: 'default'
-        },
         opacity: 1,
-        onClick: null,
-        onMouseMove: null,
         inFilter: null
     },
 
@@ -37,33 +31,6 @@ var FieldMap = CanvasLayer.extend({
         // this._addControlBar();
     },
 
-    show() {
-        this._visible = true;
-        this._showCanvas();
-        // this._enableIdentify();
-    },
-
-    hide() {
-        this._visible = false;
-        this._hideCanvas();
-        // this._disableIdentify();
-    },
-
-    isVisible() {
-        return this._visible;
-    },
-
-    _showCanvas() {
-        if (this._canvas && this._visible) {
-            this._canvas.style.visibility = 'visible';
-        }
-    },
-
-    _hideCanvas() {
-        if (this._canvas) {
-            this._canvas.style.visibility = 'hidden';
-        }
-    },
 
     // _enableIdentify() {
     //     this._map.on('click', this._onClick, this);
@@ -211,21 +178,13 @@ var FieldMap = CanvasLayer.extend({
     //     this.fire('mousemove', v);
     // },
 
-    _changeCursorOn: function (v) {
-        if (!this.options.mouseMoveCursor) return;
-
-        let { value, noValue } = this.options.mouseMoveCursor;
-        let style = this._map.getContainer().style;
-        style.cursor = v.value !== null ? value : noValue;
-    },
-
     _updateOpacity: function () {
         L.DomUtil.setOpacity(this._canvas, this.options.opacity);
     },
 
     _queryValue: function (e) {
         if (!e) return e;
-        
+
         let latlng = e.latlng,
             lat = latlng.lat,
             lng = latlng.lng,
