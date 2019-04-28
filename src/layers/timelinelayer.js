@@ -133,6 +133,7 @@ export class TimelineLayer{
         if(event==="timechange"){
             this.timechangefun = f;
         }
+        return this;
     }
 
     play(time){
