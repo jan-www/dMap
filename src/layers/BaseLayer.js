@@ -12,7 +12,6 @@ export var BaseLayer = L.Layer.extend({
     },
     initialize: function(options) {
         L.Util.setOptions(this, options);
-        // this.setZIndex(this.options.zIndex);
         console.log('Layer init with options: ', options)
     },
 

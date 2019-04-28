@@ -9,6 +9,11 @@
 import { BaseLayer } from "../BaseLayer.js";
 
 export var CanvasLayer = BaseLayer.extend({
+
+    options: {
+        createPane: true
+    },
+
     // -- initialized is called on prototype
     initialize: function (options) {
         this._map = null;
@@ -68,7 +73,11 @@ export var CanvasLayer = BaseLayer.extend({
         L.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
 
 
-        map._panes.overlayPane.appendChild(this._canvas);
+        // map._panes.overlayPane.appendChild(this._canvas);
+        this._pane = this.options.createPane
+            ? map.getPane(String(this._leaflet_id)) || map.createPane(String(this._leaflet_id))
+            : map.getPanes().overlayPane;
+        this._pane.appendChild(this._canvas);
 
         map.on(this.getEvents(), this);
 
@@ -138,10 +147,8 @@ export var CanvasLayer = BaseLayer.extend({
         L.DomUtil.setTransform(this._canvas, offset, scale);
     },
 
-    setZIndex(zindex) {
-        zindex = zindex ? zindex : this.options.zindex;
-
-        if (this._canvas) this._canvas.style.zIndex = zindex;
+    setZIndex(zIndex) {
+        if (this._pane) this._pane.style.zIndex = zIndex ? zIndex : this.options.zIndex;
         return this;
     }
 });
