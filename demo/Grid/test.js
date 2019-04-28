@@ -33,10 +33,14 @@ d3.text('data/out.asc', function (asc) {
         zIndex: 200
       });
       gridLayer
-      .data(s)
+      .data(s.grid, (d)=>d ,s.params)
       .enter()
       .addTo(map)
-      .on('click', svgidentify);
+      .on('click', function(v, indexes, e){
+        // let html = `<span class="popupText">value: ${v}</span>`;
+        // let popup = L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
+        console.log(arguments)
+      });
       map.fitBounds(gridLayer.getBounds());
 
       l = gridLayer;

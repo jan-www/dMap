@@ -2283,6 +2283,744 @@ var dmap = (function (exports) {
     });
 
     /**
+     *  Abstract class for a set of values (Vector | Scalar)
+     *  assigned to a regular 2D-grid (lon-lat), aka 'a Raster source'
+     */
+    var Field =
+    /*#__PURE__*/
+    function () {
+      function Field(params) {
+        _classCallCheck(this, Field);
+
+        this.params = params;
+        this.nCols = params['nCols'];
+        this.nRows = params['nRows']; // alias
+
+        this.width = params['nCols'];
+        this.height = params['nRows']; // ll = lower-left
+
+        this.xllCorner = params['xllCorner'];
+        this.yllCorner = params['yllCorner']; // ur = upper-right
+
+        this.xurCorner = params['xllCorner'] + params['nCols'] * params['cellXSize'];
+        this.yurCorner = params['yllCorner'] + params['nRows'] * params['cellYSize'];
+        this.cellXSize = params['cellXSize'];
+        this.cellYSize = params['cellYSize'];
+        this.grid = null; // to be defined by subclasses
+
+        this.isContinuous = this.xurCorner - this.xllCorner >= 360;
+        this.longitudeNeedsToBeWrapped = this.xurCorner > 180; // [0, 360] --> [-180, 180]
+
+        this._inFilter = null;
+        this._spatialMask = null;
+      }
+      /**
+       * Builds a grid with a value at each point (either Vector or Number)
+       * Original params must include the required input values, following
+       * x-ascending & y-descending order (same as in ASCIIGrid)
+       * @abstract
+       * @private
+       * @returns {Array.<Array.<Vector|Number>>} - grid[row][column]--> Vector|Number
+       */
+
+
+      _createClass(Field, [{
+        key: "_buildGrid",
+        value: function _buildGrid() {
+          throw new TypeError('Must be overriden');
+        }
+      }, {
+        key: "_updateRange",
+        value: function _updateRange() {
+          this.range = this._calculateRange();
+        }
+        /**
+         * Number of cells in the grid (rows * cols)
+         * @returns {Number}
+         */
+
+      }, {
+        key: "numCells",
+        value: function numCells() {
+          return this.nRows * this.nCols;
+        }
+        /**
+         * Apply a filter function to field values
+         * @param   {Function} f - boolean function
+         */
+
+      }, {
+        key: "setFilter",
+        value: function setFilter(f) {
+          this._inFilter = f;
+
+          this._updateRange();
+        }
+        /**
+         * Apply a spatial mask to field values
+         * @param {L.Polygon} m 
+         * 
+         * var poly = L.polygon([...]);
+         * var s = ScalarField.fromASCIIGrid(...);
+         * s.setSpatialMask(poly);
+         */
+
+      }, {
+        key: "setSpatialMask",
+        value: function setSpatialMask(m) {
+          this._spatialMask = m;
+        }
+        /**
+         * Grid extent
+         * @returns {Number[]} [xmin, ymin, xmax, ymax]
+         */
+
+      }, {
+        key: "extent",
+        value: function extent() {
+          var _this$_getWrappedLong = this._getWrappedLongitudes(),
+              _this$_getWrappedLong2 = _slicedToArray(_this$_getWrappedLong, 2),
+              xmin = _this$_getWrappedLong2[0],
+              xmax = _this$_getWrappedLong2[1];
+
+          return [xmin, this.yllCorner, xmax, this.yurCorner];
+        }
+        /**
+         * [xmin, xmax] in [-180, 180] range
+         */
+
+      }, {
+        key: "_getWrappedLongitudes",
+        value: function _getWrappedLongitudes() {
+          var xmin = this.xllCorner;
+          var xmax = this.xurCorner;
+
+          if (this.longitudeNeedsToBeWrapped) {
+            if (this.isContinuous) {
+              xmin = -180;
+              xmax = 180;
+            } else {
+              // not sure about this (just one particular case, but others...?)
+              xmax = this.xurCorner - 360;
+              xmin = this.xllCorner - 360;
+              /* eslint-disable no-console */
+              // console.warn(`are these xmin: ${xmin} & xmax: ${xmax} OK?`);
+              // TODO: Better throw an exception on no-controlled situations.
+
+              /* eslint-enable no-console */
+            }
+          }
+
+          return [xmin, xmax];
+        }
+        /**
+         * Returns whether or not the grid contains the point, considering
+         * the spatialMask if it has been previously set
+         * @param   {Number} lon - longitude
+         * @param   {Number} lat - latitude
+         * @returns {Boolean}
+         */
+
+      }, {
+        key: "contains",
+        value: function contains(lon, lat) {
+          if (this._spatialMask) {
+            return this._pointInMask(lon, lat);
+          }
+
+          return this._pointInExtent(lon, lat);
+        }
+        /**
+         * Checks if coordinates are inside the Extent (considering wrapped longitudes if needed)
+         * @param {Number} lon 
+         * @param {Number} lat 
+         */
+
+      }, {
+        key: "_pointInExtent",
+        value: function _pointInExtent(lon, lat) {
+          var _this$_getWrappedLong3 = this._getWrappedLongitudes(),
+              _this$_getWrappedLong4 = _slicedToArray(_this$_getWrappedLong3, 2),
+              xmin = _this$_getWrappedLong4[0],
+              xmax = _this$_getWrappedLong4[1];
+
+          var longitudeIn = lon >= xmin && lon <= xmax;
+          var latitudeIn = lat >= this.yllCorner && lat <= this.yurCorner;
+          return longitudeIn && latitudeIn;
+        }
+        /**
+         * Check if coordinates are inside the spatialMask (Point in Polygon analysis)
+         * @param {Number} lon 
+         * @param {Number} lat 
+         */
+
+      }, {
+        key: "_pointInMask",
+        value: function _pointInMask(lon, lat) {
+          var pt = {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [lon, lat] // geojson, lon-lat order !
+
+            },
+            properties: {}
+          };
+          var poly = this._spatialMask;
+          return this._inside(pt, poly);
+        }
+        /**
+         * Check if point is inside the polygon.
+         * @param {Object} pt 
+         * @param {L.Polygon} poly 
+         */
+
+      }, {
+        key: "_inside",
+        value: function _inside(pt, poly) {
+          var inside = false;
+          var x = pt.geometry.coordinates[1],
+              y = pt.geometry.coordinates[0];
+
+          for (var ii = 0; ii < poly.getLatLngs().length; ii++) {
+            var polyPoints = poly.getLatLngs()[ii];
+
+            for (var i = 0, j = polyPoints.length - 1; i < polyPoints.length; j = i++) {
+              var xi = polyPoints[i].lat,
+                  yi = polyPoints[i].lng;
+              var xj = polyPoints[j].lat,
+                  yj = polyPoints[j].lng;
+              var intersect = yi > y != yj > y && x < (xj - xi) * (y - yi) / (yj - yi) + xi;
+              if (intersect) inside = !inside;
+            }
+          }
+
+          return inside;
+        }
+      }, {
+        key: "notContains",
+
+        /**
+         * Returns if the grid doesn't contain the point
+         * @param   {Number} lon - longitude
+         * @param   {Number} lat - latitude
+         * @returns {Boolean}
+         */
+        value: function notContains(lon, lat) {
+          return !this.contains(lon, lat);
+        }
+        /**
+         * Get decimal indexes
+         * @private
+         * @param {Number} lon
+         * @param {Number} lat
+         * @returns {Array}    [[Description]]
+         */
+
+      }, {
+        key: "_getDecimalIndexes",
+        value: function _getDecimalIndexes(lon, lat) {
+          if (this.longitudeNeedsToBeWrapped && lon < this.xllCorner) {
+            lon = lon + 360;
+          }
+
+          var i = (lon - this.xllCorner) / this.cellXSize;
+          var j = (this.yurCorner - lat) / this.cellYSize;
+          return [i, j];
+        }
+        /**
+         * Nearest value at lon-lat coordinates
+         * @param   {Number} longitude
+         * @param   {Number} latitude
+         * @returns {Vector|Number}
+         */
+
+      }, {
+        key: "valueAt",
+        value: function valueAt(lon, lat) {
+          if (this.notContains(lon, lat)) return null;
+
+          var _this$_getDecimalInde = this._getDecimalIndexes(lon, lat),
+              _this$_getDecimalInde2 = _slicedToArray(_this$_getDecimalInde, 2),
+              i = _this$_getDecimalInde2[0],
+              j = _this$_getDecimalInde2[1];
+
+          var ii = Math.floor(i);
+          var jj = Math.floor(j);
+
+          var ci = this._clampColumnIndex(ii);
+
+          var cj = this._clampRowIndex(jj);
+
+          var value = this._valueAtIndexes(ci, cj);
+
+          if (this._inFilter) {
+            if (!this._inFilter(value)) return null;
+          }
+
+          return value;
+        }
+        /**
+         * Returns whether or not the field has a value at the point
+         * @param   {Number} lon - longitude
+         * @param   {Number} lat - latitude
+         * @returns {Boolean}
+         */
+
+      }, {
+        key: "hasValueAt",
+        value: function hasValueAt(lon, lat) {
+          var value = this.valueAt(lon, lat);
+          var hasValue = value !== null;
+          var included = true;
+
+          if (this._inFilter) {
+            included = this._inFilter(value);
+          }
+
+          return hasValue && included;
+        }
+        /**
+         * Returns if the grid has no value at the point
+         * @param   {Number} lon - longitude
+         * @param   {Number} lat - latitude
+         * @returns {Boolean}
+         */
+
+      }, {
+        key: "notHasValueAt",
+        value: function notHasValueAt(lon, lat) {
+          return !this.hasValueAt(lon, lat);
+        }
+        /**
+         * Gives a random position to 'o' inside the grid
+         * @param {Object} [o] - an object (eg. a particle)
+         * @returns {{x: Number, y: Number}} - object with x, y (lon, lat)
+         */
+
+      }, {
+        key: "randomPosition",
+        value: function randomPosition() {
+          var o = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+          var i = Math.random() * this.nCols | 0;
+          var j = Math.random() * this.nRows | 0;
+          o.x = this._longitudeAtX(i);
+          o.y = this._latitudeAtY(j);
+          return o;
+        }
+        /**
+         * Value for grid indexes
+         * @param   {Number} i - column index (integer)
+         * @param   {Number} j - row index (integer)
+         * @returns {Vector|Number}
+         */
+
+      }, {
+        key: "_valueAtIndexes",
+        value: function _valueAtIndexes(i, j) {
+          return this.grid[j][i]; // <-- j,i !!
+        }
+        /**
+         * Lon-Lat for grid indexes
+         * @param   {Number} i - column index (integer)
+         * @param   {Number} j - row index (integer)
+         * @returns {Number[]} [lon, lat]
+         */
+
+      }, {
+        key: "_lonLatAtIndexes",
+        value: function _lonLatAtIndexes(i, j) {
+          var lon = this._longitudeAtX(i);
+
+          var lat = this._latitudeAtY(j);
+
+          return [lon, lat];
+        }
+        /**
+         * Longitude for grid-index
+         * @param   {Number} i - column index (integer)
+         * @returns {Number} longitude at the center of the cell
+         */
+
+      }, {
+        key: "_longitudeAtX",
+        value: function _longitudeAtX(i) {
+          var halfXPixel = this.cellXSize / 2.0;
+          var lon = this.xllCorner + halfXPixel + i * this.cellXSize;
+
+          if (this.longitudeNeedsToBeWrapped) {
+            lon = lon > 180 ? lon - 360 : lon;
+          }
+
+          return lon;
+        }
+        /**
+         * Latitude for grid-index
+         * @param   {Number} j - row index (integer)
+         * @returns {Number} latitude at the center of the cell
+         */
+
+      }, {
+        key: "_latitudeAtY",
+        value: function _latitudeAtY(j) {
+          var halfYPixel = this.cellYSize / 2.0;
+          return this.yurCorner - halfYPixel - j * this.cellYSize;
+        }
+        /**
+         * Apply the interpolation
+         * @abstract
+         * @private
+         */
+
+        /* eslint-disable no-unused-vars */
+
+      }, {
+        key: "_doInterpolation",
+        value: function _doInterpolation(x, y, g00, g10, g01, g11) {
+          throw new TypeError('Must be overriden');
+        }
+        /* eslint-disable no-unused-vars */
+
+        /**
+         * Check the column index is inside the field,
+         * adjusting to min or max when needed
+         * @private
+         * @param   {Number} ii - index
+         * @returns {Number} i - inside the allowed indexes
+         */
+
+      }, {
+        key: "_clampColumnIndex",
+        value: function _clampColumnIndex(ii) {
+          var i = ii;
+
+          if (ii < 0) {
+            i = 0;
+          }
+
+          var maxCol = this.nCols - 1;
+
+          if (ii > maxCol) {
+            i = maxCol;
+          }
+
+          return i;
+        }
+        /**
+         * Check the row index is inside the field,
+         * adjusting to min or max when needed
+         * @private
+         * @param   {Number} jj index
+         * @returns {Number} j - inside the allowed indexes
+         */
+
+      }, {
+        key: "_clampRowIndex",
+        value: function _clampRowIndex(jj) {
+          var j = jj;
+
+          if (jj < 0) {
+            j = 0;
+          }
+
+          var maxRow = this.nRows - 1;
+
+          if (jj > maxRow) {
+            j = maxRow;
+          }
+
+          return j;
+        }
+        /**
+         * Is valid (not 'null' nor 'undefined')
+         * @private
+         * @param   {Object} x object
+         * @returns {Boolean}
+         */
+
+      }, {
+        key: "_isValid",
+        value: function _isValid(x) {
+          return x !== null && x !== undefined;
+        }
+      }]);
+
+      return Field;
+    }();
+    /**
+     * Scalar Field
+     */
+
+
+    var ScalarField =
+    /*#__PURE__*/
+    function (_Field) {
+      _inherits(ScalarField, _Field);
+
+      _createClass(ScalarField, null, [{
+        key: "fromASCIIGrid",
+
+        /**
+         * Creates a ScalarField from the content of an ASCIIGrid file
+         * @param   {String}   asc
+         * @returns {ScalarField}
+         */
+        value: function fromASCIIGrid(asc) {
+          var scaleFactor = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+          //console.time('ScalarField from ASC');
+          var lines = asc.split('\n'); // Header
+
+          var header = ScalarField._parseASCIIGridHeader(lines.slice(0, 6)); // Data (left-right and top-down)
+
+
+          var zs = [];
+
+          for (var i = 6; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (line === '') break;
+            var items = line.split(' ');
+            items.forEach(function (it) {
+              var floatItem = parseFloat(it);
+              var v = floatItem !== header.noDataValue ? floatItem * scaleFactor : null;
+              zs.push(v);
+            });
+          }
+
+          var p = header;
+          p.zs = zs; // p.range = [min_value, max]
+          //console.timeEnd('ScalarField from ASC');
+
+          return new ScalarField(p);
+        }
+        /**
+         * Parse an ASCII Grid header, made with 6 lines
+         * It allows the use of XLLCORNER/YLLCORNER or XLLCENTER/YLLCENTER conventions
+         * @param {Array.String} headerLines
+         */
+
+      }, {
+        key: "_parseASCIIGridHeader",
+        value: function _parseASCIIGridHeader(headerLines) {
+          try {
+            var headerItems = headerLines.map(function (line) {
+              var items = line.split(' ').filter(function (i) {
+                return i != '';
+              });
+              var param = items[0].trim().toUpperCase();
+              var value = param === 'CELLSIZE' ? items.slice(1, 3) : parseFloat(items[1].trim());
+              return _defineProperty({}, param, value);
+            }); // headerItems: [{ncols: xxx}, {nrows: xxx}, ...]
+
+            var usesCorner = 'XLLCORNER' in headerItems[2];
+            var cellXSize, cellYSize;
+
+            if (headerItems[4]['CELLSIZE'].length == 2) {
+              cellXSize = parseFloat(headerItems[4]['CELLSIZE'][0].trim());
+              cellYSize = parseFloat(headerItems[4]['CELLSIZE'][1].trim());
+            } else {
+              cellXSize = cellYSize = parseFloat(headerItems[4]['CELLSIZE'][0].trim());
+            } // const cellSize = headerItems[4]['CELLSIZE'];
+
+
+            var header = {
+              nCols: parseInt(headerItems[0]['NCOLS']),
+              nRows: parseInt(headerItems[1]['NROWS']),
+              xllCorner: usesCorner ? headerItems[2]['XLLCORNER'] : headerItems[2]['XLLCENTER'] - cellXSize,
+              yllCorner: usesCorner ? headerItems[3]['YLLCORNER'] : headerItems[3]['YLLCENTER'] - cellYSize,
+              cellXSize: cellXSize,
+              cellYSize: cellYSize,
+              noDataValue: headerItems[5]['NODATA_VALUE']
+            };
+            return header;
+          } catch (err) {
+            throw new Error("Not a valid ASCIIGrid Header: ".concat(err));
+          }
+        }
+        /**
+         * Creates a ScalarField from the content of a GeoTIFF file
+         * @param   {ArrayBuffer}   data
+         * @param   {Number}   bandIndex
+         * @returns {ScalarField}
+         */
+
+      }, {
+        key: "fromGeoTIFF",
+        value: function fromGeoTIFF(data) {
+          var bandIndex = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+          return ScalarField.multipleFromGeoTIFF(data, [bandIndex])[0];
+        }
+        /**
+         * Creates a ScalarField array (one per band) from the content of a GeoTIFF file
+         * @param   {ArrayBuffer}   data
+         * @param   {Array}   bandIndexes - if not provided all bands are returned
+         * @returns {Array.<ScalarField>}
+         */
+
+      }, {
+        key: "multipleFromGeoTIFF",
+        value: function multipleFromGeoTIFF(data, bandIndexes) {
+          //console.time('ScalarField from GeoTIFF');
+          var tiff = GeoTIFF.parse(data); // geotiff.js
+
+          var image = tiff.getImage();
+          var rasters = image.readRasters();
+          var tiepoint = image.getTiePoints()[0];
+          var fileDirectory = image.getFileDirectory();
+
+          var _fileDirectory$ModelP = _slicedToArray(fileDirectory.ModelPixelScale, 2),
+              xScale = _fileDirectory$ModelP[0],
+              yScale = _fileDirectory$ModelP[1];
+
+          if (typeof bandIndexes === 'undefined' || bandIndexes.length === 0) {
+            bandIndexes = _toConsumableArray(Array(rasters.length).keys());
+          }
+
+          var scalarFields = [];
+          scalarFields = bandIndexes.map(function (bandIndex) {
+            var zs = rasters[bandIndex]; // left-right and top-down order
+
+            if (fileDirectory.GDAL_NODATA) {
+              var noData = parseFloat(fileDirectory.GDAL_NODATA);
+              var simpleZS = Array.from(zs); // to simple array, so null is allowed | TODO efficiency??
+
+              zs = simpleZS.map(function (z) {
+                return z === noData ? null : z;
+              });
+            }
+
+            var p = {
+              nCols: image.getWidth(),
+              nRows: image.getHeight(),
+              xllCorner: tiepoint.x,
+              yllCorner: tiepoint.y - image.getHeight() * yScale,
+              cellXSize: xScale,
+              cellYSize: yScale,
+              zs: zs
+            };
+            return new ScalarField(p);
+          }); //console.timeEnd('ScalarField from GeoTIFF');
+
+          return scalarFields;
+        }
+      }]);
+
+      function ScalarField(params, grid) {
+        var _this;
+
+        _classCallCheck(this, ScalarField);
+
+        _this = _possibleConstructorReturn(this, _getPrototypeOf(ScalarField).call(this, params));
+        _this.zs = params['zs'];
+        _this.grid = grid || _this._buildGrid();
+
+        _this._updateRange();
+
+        return _this;
+      }
+      /**
+       * Builds a grid with a Number at each point, from an array
+       * 'zs' following x-ascending & y-descending order
+       * (same as in ASCIIGrid)
+       * @private
+       * @returns {Array.<Array.<Number>>} - grid[row][column]--> Number
+       */
+
+
+      _createClass(ScalarField, [{
+        key: "_buildGrid",
+        value: function _buildGrid() {
+          var grid = this._arrayTo2d(this.zs, this.nRows, this.nCols);
+
+          return grid;
+        }
+      }, {
+        key: "_arrayTo2d",
+        value: function _arrayTo2d(array, nRows, nCols) {
+          var grid = [];
+          var p = 0;
+
+          for (var j = 0; j < nRows; j++) {
+            var row = [];
+
+            for (var i = 0; i < nCols; i++, p++) {
+              var z = array[p];
+              row[i] = this._isValid(z) ? z : null; // <<<
+            }
+
+            grid[j] = row;
+          }
+
+          return grid;
+        }
+      }, {
+        key: "_newDataArrays",
+        value: function _newDataArrays(params) {
+          params['zs'] = [];
+        }
+      }, {
+        key: "_pushValueToArrays",
+        value: function _pushValueToArrays(params, value) {
+          params['zs'].push(value);
+        }
+      }, {
+        key: "_makeNewFrom",
+        value: function _makeNewFrom(params) {
+          return new ScalarField(params);
+        }
+        /**
+         * Calculate min & max values
+         * @private
+         * @returns {Array} - [min, max]
+         */
+
+      }, {
+        key: "_calculateRange",
+        value: function _calculateRange() {
+          var data = this.grid;
+
+          if (this._inFilter) {
+            data = data.filter(this._inFilter);
+          }
+
+          var min_value = undefined,
+              max_value = undefined;
+
+          for (var i = 0, nRows = this.nRows; i < nRows; ++i) {
+            for (var j = 0, nCols = this.nCols; j < nCols; ++j) {
+              var v = data[i][j];
+              if (v === null) continue;
+              min_value = min_value === undefined ? v : min_value > v ? v : min_value;
+              max_value = max_value === undefined ? v : max_value < v ? v : max_value;
+            }
+          }
+
+          return [min_value, max_value];
+        }
+        /**
+         * Bilinear interpolation for Number
+         * https://en.wikipedia.org/wiki/Bilinear_interpolation
+         * @param   {Number} x
+         * @param   {Number} y
+         * @param   {Number} g00
+         * @param   {Number} g10
+         * @param   {Number} g01
+         * @param   {Number} g11
+         * @returns {Number}
+         */
+
+      }, {
+        key: "_doInterpolation",
+        value: function _doInterpolation(x, y, g00, g10, g01, g11) {
+          var rx = 1 - x;
+          var ry = 1 - y;
+          return g00 * rx * ry + g10 * x * ry + g01 * rx * y + g11 * x * y;
+        }
+      }]);
+
+      return ScalarField;
+    }(Field);
+
+    /**
      * Abstract class for a Field layer on canvas, aka 'a Raster layer'
      * (ScalarField or a VectorField)
      */
@@ -2303,7 +3041,7 @@ var dmap = (function (exports) {
         this._visible = true;
         CanvasLayer.prototype.initialize.call(this, options);
       },
-      data: function data(field) {
+      ___data: function ___data(field) {
         this.setData(field);
         return this;
       },
@@ -2316,9 +3054,8 @@ var dmap = (function (exports) {
       onLayerDidMount: function onLayerDidMount() {
         this._enableIdentify();
 
-        this._ensureCanvasAlignment();
+        this._ensureCanvasAlignment(); // this._addControlBar();
 
-        this._addControlBar();
       },
       show: function show() {
         this._visible = true;
@@ -2363,39 +3100,30 @@ var dmap = (function (exports) {
         this.options.onClick && this.off('click', this.options.onClick, this);
         this.options.onMouseMove && this.off('mousemove', this.options.onMouseMove, this);
       },
-      _addControlBar: function _addControlBar() {
-        if (!this.options.controlBar || !this.options.color.getAttr) return;
-
-        if (!this._controlBar) {
-          var control = L.control({
-            position: 'bottomright'
-          }),
-              that = this;
-
-          control.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'controlbar');
-            var attrs = that.options.color.getAttr();
-
-            for (var i in attrs.colors) {
-              var color = attrs.colors[i].toHex(),
-                  value = attrs.values[i],
-                  innerDiv = L.DomUtil.create('div', 'controlbar-list', div),
-                  leftColor = L.DomUtil.create('div', 'left', innerDiv),
-                  rightValue = L.DomUtil.create('span', 'right', innerDiv);
-              leftColor.style.backgroundColor = color;
-              rightValue.innerHTML = value;
-            }
-
-            return div;
-          };
-
-          control.onRemove = function () {};
-
-          this._controlBar = control;
-        }
-
-        this._controlBar.addTo(this._map);
-      },
+      // _addControlBar() {
+      //     if (!this.options.controlBar || !this.options.color.getAttr) return;
+      //     if (!this._controlBar) {
+      //         let control = L.control({position: 'bottomright'}), 
+      //             that = this;
+      //         control.onAdd = function(map) {
+      //             var div = L.DomUtil.create('div', 'controlbar');
+      //             let attrs = that.options.color.getAttr();
+      //             for (let i in attrs.colors) {
+      //                 let color = attrs.colors[i].toHex(),
+      //                     value = attrs.values[i],
+      //                     innerDiv = L.DomUtil.create('div', 'controlbar-list', div),
+      //                     leftColor = L.DomUtil.create('div', 'left', innerDiv),
+      //                     rightValue = L.DomUtil.create('span', 'right', innerDiv);
+      //                 leftColor.style.backgroundColor = color;
+      //                 rightValue.innerHTML = value;
+      //             }
+      //             return div;
+      //         }
+      //         control.onRemove = function(){}
+      //         this._controlBar = control;
+      //     }
+      //     this._controlBar.addTo(this._map)
+      // },
       _ensureCanvasAlignment: function _ensureCanvasAlignment() {
         var topLeft = this._map.containerPointToLayerPoint([0, 0]);
 
@@ -2417,11 +3145,46 @@ var dmap = (function (exports) {
       },
 
       /* eslint-enable no-unused-vars */
-      setData: function setData(field) {
-        this.options.inFilter && field.setFilter(this.options.inFilter);
-        this._field = field;
-        this.needRedraw();
-        this.fire('load');
+      // `data`: 2d Array
+      // `map_function`: value: value
+      // `params`: 
+      //      params.nCols
+      //      params.nRows
+      //      params.xllCorner
+      //      params.yllCorner
+      //      params.cellXSize
+      //      params.cellYSize
+      data: function data(_data, map_function, params) {
+        var is2d = false,
+            i,
+            len;
+        this.remove();
+
+        if (Array.isArray(_data) && _data.length) {
+          is2d = true;
+
+          for (i = 0, len = _data.length; i < len; ++i) {
+            if (!Array.isArray(_data[i])) {
+              is2d = false;
+              break;
+            }
+          }
+        }
+
+        this._params = params || {};
+        if (is2d) this._data = _data.map(function (row, i) {
+          return row.map(function (value, j) {
+            return map_function(value, [i, j]);
+          });
+        });else {
+          this._data = [];
+
+          for (i = 0, len = _data.length; i < len; ++i) {
+            this._data.push(map_function(_data[i], [i / params.nCols, i % params.nRows]));
+          }
+        } // this.needRedraw();
+
+        return this;
       },
       setFilter: function setFilter(f) {
         this.options.inFilter = f;
@@ -2473,10 +3236,22 @@ var dmap = (function (exports) {
         L.DomUtil.setOpacity(this._canvas, this.options.opacity);
       },
       _queryValue: function _queryValue(e) {
-        var v = this._field ? this._field.valueAt(e.latlng.lng, e.latlng.lat) : null;
+        var lat = e.latlng.lat,
+            lng = e.latlng.lng,
+            v = this._field ? this._field.valueAt(lng, lat) : null,
+            indexes;
+
+        if (this._field && this._field.contains(lng, lat)) {
+          indexes = this._field._getDecimalIndexes(lng, lat);
+          indexes[0] = this._field._clampColumnIndex(Math.floor(indexes[0]));
+          indexes[1] = this._field._clampRowIndex(Math.floor(indexes[1]));
+        } else indexes = [null, null];
+
         var result = {
           latlng: e.latlng,
-          value: v
+          index: [indexes[1], indexes[0]],
+          value: v,
+          originEvent: e
         };
         return result;
       },
@@ -2487,6 +3262,8 @@ var dmap = (function (exports) {
         return g;
       },
       enter: function enter() {
+        this._field = new ScalarField(this._params, this._data);
+        this.needRedraw();
         return this;
       }
     });
@@ -2498,15 +3275,14 @@ var dmap = (function (exports) {
       options: {
         color: null,
         // function colorFor(value) [e.g. chromajs.scale],
-        controlBar: false,
+        // controlBar: false,
         border: false,
         borderWidth: 0.5,
         borderColor: '#000000',
         borderOpacity: 0.99
       },
-      initialize: function initialize(scalarField, options) {
-        console.log(scalarField, options);
-        FieldMap.prototype.initialize.call(this, scalarField, options);
+      initialize: function initialize(options) {
+        FieldMap.prototype.initialize.call(this, options);
         L.Util.setOptions(this, options);
       },
       _defaultColorScale: function _defaultColorScale() {
@@ -2565,10 +3341,7 @@ var dmap = (function (exports) {
 
             ctx.fillStyle = color.toRGBA();
             ctx.fillRect(_xllPixel, _yurPixel, pixelXSize, pixelYSize);
-
-            if (this.options.border && 3 * this.options.borderWidth < Math.min(pixelXSize, pixelYSize)) {
-              ctx.strokeRect(_xllPixel, _yurPixel, pixelXSize, pixelYSize);
-            }
+            this.options.border && this.options.borderWidth * 2 < Math.min(pixelXSize, pixelYSize) && ctx.strokeRect(_xllPixel, _yurPixel, pixelXSize, pixelYSize);
           }
         }
       },
@@ -3136,832 +3909,6 @@ var dmap = (function (exports) {
 
       return TimelineLayer;
     }();
-
-    /**
-     *  Simple regular cell in a raster
-     */
-    var Cell =
-    /*#__PURE__*/
-    function () {
-      /**
-       * A simple cell with a numerical value
-       * @param {L.LatLng} center
-       * @param {Number|Vector} value
-       * @param {Number} xSize
-       * @param {Number} ySize
-       */
-      function Cell(center, value, xSize) {
-        var ySize = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : xSize;
-
-        _classCallCheck(this, Cell);
-
-        this.center = center;
-        this.value = value;
-        this.xSize = xSize;
-        this.ySize = ySize;
-      }
-
-      _createClass(Cell, [{
-        key: "equals",
-        value: function equals(anotherCell) {
-          return this.center.equals(anotherCell.center) && this._equalValues(this.value, anotherCell.value) && this.xSize === anotherCell.xSize && this.ySize === anotherCell.ySize;
-        }
-      }, {
-        key: "_equalValues",
-        value: function _equalValues(value, anotherValue) {
-          var type = value.constructor.name;
-          var answerFor = {
-            Number: value === anotherValue,
-            Vector: value.u === anotherValue.u && value.v === anotherValue.v
-          };
-          return answerFor[type];
-        }
-        /**
-         * Bounds for the cell
-         * @returns {LatLngBounds}
-         */
-
-      }, {
-        key: "getBounds",
-        value: function getBounds() {
-          var halfX = this.xSize / 2.0;
-          var halfY = this.ySize / 2.0;
-          var cLat = this.center.lat;
-          var cLng = this.center.lng;
-          var ul = L.latLng([cLat + halfY, cLng - halfX]);
-          var lr = L.latLng([cLat - halfY, cLng + halfX]);
-          return L.latLngBounds(L.latLng(lr.lat, ul.lng), L.latLng(ul.lat, lr.lng));
-        }
-      }]);
-
-      return Cell;
-    }();
-
-    /**
-     *  Abstract class for a set of values (Vector | Scalar)
-     *  assigned to a regular 2D-grid (lon-lat), aka 'a Raster source'
-     */
-
-    var Field =
-    /*#__PURE__*/
-    function () {
-      function Field(params) {
-        _classCallCheck(this, Field);
-
-        this.params = params;
-        this.nCols = params['nCols'];
-        this.nRows = params['nRows']; // alias
-
-        this.width = params['nCols'];
-        this.height = params['nRows']; // ll = lower-left
-
-        this.xllCorner = params['xllCorner'];
-        this.yllCorner = params['yllCorner']; // ur = upper-right
-
-        this.xurCorner = params['xllCorner'] + params['nCols'] * params['cellXSize'];
-        this.yurCorner = params['yllCorner'] + params['nRows'] * params['cellYSize'];
-        this.cellXSize = params['cellXSize'];
-        this.cellYSize = params['cellYSize'];
-        this.grid = null; // to be defined by subclasses
-
-        this.isContinuous = this.xurCorner - this.xllCorner >= 360;
-        this.longitudeNeedsToBeWrapped = this.xurCorner > 180; // [0, 360] --> [-180, 180]
-
-        this._inFilter = null;
-        this._spatialMask = null;
-      }
-      /**
-       * Builds a grid with a value at each point (either Vector or Number)
-       * Original params must include the required input values, following
-       * x-ascending & y-descending order (same as in ASCIIGrid)
-       * @abstract
-       * @private
-       * @returns {Array.<Array.<Vector|Number>>} - grid[row][column]--> Vector|Number
-       */
-
-
-      _createClass(Field, [{
-        key: "_buildGrid",
-        value: function _buildGrid() {
-          throw new TypeError('Must be overriden');
-        }
-      }, {
-        key: "_updateRange",
-        value: function _updateRange() {
-          this.range = this._calculateRange();
-        }
-        /**
-         * Number of cells in the grid (rows * cols)
-         * @returns {Number}
-         */
-
-      }, {
-        key: "numCells",
-        value: function numCells() {
-          return this.nRows * this.nCols;
-        }
-        /**
-         * A list with every cell
-         * @returns {Array<Cell>} - cells (x-ascending & y-descending order)
-         */
-
-      }, {
-        key: "getCells",
-        value: function getCells() {
-          var stride = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
-          var cells = [];
-
-          for (var j = 0; j < this.nRows; j = j + stride) {
-            for (var i = 0; i < this.nCols; i = i + stride) {
-              var _this$_lonLatAtIndexe = this._lonLatAtIndexes(i, j),
-                  _this$_lonLatAtIndexe2 = _slicedToArray(_this$_lonLatAtIndexe, 2),
-                  lon = _this$_lonLatAtIndexe2[0],
-                  lat = _this$_lonLatAtIndexe2[1];
-
-              var center = L.latLng(lat, lon);
-
-              var value = this._valueAtIndexes(i, j);
-
-              var c = new Cell(center, value, this.cellXSize, this.cellYSize);
-              cells.push(c); // <<
-            }
-          }
-
-          return cells;
-        }
-        /**
-         * Apply a filter function to field values
-         * @param   {Function} f - boolean function
-         */
-
-      }, {
-        key: "setFilter",
-        value: function setFilter(f) {
-          this._inFilter = f;
-
-          this._updateRange();
-        }
-        /**
-         * Apply a spatial mask to field values
-         * @param {L.Polygon} m 
-         * 
-         * var poly = L.polygon([...]);
-         * var s = ScalarField.fromASCIIGrid(...);
-         * s.setSpatialMask(poly);
-         */
-
-      }, {
-        key: "setSpatialMask",
-        value: function setSpatialMask(m) {
-          this._spatialMask = m;
-        }
-        /**
-         * Grid extent
-         * @returns {Number[]} [xmin, ymin, xmax, ymax]
-         */
-
-      }, {
-        key: "extent",
-        value: function extent() {
-          var _this$_getWrappedLong = this._getWrappedLongitudes(),
-              _this$_getWrappedLong2 = _slicedToArray(_this$_getWrappedLong, 2),
-              xmin = _this$_getWrappedLong2[0],
-              xmax = _this$_getWrappedLong2[1];
-
-          return [xmin, this.yllCorner, xmax, this.yurCorner];
-        }
-        /**
-         * [xmin, xmax] in [-180, 180] range
-         */
-
-      }, {
-        key: "_getWrappedLongitudes",
-        value: function _getWrappedLongitudes() {
-          var xmin = this.xllCorner;
-          var xmax = this.xurCorner;
-
-          if (this.longitudeNeedsToBeWrapped) {
-            if (this.isContinuous) {
-              xmin = -180;
-              xmax = 180;
-            } else {
-              // not sure about this (just one particular case, but others...?)
-              xmax = this.xurCorner - 360;
-              xmin = this.xllCorner - 360;
-              /* eslint-disable no-console */
-              // console.warn(`are these xmin: ${xmin} & xmax: ${xmax} OK?`);
-              // TODO: Better throw an exception on no-controlled situations.
-
-              /* eslint-enable no-console */
-            }
-          }
-
-          return [xmin, xmax];
-        }
-        /**
-         * Returns whether or not the grid contains the point, considering
-         * the spatialMask if it has been previously set
-         * @param   {Number} lon - longitude
-         * @param   {Number} lat - latitude
-         * @returns {Boolean}
-         */
-
-      }, {
-        key: "contains",
-        value: function contains(lon, lat) {
-          if (this._spatialMask) {
-            return this._pointInMask(lon, lat);
-          }
-
-          return this._pointInExtent(lon, lat);
-        }
-        /**
-         * Checks if coordinates are inside the Extent (considering wrapped longitudes if needed)
-         * @param {Number} lon 
-         * @param {Number} lat 
-         */
-
-      }, {
-        key: "_pointInExtent",
-        value: function _pointInExtent(lon, lat) {
-          var _this$_getWrappedLong3 = this._getWrappedLongitudes(),
-              _this$_getWrappedLong4 = _slicedToArray(_this$_getWrappedLong3, 2),
-              xmin = _this$_getWrappedLong4[0],
-              xmax = _this$_getWrappedLong4[1];
-
-          var longitudeIn = lon >= xmin && lon <= xmax;
-          var latitudeIn = lat >= this.yllCorner && lat <= this.yurCorner;
-          return longitudeIn && latitudeIn;
-        }
-        /**
-         * Check if coordinates are inside the spatialMask (Point in Polygon analysis)
-         * @param {Number} lon 
-         * @param {Number} lat 
-         */
-
-      }, {
-        key: "_pointInMask",
-        value: function _pointInMask(lon, lat) {
-          var pt = {
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: [lon, lat] // geojson, lon-lat order !
-
-            },
-            properties: {}
-          };
-          var poly = this._spatialMask;
-          return this._inside(pt, poly);
-        }
-        /**
-         * Check if point is inside the polygon.
-         * @param {Object} pt 
-         * @param {L.Polygon} poly 
-         */
-
-      }, {
-        key: "_inside",
-        value: function _inside(pt, poly) {
-          var inside = false;
-          var x = pt.geometry.coordinates[1],
-              y = pt.geometry.coordinates[0];
-
-          for (var ii = 0; ii < poly.getLatLngs().length; ii++) {
-            var polyPoints = poly.getLatLngs()[ii];
-
-            for (var i = 0, j = polyPoints.length - 1; i < polyPoints.length; j = i++) {
-              var xi = polyPoints[i].lat,
-                  yi = polyPoints[i].lng;
-              var xj = polyPoints[j].lat,
-                  yj = polyPoints[j].lng;
-              var intersect = yi > y != yj > y && x < (xj - xi) * (y - yi) / (yj - yi) + xi;
-              if (intersect) inside = !inside;
-            }
-          }
-
-          return inside;
-        }
-      }, {
-        key: "notContains",
-
-        /**
-         * Returns if the grid doesn't contain the point
-         * @param   {Number} lon - longitude
-         * @param   {Number} lat - latitude
-         * @returns {Boolean}
-         */
-        value: function notContains(lon, lat) {
-          return !this.contains(lon, lat);
-        }
-        /**
-         * Get decimal indexes
-         * @private
-         * @param {Number} lon
-         * @param {Number} lat
-         * @returns {Array}    [[Description]]
-         */
-
-      }, {
-        key: "_getDecimalIndexes",
-        value: function _getDecimalIndexes(lon, lat) {
-          if (this.longitudeNeedsToBeWrapped && lon < this.xllCorner) {
-            lon = lon + 360;
-          }
-
-          var i = (lon - this.xllCorner) / this.cellXSize;
-          var j = (this.yurCorner - lat) / this.cellYSize;
-          return [i, j];
-        }
-        /**
-         * Nearest value at lon-lat coordinates
-         * @param   {Number} longitude
-         * @param   {Number} latitude
-         * @returns {Vector|Number}
-         */
-
-      }, {
-        key: "valueAt",
-        value: function valueAt(lon, lat) {
-          if (this.notContains(lon, lat)) return null;
-
-          var _this$_getDecimalInde = this._getDecimalIndexes(lon, lat),
-              _this$_getDecimalInde2 = _slicedToArray(_this$_getDecimalInde, 2),
-              i = _this$_getDecimalInde2[0],
-              j = _this$_getDecimalInde2[1];
-
-          var ii = Math.floor(i);
-          var jj = Math.floor(j);
-
-          var ci = this._clampColumnIndex(ii);
-
-          var cj = this._clampRowIndex(jj);
-
-          var value = this._valueAtIndexes(ci, cj);
-
-          if (this._inFilter) {
-            if (!this._inFilter(value)) return null;
-          }
-
-          return value;
-        }
-        /**
-         * Returns whether or not the field has a value at the point
-         * @param   {Number} lon - longitude
-         * @param   {Number} lat - latitude
-         * @returns {Boolean}
-         */
-
-      }, {
-        key: "hasValueAt",
-        value: function hasValueAt(lon, lat) {
-          var value = this.valueAt(lon, lat);
-          var hasValue = value !== null;
-          var included = true;
-
-          if (this._inFilter) {
-            included = this._inFilter(value);
-          }
-
-          return hasValue && included;
-        }
-        /**
-         * Returns if the grid has no value at the point
-         * @param   {Number} lon - longitude
-         * @param   {Number} lat - latitude
-         * @returns {Boolean}
-         */
-
-      }, {
-        key: "notHasValueAt",
-        value: function notHasValueAt(lon, lat) {
-          return !this.hasValueAt(lon, lat);
-        }
-        /**
-         * Gives a random position to 'o' inside the grid
-         * @param {Object} [o] - an object (eg. a particle)
-         * @returns {{x: Number, y: Number}} - object with x, y (lon, lat)
-         */
-
-      }, {
-        key: "randomPosition",
-        value: function randomPosition() {
-          var o = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-          var i = Math.random() * this.nCols | 0;
-          var j = Math.random() * this.nRows | 0;
-          o.x = this._longitudeAtX(i);
-          o.y = this._latitudeAtY(j);
-          return o;
-        }
-        /**
-         * Value for grid indexes
-         * @param   {Number} i - column index (integer)
-         * @param   {Number} j - row index (integer)
-         * @returns {Vector|Number}
-         */
-
-      }, {
-        key: "_valueAtIndexes",
-        value: function _valueAtIndexes(i, j) {
-          return this.grid[j][i]; // <-- j,i !!
-        }
-        /**
-         * Lon-Lat for grid indexes
-         * @param   {Number} i - column index (integer)
-         * @param   {Number} j - row index (integer)
-         * @returns {Number[]} [lon, lat]
-         */
-
-      }, {
-        key: "_lonLatAtIndexes",
-        value: function _lonLatAtIndexes(i, j) {
-          var lon = this._longitudeAtX(i);
-
-          var lat = this._latitudeAtY(j);
-
-          return [lon, lat];
-        }
-        /**
-         * Longitude for grid-index
-         * @param   {Number} i - column index (integer)
-         * @returns {Number} longitude at the center of the cell
-         */
-
-      }, {
-        key: "_longitudeAtX",
-        value: function _longitudeAtX(i) {
-          var halfXPixel = this.cellXSize / 2.0;
-          var lon = this.xllCorner + halfXPixel + i * this.cellXSize;
-
-          if (this.longitudeNeedsToBeWrapped) {
-            lon = lon > 180 ? lon - 360 : lon;
-          }
-
-          return lon;
-        }
-        /**
-         * Latitude for grid-index
-         * @param   {Number} j - row index (integer)
-         * @returns {Number} latitude at the center of the cell
-         */
-
-      }, {
-        key: "_latitudeAtY",
-        value: function _latitudeAtY(j) {
-          var halfYPixel = this.cellYSize / 2.0;
-          return this.yurCorner - halfYPixel - j * this.cellYSize;
-        }
-        /**
-         * Apply the interpolation
-         * @abstract
-         * @private
-         */
-
-        /* eslint-disable no-unused-vars */
-
-      }, {
-        key: "_doInterpolation",
-        value: function _doInterpolation(x, y, g00, g10, g01, g11) {
-          throw new TypeError('Must be overriden');
-        }
-        /* eslint-disable no-unused-vars */
-
-        /**
-         * Check the column index is inside the field,
-         * adjusting to min or max when needed
-         * @private
-         * @param   {Number} ii - index
-         * @returns {Number} i - inside the allowed indexes
-         */
-
-      }, {
-        key: "_clampColumnIndex",
-        value: function _clampColumnIndex(ii) {
-          var i = ii;
-
-          if (ii < 0) {
-            i = 0;
-          }
-
-          var maxCol = this.nCols - 1;
-
-          if (ii > maxCol) {
-            i = maxCol;
-          }
-
-          return i;
-        }
-        /**
-         * Check the row index is inside the field,
-         * adjusting to min or max when needed
-         * @private
-         * @param   {Number} jj index
-         * @returns {Number} j - inside the allowed indexes
-         */
-
-      }, {
-        key: "_clampRowIndex",
-        value: function _clampRowIndex(jj) {
-          var j = jj;
-
-          if (jj < 0) {
-            j = 0;
-          }
-
-          var maxRow = this.nRows - 1;
-
-          if (jj > maxRow) {
-            j = maxRow;
-          }
-
-          return j;
-        }
-        /**
-         * Is valid (not 'null' nor 'undefined')
-         * @private
-         * @param   {Object} x object
-         * @returns {Boolean}
-         */
-
-      }, {
-        key: "_isValid",
-        value: function _isValid(x) {
-          return x !== null && x !== undefined;
-        }
-      }]);
-
-      return Field;
-    }();
-    /**
-     * Scalar Field
-     */
-
-
-    var ScalarField =
-    /*#__PURE__*/
-    function (_Field) {
-      _inherits(ScalarField, _Field);
-
-      _createClass(ScalarField, null, [{
-        key: "fromASCIIGrid",
-
-        /**
-         * Creates a ScalarField from the content of an ASCIIGrid file
-         * @param   {String}   asc
-         * @returns {ScalarField}
-         */
-        value: function fromASCIIGrid(asc) {
-          var scaleFactor = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-          //console.time('ScalarField from ASC');
-          var lines = asc.split('\n'); // Header
-
-          var header = ScalarField._parseASCIIGridHeader(lines.slice(0, 6)); // Data (left-right and top-down)
-
-
-          var zs = [];
-
-          for (var i = 6; i < lines.length; i++) {
-            var line = lines[i].trim();
-            if (line === '') break;
-            var items = line.split(' ');
-            items.forEach(function (it) {
-              var floatItem = parseFloat(it);
-              var v = floatItem !== header.noDataValue ? floatItem * scaleFactor : null;
-              zs.push(v);
-            });
-          }
-
-          var p = header;
-          p.zs = zs; // p.range = [min_value, max]
-          //console.timeEnd('ScalarField from ASC');
-
-          return new ScalarField(p);
-        }
-        /**
-         * Parse an ASCII Grid header, made with 6 lines
-         * It allows the use of XLLCORNER/YLLCORNER or XLLCENTER/YLLCENTER conventions
-         * @param {Array.String} headerLines
-         */
-
-      }, {
-        key: "_parseASCIIGridHeader",
-        value: function _parseASCIIGridHeader(headerLines) {
-          try {
-            var headerItems = headerLines.map(function (line) {
-              var items = line.split(' ').filter(function (i) {
-                return i != '';
-              });
-              var param = items[0].trim().toUpperCase();
-              var value = param === 'CELLSIZE' ? items.slice(1, 3) : parseFloat(items[1].trim());
-              return _defineProperty({}, param, value);
-            }); // headerItems: [{ncols: xxx}, {nrows: xxx}, ...]
-
-            var usesCorner = 'XLLCORNER' in headerItems[2];
-            var cellXSize, cellYSize;
-
-            if (headerItems[4]['CELLSIZE'].length == 2) {
-              cellXSize = parseFloat(headerItems[4]['CELLSIZE'][0].trim());
-              cellYSize = parseFloat(headerItems[4]['CELLSIZE'][1].trim());
-            } else {
-              cellXSize = cellYSize = parseFloat(headerItems[4]['CELLSIZE'][0].trim());
-            } // const cellSize = headerItems[4]['CELLSIZE'];
-
-
-            var header = {
-              nCols: parseInt(headerItems[0]['NCOLS']),
-              nRows: parseInt(headerItems[1]['NROWS']),
-              xllCorner: usesCorner ? headerItems[2]['XLLCORNER'] : headerItems[2]['XLLCENTER'] - cellXSize,
-              yllCorner: usesCorner ? headerItems[3]['YLLCORNER'] : headerItems[3]['YLLCENTER'] - cellYSize,
-              cellXSize: cellXSize,
-              cellYSize: cellYSize,
-              noDataValue: headerItems[5]['NODATA_VALUE']
-            };
-            return header;
-          } catch (err) {
-            throw new Error("Not a valid ASCIIGrid Header: ".concat(err));
-          }
-        }
-        /**
-         * Creates a ScalarField from the content of a GeoTIFF file
-         * @param   {ArrayBuffer}   data
-         * @param   {Number}   bandIndex
-         * @returns {ScalarField}
-         */
-
-      }, {
-        key: "fromGeoTIFF",
-        value: function fromGeoTIFF(data) {
-          var bandIndex = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-          return ScalarField.multipleFromGeoTIFF(data, [bandIndex])[0];
-        }
-        /**
-         * Creates a ScalarField array (one per band) from the content of a GeoTIFF file
-         * @param   {ArrayBuffer}   data
-         * @param   {Array}   bandIndexes - if not provided all bands are returned
-         * @returns {Array.<ScalarField>}
-         */
-
-      }, {
-        key: "multipleFromGeoTIFF",
-        value: function multipleFromGeoTIFF(data, bandIndexes) {
-          //console.time('ScalarField from GeoTIFF');
-          var tiff = GeoTIFF.parse(data); // geotiff.js
-
-          var image = tiff.getImage();
-          var rasters = image.readRasters();
-          var tiepoint = image.getTiePoints()[0];
-          var fileDirectory = image.getFileDirectory();
-
-          var _fileDirectory$ModelP = _slicedToArray(fileDirectory.ModelPixelScale, 2),
-              xScale = _fileDirectory$ModelP[0],
-              yScale = _fileDirectory$ModelP[1];
-
-          if (typeof bandIndexes === 'undefined' || bandIndexes.length === 0) {
-            bandIndexes = _toConsumableArray(Array(rasters.length).keys());
-          }
-
-          var scalarFields = [];
-          scalarFields = bandIndexes.map(function (bandIndex) {
-            var zs = rasters[bandIndex]; // left-right and top-down order
-
-            if (fileDirectory.GDAL_NODATA) {
-              var noData = parseFloat(fileDirectory.GDAL_NODATA);
-              var simpleZS = Array.from(zs); // to simple array, so null is allowed | TODO efficiency??
-
-              zs = simpleZS.map(function (z) {
-                return z === noData ? null : z;
-              });
-            }
-
-            var p = {
-              nCols: image.getWidth(),
-              nRows: image.getHeight(),
-              xllCorner: tiepoint.x,
-              yllCorner: tiepoint.y - image.getHeight() * yScale,
-              cellXSize: xScale,
-              cellYSize: yScale,
-              zs: zs
-            };
-            return new ScalarField(p);
-          }); //console.timeEnd('ScalarField from GeoTIFF');
-
-          return scalarFields;
-        }
-      }]);
-
-      function ScalarField(params) {
-        var _this;
-
-        _classCallCheck(this, ScalarField);
-
-        _this = _possibleConstructorReturn(this, _getPrototypeOf(ScalarField).call(this, params));
-        _this.zs = params['zs'];
-        _this.grid = _this._buildGrid();
-
-        _this._updateRange();
-
-        return _this;
-      }
-      /**
-       * Builds a grid with a Number at each point, from an array
-       * 'zs' following x-ascending & y-descending order
-       * (same as in ASCIIGrid)
-       * @private
-       * @returns {Array.<Array.<Number>>} - grid[row][column]--> Number
-       */
-
-
-      _createClass(ScalarField, [{
-        key: "_buildGrid",
-        value: function _buildGrid() {
-          var grid = this._arrayTo2d(this.zs, this.nRows, this.nCols);
-
-          return grid;
-        }
-      }, {
-        key: "_arrayTo2d",
-        value: function _arrayTo2d(array, nRows, nCols) {
-          var grid = [];
-          var p = 0;
-
-          for (var j = 0; j < nRows; j++) {
-            var row = [];
-
-            for (var i = 0; i < nCols; i++, p++) {
-              var z = array[p];
-              row[i] = this._isValid(z) ? z : null; // <<<
-            }
-
-            grid[j] = row;
-          }
-
-          return grid;
-        }
-      }, {
-        key: "_newDataArrays",
-        value: function _newDataArrays(params) {
-          params['zs'] = [];
-        }
-      }, {
-        key: "_pushValueToArrays",
-        value: function _pushValueToArrays(params, value) {
-          params['zs'].push(value);
-        }
-      }, {
-        key: "_makeNewFrom",
-        value: function _makeNewFrom(params) {
-          return new ScalarField(params);
-        }
-        /**
-         * Calculate min & max values
-         * @private
-         * @returns {Array} - [min, max]
-         */
-
-      }, {
-        key: "_calculateRange",
-        value: function _calculateRange() {
-          var data = this.zs;
-
-          if (this._inFilter) {
-            data = data.filter(this._inFilter);
-          }
-
-          var min_value = undefined,
-              max_value = undefined;
-
-          for (var i = 0; i < data.length; ++i) {
-            var v = data[i];
-            if (v === null) continue;
-            min_value = min_value === undefined ? v : min_value > v ? v : min_value;
-            max_value = max_value === undefined ? v : max_value < v ? v : max_value;
-          }
-
-          return [min_value, max_value];
-        }
-        /**
-         * Bilinear interpolation for Number
-         * https://en.wikipedia.org/wiki/Bilinear_interpolation
-         * @param   {Number} x
-         * @param   {Number} y
-         * @param   {Number} g00
-         * @param   {Number} g10
-         * @param   {Number} g01
-         * @param   {Number} g11
-         * @returns {Number}
-         */
-
-      }, {
-        key: "_doInterpolation",
-        value: function _doInterpolation(x, y, g00, g10, g01, g11) {
-          var rx = 1 - x;
-          var ry = 1 - y;
-          return g00 * rx * ry + g10 * x * ry + g01 * rx * y + g11 * x * y;
-        }
-      }]);
-
-      return ScalarField;
-    }(Field);
 
     /**
      * A class to define animation queue

@@ -150,5 +150,10 @@ export var CanvasLayer = BaseLayer.extend({
     setZIndex(zIndex) {
         if (this._pane) this._pane.style.zIndex = zIndex ? zIndex : this.options.zIndex;
         return this;
+    },
+
+    exit() {
+        this.remove();
+        return this;
     }
 });
