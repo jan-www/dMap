@@ -1,2 +1,3 @@
-export {RGBColor, rgbColor, ColorScale, colorScale} from './Util'
+export * from './Util';
 export {dTimer} from './animation'
+

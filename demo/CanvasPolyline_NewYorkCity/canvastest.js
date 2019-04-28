@@ -33,14 +33,14 @@ function resetEmphasis() {
     emphasisList = [];
 }
 
+function onClickCallBack(polyline, index, originData) {
+    console.log(originData);
+    if (polyline) emphasisPolyline(polyline);
+    c.needRedraw();
+}
 
 var c = new dmap.CanvasPolylineLayer({
-    onClick: function(e) {
-        console.log(e.polyline)
-        polyline = e.polyline;
-        if (polyline) emphasisPolyline(polyline);
-        c.needRedraw();
-    },
+    // onClick: onClickCallBack,
     cursor: 'auto',
     divideParts: 4
 })
@@ -68,14 +68,14 @@ $.getJSON('newyorkcity_streetcenterline.json', function(json) {
         }
     }).enter().addTo(map);
     map.fitBounds(c.getBounds());
-    map.on('dblclick', function() {
+    c.on('dblclick', function() {
         resetEmphasis();
         // no need for c.needRedraw()
     })
-    map.on('mousemove', function(e) {
-        let polyline = c._polylineAt(e.containerPoint);
+    c.on('click', onClickCallBack, c);
+    c.on('mousemove', function(polyline) {
+        // let polyline = c._polylineAt(e.containerPoint);
         if (polyline) {
-            console.log(polyline);
             c._map.getContainer().style.cursor = 'grab';
         }
         else c._map.getContainer().style.cursor = c.options.cursor

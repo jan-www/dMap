@@ -24,11 +24,6 @@ var FieldMap = CanvasLayer.extend({
         CanvasLayer.prototype.initialize.call(this, options)
     },
 
-    ___data: function (field) {
-        this.setData(field);
-        return this;
-    },
-
     getEvents: function () {
         var events = CanvasLayer.prototype.getEvents.call(this);
         events.zoomstart = this._hideCanvas.bind(this);
@@ -37,7 +32,7 @@ var FieldMap = CanvasLayer.extend({
     },
 
     onLayerDidMount: function () {
-        this._enableIdentify();
+        // this._enableIdentify();
         this._ensureCanvasAlignment();
         // this._addControlBar();
     },
@@ -45,13 +40,13 @@ var FieldMap = CanvasLayer.extend({
     show() {
         this._visible = true;
         this._showCanvas();
-        this._enableIdentify();
+        // this._enableIdentify();
     },
 
     hide() {
         this._visible = false;
         this._hideCanvas();
-        this._disableIdentify();
+        // this._disableIdentify();
     },
 
     isVisible() {
@@ -70,23 +65,23 @@ var FieldMap = CanvasLayer.extend({
         }
     },
 
-    _enableIdentify() {
-        this._map.on('click', this._onClick, this);
-        this._map.on('mousemove', this._onMouseMove, this);
+    // _enableIdentify() {
+    //     this._map.on('click', this._onClick, this);
+    //     this._map.on('mousemove', this._onMouseMove, this);
 
-        this.options.onClick && this.on('click', this.options.onClick, this);
-        this.options.onMouseMove &&
-            this.on('mousemove', this.options.onMouseMove, this);
-    },
+    //     this.options.onClick && this.on('click', this.options.onClick, this);
+    //     this.options.onMouseMove &&
+    //         this.on('mousemove', this.options.onMouseMove, this);
+    // },
 
-    _disableIdentify() {
-        this._map.off('click', this._onClick, this);
-        this._map.off('mousemove', this._onMouseMove, this);
+    // _disableIdentify() {
+    //     this._map.off('click', this._onClick, this);
+    //     this._map.off('mousemove', this._onMouseMove, this);
 
-        this.options.onClick && this.off('click', this.options.onClick, this);
-        this.options.onMouseMove &&
-            this.off('mousemove', this.options.onMouseMove, this);
-    },
+    //     this.options.onClick && this.off('click', this.options.onClick, this);
+    //     this.options.onMouseMove &&
+    //         this.off('mousemove', this.options.onMouseMove, this);
+    // },
 
     // _addControlBar() {
     //     if (!this.options.controlBar || !this.options.color.getAttr) return;
@@ -124,7 +119,7 @@ var FieldMap = CanvasLayer.extend({
     _animateZoom: function () { },
 
     onLayerWillUnmount: function () {
-        this._disableIdentify();
+        // this._disableIdentify();
     },
 
     needRedraw() {
@@ -205,16 +200,16 @@ var FieldMap = CanvasLayer.extend({
         return bounds;
     },
 
-    _onClick: function (e) {
-        let v = this._queryValue(e);
-        this.fire('click', v);
-    },
+    // _onClick: function (e) {
+    //     let v = this._queryValue(e);
+    //     this.fire('click', v);
+    // },
 
-    _onMouseMove: function (e) {
-        let v = this._queryValue(e);
-        this._changeCursorOn(v);
-        this.fire('mousemove', v);
-    },
+    // _onMouseMove: function (e) {
+    //     let v = this._queryValue(e);
+    //     this._changeCursorOn(v);
+    //     this.fire('mousemove', v);
+    // },
 
     _changeCursorOn: function (v) {
         if (!this.options.mouseMoveCursor) return;
@@ -229,25 +224,31 @@ var FieldMap = CanvasLayer.extend({
     },
 
     _queryValue: function (e) {
-        let lat = e.latlng.lat,
-            lng = e.latlng.lng,
+        if (!e) return e;
+        
+        let latlng = e.latlng,
+            lat = latlng.lat,
+            lng = latlng.lng,
             v = this._field
                 ? this._field.valueAt(lng, lat)
                 : null,
-            indexes;
+            originData = null,
+            ii = null,
+            jj = null;
 
         if (this._field && this._field.contains(lng, lat)) {
-            indexes = this._field._getDecimalIndexes(lng, lat);
-            indexes[0] = this._field._clampColumnIndex(Math.floor(indexes[0]));
-            indexes[1] = this._field._clampRowIndex(Math.floor(indexes[1]));
+            [jj, ii] = this._field._getDecimalIndexes(lng, lat);
+            jj = this._field._clampColumnIndex(Math.floor(jj));
+            ii = this._field._clampRowIndex(Math.floor(ii));
+            originData = this._data[ii][jj];
         }
-        else indexes = [null, null];
+        
 
         let result = {
-            latlng: e.latlng,
-            index: [indexes[1], indexes[0]],
+            ...e,
+            index: [ii, jj],
             value: v,
-            originEvent: e
+            originData: e
         };
         return result;
     },

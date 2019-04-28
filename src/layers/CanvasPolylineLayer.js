@@ -30,7 +30,7 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
     }, 
 
     enter: function() {
-        this._polylines = this._data.map((d) => {
+        this._polylines = this._data.map((d, i) => {
             let polyline = {
                 coordinates: d.coordinates.map(x => L.latLng(x)),
                 latLngBounds: L.latLngBounds(),
@@ -38,7 +38,8 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
                     color: '#000000',
                     width: 1,
                     zoomLevel: 1
-                }
+                },
+                index: i
             }
             polyline.coordinates.forEach(x => {polyline.latLngBounds.extend(x)});
             L.setOptions(polyline, d.options);
@@ -125,35 +126,35 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
     },
 
     onLayerDidMount: function() {
-        this._enableIdentify();
+        // this._enableIdentify();
         this._map.getContainer().style.cursor = this.options.cursor;
         this.needRedraw();
     },
 
     onLayerWillUnmount: function() {
-        this._disableIdentify();
+        // this._disableIdentify();
         this._map.getContainer().style.cursor = '';
     },
 
-    _enableIdentify: function() {
-        // Everytime when CLICK on `this._map`, `this` will 
-        // react on a CLICK event.
-       this._map.on('click', this._onClick, this);
+    // _enableIdentify: function() {
+    //     // Everytime when CLICK on `this._map`, `this` will 
+    //     // react on a CLICK event.
+    //    this._map.on('click', this._onClick, this);
 
-       // If there exists an `onClick` parameter, then bind this 
-       // function to CLICK event.
-       this.options.onClick && this.on('click', this.options.onClick, this);
-    },
+    //    // If there exists an `onClick` parameter, then bind this 
+    //    // function to CLICK event.
+    //    this.options.onClick && this.on('click', this.options.onClick, this);
+    // },
 
-    _disableIdentify: function() {
-        this._map.off('click', this._onClick, this);
-        this.options.onClick && this.off('click', this.options.onClick, this);
-    },
+    // _disableIdentify: function() {
+    //     this._map.off('click', this._onClick, this);
+    //     this.options.onClick && this.off('click', this.options.onClick, this);
+    // },
 
-    _onClick: function(e) {
-        let v = this._queryPolyline(e);
-        this.fire('click', v);
-    },
+    // _onClick: function(e) {
+    //     let v = this._queryValue(e);
+    //     this.fire('click', v);
+    // },
     
     needRedraw() {
         if (this._map) {
@@ -202,14 +203,20 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
         ctx.strokeStyle = polyline.options.color;
     },
 
-    _queryPolyline: function(e) {
+    _queryValue: function(e) {
+        if (!e) return e;
+        
         let polyline = this._polylines && this.getBounds().contains(e.latlng)
             ? this._polylineAt(e.containerPoint) 
-            : undefined;
+            : undefined,
+            index = polyline ? polyline.index : null;
+            
         return {
-            event: e,
-            polyline: polyline,
-            latlng: e.latlng
+            ...e,
+            value: polyline,
+            // latlng: e.latlng,
+            index: index,
+            originData: this._polylines[index]
         }
     },
 
