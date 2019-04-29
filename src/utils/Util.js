@@ -349,3 +349,41 @@ export var colorScale = function(rgbColors) {
     return new ColorScale(rgbColors);
 }
 
+export function fire(type, data, propagate) {
+    if (this._queryValue) return _fire.call(this, type, this._queryValue(data), propagate);
+    return this.prototype.fire.call(this, type, data, propagate);
+}
+
+function _fire(type, data, propagate) {
+    if (!this.listens(type)) return this;
+    var event = {
+        ...data, 
+        type: type,
+        target: this,
+        sourceTarget: data && data.sourceTarget || this
+    },
+    value = event.value,
+    index = event.index,
+    originData = event.originData;
+
+    if (this._events) {
+        var listeners = this._events[type];
+
+        if (listeners) {
+            this._firingCount = (this._firingCount + 1) || 1;
+            for (var i = 0, len = listeners.length; i < len; i++) {
+                var l = listeners[i];
+                l.fn.call(l.ctx || this, value, index, originData);
+            }
+
+            this._firingCount--;
+        }
+    }
+
+    if (propagate) {
+        // propagate the event to parents (set with addEventParent)
+        this._propagateEvent(event);
+    }
+
+    return this;
+}

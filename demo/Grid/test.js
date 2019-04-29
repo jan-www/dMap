@@ -25,7 +25,7 @@ d3.text('data/out.asc', function (asc) {
       let gridLayer = new dmap.CanvasGridLayer({
         opacity: 0.78,
         border: true,
-        color: dmap.colorScale(['#FFFFB2', '#E31A1C']).domain([0, 27]),
+        color: dmap.Util.colorScale(['#FFFFB2', '#E31A1C']).domain([0, 27]),
         borderColor: '#111111',
         borderWidth: 0.71,
         borderOpacity: 0.7,
@@ -33,10 +33,14 @@ d3.text('data/out.asc', function (asc) {
         zIndex: 200
       });
       gridLayer
-      .data(s)
+      .data(s.grid, (d)=>d ,s.params)
       .enter()
       .addTo(map)
-      .on('click', svgidentify);
+      .on('click', function(v, index, e){
+        // let html = `<span class="popupText">value: ${v}</span>`;
+        // let popup = L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
+        console.log('xxxxx')
+      });
       map.fitBounds(gridLayer.getBounds());
 
       l = gridLayer;

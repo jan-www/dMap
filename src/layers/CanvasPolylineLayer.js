@@ -2,8 +2,6 @@ import {CanvasLayer} from './vector/CanvasLayer'
 
 export var CanvasPolylineLayer = CanvasLayer.extend({
     options: {
-        onClick: null,
-        cursor: 'grab',
         divideParts: 2
     },
 
@@ -30,7 +28,7 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
     }, 
 
     enter: function() {
-        this._polylines = this._data.map((d) => {
+        this._polylines = this._data.map((d, i) => {
             let polyline = {
                 coordinates: d.coordinates.map(x => L.latLng(x)),
                 latLngBounds: L.latLngBounds(),
@@ -38,7 +36,8 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
                     color: '#000000',
                     width: 1,
                     zoomLevel: 1
-                }
+                },
+                index: i
             }
             polyline.coordinates.forEach(x => {polyline.latLngBounds.extend(x)});
             L.setOptions(polyline, d.options);
@@ -125,35 +124,35 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
     },
 
     onLayerDidMount: function() {
-        this._enableIdentify();
+        // this._enableIdentify();
         this._map.getContainer().style.cursor = this.options.cursor;
         this.needRedraw();
     },
 
     onLayerWillUnmount: function() {
-        this._disableIdentify();
+        // this._disableIdentify();
         this._map.getContainer().style.cursor = '';
     },
 
-    _enableIdentify: function() {
-        // Everytime when CLICK on `this._map`, `this` will 
-        // react on a CLICK event.
-       this._map.on('click', this._onClick, this);
+    // _enableIdentify: function() {
+    //     // Everytime when CLICK on `this._map`, `this` will 
+    //     // react on a CLICK event.
+    //    this._map.on('click', this._onClick, this);
 
-       // If there exists an `onClick` parameter, then bind this 
-       // function to CLICK event.
-       this.options.onClick && this.on('click', this.options.onClick, this);
-    },
+    //    // If there exists an `onClick` parameter, then bind this 
+    //    // function to CLICK event.
+    //    this.options.onClick && this.on('click', this.options.onClick, this);
+    // },
 
-    _disableIdentify: function() {
-        this._map.off('click', this._onClick, this);
-        this.options.onClick && this.off('click', this.options.onClick, this);
-    },
+    // _disableIdentify: function() {
+    //     this._map.off('click', this._onClick, this);
+    //     this.options.onClick && this.off('click', this.options.onClick, this);
+    // },
 
-    _onClick: function(e) {
-        let v = this._queryPolyline(e);
-        this.fire('click', v);
-    },
+    // _onClick: function(e) {
+    //     let v = this._queryValue(e);
+    //     this.fire('click', v);
+    // },
     
     needRedraw() {
         if (this._map) {
@@ -202,24 +201,30 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
         ctx.strokeStyle = polyline.options.color;
     },
 
-    _queryPolyline: function(e) {
+    _queryValue: function(e) {
+        if (!e) return e;
+        
         let polyline = this._polylines && this.getBounds().contains(e.latlng)
             ? this._polylineAt(e.containerPoint) 
-            : undefined;
+            : null,
+            index = polyline ? polyline.index : null;
+            
         return {
-            event: e,
-            polyline: polyline,
-            latlng: e.latlng
+            ...e,
+            value: polyline,
+            // latlng: e.latlng,
+            index: index,
+            originData: this._polylines[index]
         }
     },
 
     _polylineAt: function(point) {
         let min_precision = undefined,
-            ret_polyline = undefined,
+            ret_polyline = null,
             dividePolylinesPart = undefined,
             latlng = this._map.containerPointToLatLng(point);
         
-        if (!this._map) return undefined;
+        if (!this._map) return null;
 
         for (let i = 0; i < this._divideBoundsParts.length; ++i) {
             if (this._divideBoundsParts[i].contains(latlng)) {
@@ -227,7 +232,7 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
                 break;
             }
         }
-        if (dividePolylinesPart === undefined) return undefined;
+        if (dividePolylinesPart === undefined) return null;
 
         for (let i = 0; i < dividePolylinesPart.length; ++i) {
             let polyline = dividePolylinesPart[i];
@@ -259,7 +264,7 @@ export var CanvasPolylineLayer = CanvasLayer.extend({
             && pt.y >= Math.min(curPt.y, nextPt.y) - 10
             && pt.y <= Math.max(curPt.y, nextPt.y) + 10) {
                 let precision = Math.abs((curPt.x - pt.x) / (curPt.y - pt.y) - (nextPt.x - pt.x)/(nextPt.y - pt.y));
-                if (precision <= 1.618 + Math.log10(c._map.getZoom())/10) {
+                if (precision <= 1.618 + Math.log10(c._map.getZoom())/10 + lineWidth) {
                     ret = Math.min(ret || precision, precision);
                 }
             }

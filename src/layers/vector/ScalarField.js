@@ -1,5 +1,3 @@
-import Cell from './Cell'
-
 /**
  *  Abstract class for a set of values (Vector | Scalar)
  *  assigned to a regular 2D-grid (lon-lat), aka 'a Raster source'
@@ -58,24 +56,6 @@ class Field {
      */
     numCells() {
         return this.nRows * this.nCols;
-    }
-
-    /**
-     * A list with every cell
-     * @returns {Array<Cell>} - cells (x-ascending & y-descending order)
-     */
-    getCells(stride = 1) {
-        let cells = [];
-        for (let j = 0; j < this.nRows; j = j + stride) {
-            for (let i = 0; i < this.nCols; i = i + stride) {
-                let [lon, lat] = this._lonLatAtIndexes(i, j);
-                let center = L.latLng(lat, lon);
-                let value = this._valueAtIndexes(i, j);
-                let c = new Cell(center, value, this.cellXSize, this.cellYSize);
-                cells.push(c); // <<
-            }
-        }
-        return cells;
     }
 
     /**
@@ -550,11 +530,11 @@ export class ScalarField extends Field {
         return scalarFields;
     }
 
-    constructor(params) {
+    constructor(params, grid) {
         super(params);
         this.zs = params['zs'];
 
-        this.grid = this._buildGrid();
+        this.grid = grid || this._buildGrid();
         this._updateRange();
         
     }
@@ -603,19 +583,21 @@ export class ScalarField extends Field {
      * @returns {Array} - [min, max]
      */
     _calculateRange() {
-        var data = this.zs;
+        var data = this.grid;
         if (this._inFilter) {
             data = data.filter(this._inFilter);
         }
         let min_value = undefined, max_value = undefined;
-        for (let i = 0; i < data.length; ++i) {
-            let v = data[i]
-            if (v === null) continue;
+        for (let i = 0, nRows = this.nRows; i < nRows; ++i) {
+            for (let j = 0, nCols = this.nCols; j < nCols; ++j) {
+                let v = data[i][j];
+                if (v === null) continue;
 
-            min_value = min_value === undefined ? 
-                v : min_value > v ? v : min_value;
-            max_value = max_value === undefined ? 
-                v : max_value < v ? v : max_value;
+                min_value = min_value === undefined ? 
+                    v : min_value > v ? v : min_value;
+                max_value = max_value === undefined ? 
+                    v : max_value < v ? v : max_value;
+            }
         }
         
         return [min_value, max_value]

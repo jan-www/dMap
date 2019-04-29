@@ -1,3 +1,5 @@
+import { fire as Fire } from "../utils/Util";
+
 // BaseLayer.js
 // Define BaseLayer class and basic methods here.
 
@@ -8,7 +10,7 @@
 export var BaseLayer = L.Layer.extend({
     options: {
         theme: undefined,
-        zIndex: 1
+        zIndex: 300
     },
     initialize: function(options) {
         L.Util.setOptions(this, options);
@@ -27,7 +29,11 @@ export var BaseLayer = L.Layer.extend({
         throw new Error('this method must be override.')
     },
 
-    setZIndex: function(zindex) {
+    setZIndex: function(z_index) {
         return this;
+    },
+
+    fire: function(type, data, propagate) {
+        return Fire.call(this, type, data, propagate);
     }
 });
