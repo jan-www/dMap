@@ -1,3 +1,4 @@
+
 # GeoJson类说明文档
 
 GeoJson类的一些常用方法和leaflet中的Geojson类一致，由于geojson类对on方法的实现需要用户手动设置，因此在此特意重写了此方法。
