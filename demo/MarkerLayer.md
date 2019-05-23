@@ -1,34 +1,20 @@
-# MarkerLayer : BaseLayer
+# MarkerLayer : GroupLayer
 
 
 以 Leaflet 元素 *L.Marker* 的形式，对数据集中的每个坐标在地图上定位。
 
-## 参数说明
+# 参数说明
 + options: 
-    + zIndex    ( :: BaseLayer)
-    + theme     ( :: BaseLayer)
+    均继承自 BaseLayer
 
 ## 方法说明
-+ ```data(data, map_function) : this```<br>
-    *将原始数据映射成 Object 数组( this._data )。*
-    + data: 原始数据数组
-    + map_function: 将单个数据映射成 ```{coordinate: ..., options: ..., ...}```的Object形式
-+ ```enter() : this```<br>
-    *将 this._data 中的每个Object构造成 L.Marker。*
-+ ```addTo(map) : this```<br>
-    *将全部 L.Marker 添加至指定地图上。*
-    + map: Leaflet map
-+ ```remove() : this```<br>
-    *移除图层。*
-+ ```on(event_type, callback_function) : this```<br>
-    *对图层中的每个 L.Marker 绑定响应函数。*
-    + event_type: 事件类型。
-    + callback_function: 触发事件时的回调函数。接受三个参数：本元素在 *this._data* 中的对应 *Object*、对应下标以及对应的 *L.Marker* 。
-+ ```setElementOptions(options_data, map_function) : this```
-    *通过 map_function 将 options_data 映射为若干 options 对象，并赋值为 this._data 中每个对象的 options 字段*
-    + options_data: 原始数据数组。
-    + map_function: 映射函数，将单个数据映射成 *options* 对象的形式。
+## `generate`
+*() => Array*
 
+将 `this._data` 映射为具体的 Leaflet 元素 L.Marker Array。
+### `_data` 参数要求:
++ coordinate: Marker 的经纬度坐标
++ options: Marker 的样式设置，与 L.Marker options 相同。
 
 
 ```javascript
