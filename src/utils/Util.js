@@ -351,7 +351,7 @@ export var colorScale = function(rgbColors) {
 
 export function fire(type, data, propagate) {
     if (this._queryValue) return _fire.call(this, type, this._queryValue(data), propagate);
-    return this.prototype.fire.call(this, type, data, propagate);
+    return L.Layer.prototype.fire.call(this, type, data, propagate);
 }
 
 function _fire(type, data, propagate) {
@@ -373,6 +373,9 @@ function _fire(type, data, propagate) {
             this._firingCount = (this._firingCount + 1) || 1;
             for (var i = 0, len = listeners.length; i < len; i++) {
                 var l = listeners[i];
+                // todo 
+
+                // value, index, _data[i], event
                 l.fn.call(l.ctx || this, value, index, originData);
             }
 
