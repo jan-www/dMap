@@ -20,6 +20,6 @@ markerdata = toList(airports)
 
 marker = new dmap.MarkerLayer();
 marker.data(markerdata, function(d){
-    return {coordination: d[1], options: {opacity: 0.9}}
+    return {coordinate: d[1], options: {opacity: 0.9}}
 }).enter();
 marker.addTo(map)

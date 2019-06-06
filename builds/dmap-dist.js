@@ -499,7 +499,7 @@ var dmap = (function (exports) {
   };
   function fire(type, data, propagate) {
     if (this._queryValue) return _fire.call(this, type, this._queryValue(data), propagate);
-    return this.prototype.fire.call(this, type, data, propagate);
+    return L.Layer.prototype.fire.call(this, type, data, propagate);
   }
 
   function _fire(type, data, propagate) {
@@ -521,7 +521,9 @@ var dmap = (function (exports) {
         this._firingCount = this._firingCount + 1 || 1;
 
         for (var i = 0, len = listeners.length; i < len; i++) {
-          var l = listeners[i];
+          var l = listeners[i]; // todo 
+          // value, index, _data[i], event
+
           l.fn.call(l.ctx || this, value, index, originData);
         }
 
@@ -580,8 +582,8 @@ var dmap = (function (exports) {
       if (this._layer_group == undefined) return this;
 
       this._layer_group.getLayers().forEach(function (layer, index) {
-        layer.on(event_type, function () {
-          callback_function(_this._data[index], index, layer);
+        layer.on(event_type, function (e) {
+          callback_function(_this._data[index], index, layer, e);
         }, _this);
       });
 
@@ -3974,6 +3976,8 @@ var dmap = (function (exports) {
         if (event === "timechange") {
           this.timechangefun = f;
         }
+
+        return this;
       }
     }, {
       key: "play",
