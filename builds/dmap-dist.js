@@ -582,8 +582,8 @@ var dmap = (function (exports) {
       if (this._layer_group == undefined) return this;
 
       this._layer_group.getLayers().forEach(function (layer, index) {
-        layer.on(event_type, function () {
-          callback_function(_this._data[index], index, layer);
+        layer.on(event_type, function (e) {
+          callback_function(_this._data[index], index, layer, e);
         }, _this);
       });
 
