@@ -97,6 +97,6 @@
         layer.bindPopup(popupContent).openPopup();
     }
 
-    // mygeo = L.geoJSON(statesData, {style: style}).addTo(map);
-    mygeo = new GeoJson(statesData, {style: style}).addTo(map);
+    var mygeo = new dmap.GeoJson(statesData, {style: style}).addTo(map);
+    // mygeo = new GeoJson(statesData, {style: style}).addTo(map);
     mygeo.on("click",trig)       //mouseover,click

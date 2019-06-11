@@ -1,4 +1,4 @@
-import {PointLayer} from "./PointLayer.js"
+// import {PointLayer} from "./PointLayer.js"
 
 export class TimelineLayer{
     constructor(mymap,options) {
@@ -60,8 +60,15 @@ export class TimelineLayer{
         }
 
         for(let i=0;i<time.length;i++){
-            let l = new PointLayer();
-            this._layers[i] = l.data(data[i],fn).enter();
+            if(this.options.layerType=="PointMap"){
+                let l = new PointLayer();
+                this._layers[i] = l.data(data[i],fn).enter();
+            }
+            else if(this.options.layerType=="heatmap"){
+                // let l = new HeatmapOverlay(this.options.layerOption);
+                // l.setData(this._data[i]);
+                // this._layers[i] = l;
+            }
         }
         this.listen();
         
@@ -116,8 +123,8 @@ export class TimelineLayer{
                 this._curlayer = this._layers[this.times2index[time_index]];
                 break;
             case "heatmap":
-                this._curlayer = new HeatmapOverlay(this.options.layerOption).addTo(this._map);
-                this._curlayer.setData(this._data[this.times2index[time_index]]);
+                    this._curlayer = new HeatmapOverlay(this.options.layerOption).addTo(this._map);
+                    this._curlayer.setData(this._data[this.times2index[time_index]]);
                 break;
             default:
                 throw new Error(this.options.layerType+'is not exist in the timelinelayer');

@@ -1,4 +1,4 @@
-class GeoJson{
+export class GeoJson{
     constructor(data,options) {
         this.geojson = L.geoJSON(data,options)
     }
@@ -15,11 +15,6 @@ class GeoJson{
 
     addData(data){
         this.geojson.addTo(data)
-        return this
-    }
-
-    resetStyle(layer){
-        this.geojson.resetStyle(layer)
         return this
     }
 

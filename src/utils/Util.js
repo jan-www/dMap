@@ -351,7 +351,7 @@ export var colorScale = function(rgbColors) {
 
 export function fire(type, data, propagate) {
     if (this._queryValue) return _fire.call(this, type, this._queryValue(data), propagate);
-    return this.prototype.fire.call(this, type, data, propagate);
+    return L.Layer.prototype.fire.call(this, type, data, propagate);
 }
 
 function _fire(type, data, propagate) {
