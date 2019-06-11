@@ -28,8 +28,8 @@ export var ODLayer = GroupLayer.extend({
         );
     },
 
-    // use prefix before event type: 'org_click'
-    // or several space-separated types: 'org_click mouseover'
+    // use prefix before the event type: 'org_click'
+    // *** and several space-separated types: 'org_click mouseover'
     on: function(event_type, callback) {
         let types = event_type.split('_');
         let item_type = types[0];   //specify the type of item

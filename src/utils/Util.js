@@ -373,6 +373,9 @@ function _fire(type, data, propagate) {
             this._firingCount = (this._firingCount + 1) || 1;
             for (var i = 0, len = listeners.length; i < len; i++) {
                 var l = listeners[i];
+                // todo 
+
+                // value, index, _data[i], event
                 l.fn.call(l.ctx || this, value, index, originData);
             }
 

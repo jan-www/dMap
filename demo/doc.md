@@ -1,7 +1,9 @@
 ## `constructor`
 ( options: *Object* )
 
-图层构造函数。根据 `options` 参数
+图层构造函数。根据 `options` 参数设置图层对应参数。
++ zIndex: int，当前图层堆叠等级
++ theme: Object，当前图层使用样式主题
 
 ## `data`
 ( raw_data: *Array*, map_function: *Function* ) => this
@@ -52,3 +54,7 @@
 
 将图层从页面中移除。
 
+## `generate`
+*() => Array*
+
+将 `this._data` 映射为具体的 Leaflet 元素 Array。元素所需参数见各图层文档。

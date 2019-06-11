@@ -11,8 +11,8 @@ export var GroupLayer = BaseLayer.extend({
         if (this._layer_group == undefined) return this;
 
         this._layer_group.getLayers().forEach((layer, index) => {
-            layer.on(event_type, () => {
-                callback_function(this._data[index], index, layer);
+            layer.on(event_type, (e) => {
+                callback_function(this._data[index], index, layer, e);
             }, this);
         });
         return this;
