@@ -3,3 +3,20 @@
 package-lock.json
 /.vscode
 .DS_Store
+
+/vis/docs/node_modules/
+/vis/docs/dist/
+/vis/docs/npm-debug.log*
+/vis/docs/yarn-debug.log*
+/vis/docs/yarn-error.log*
+/vis/docs/test/unit/coverage/
+
+# Editor directories and files
+/vis/docs/.idea
+/vis/docs/.vscode
+/vis/docs/*.suo
+/vis/docs/*.ntvs*
+/vis/docs/*.njsproj
+/vis/docs/*.sln
+
+/.idea
