@@ -1,5 +1,76 @@
+# GeoJson类API说明文档
+### `构造函数`
+( data: *L.geoJSON*, options: *GeoJSON options*)
 
-# GeoJson类说明文档
+Geojson图层的构造函数。根据data和options参数进行构造。
+
+例子：
+
+```javascript
+var mygeo = dmap.GeoJson(data, {
+    style: function (feature) {
+        return {color: feature.properties.color};
+    }
+})
+```
+其中data为L.geoJSON类型的数据，style为GeoJSON options类型的参数。
+
+### `setStyle(style)方法`
+
+(options : *GeoJSON options*) => this
+
+设置Geojson图的配置。
+
+例子：
+
+```javascript
+function style(feature) {
+    return {
+      weight: 2,
+      opacity: 1,
+      color: 'white',
+      dashArray: '3',
+      fillOpacity: 0.7,
+      fillColor: getColor(feature.properties.density)
+    };
+}
+mygeo.setStyle(style)
+```
+
+### `addData(data)方法`
+
+(data：*L.geoJSON*) => this
+
+给Geojson图添加数据。
+
+例子：
+
+```javascript
+mygeo.addData(data)
+```
+
+### `on(event,callback)方法`
+
+(event_type：*event*, callback：*func*)
+
+给Geojson图添加响应事件。
+
+例子：
+
+```javascript
+function trig(layer,feature){
+    var popupContent = "<p>My name is " +
+    feature.properties.name + "</p>";
+    layer.bindPopup(popupContent).openPopup();
+}
+mygeo.on("click",trig)
+```
+
+
+
+
+
+# GeoJson类demo说明文档
 
 GeoJson类的一些常用方法和leaflet中的Geojson类一致，由于geojson类对on方法的实现需要用户手动设置，因此在此特意重写了此方法。
 

@@ -4,7 +4,7 @@
 // var bt_stop = document.getElementById("bt_stop");
 // var bt_pause = document.getElementById("bt_pause");
 
-import {PointLayer} from "./PointLayer.js"
+// import {PointLayer} from "./PointLayer.js"
 
 class Timelinelayer{
     constructor(time,data) {
