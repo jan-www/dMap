@@ -11,15 +11,24 @@ zh:
           name: Quickstart
     - title: 地图组件
       name: Docs
-      items:
-        - title: 点图
-          name: Pointlayer
   components:
     - title: API
       name: Docs
       items:
         - title: OD图/ODLayer
           name: ODAPI
+        - title: 点图/PointLayer
+          name: PointAPI
+        - title: 标记图/MarkerLayer
+          name: MarkerAPI
+        - title: 多边形图/PolygonLayer
+          name: PolygonAPI
+        - title: 线图/PolylineLayer
+          name: PolylineAPI
+        - title: Canvas线图/CanvasPolylineLayer
+          name: CanvasPolylineAPI
+        - title: Canvas方格图/CanvasGridLayer
+          name: CanvasGridAPI
      
 en:
   guide:
