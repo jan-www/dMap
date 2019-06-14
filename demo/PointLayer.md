@@ -11,7 +11,7 @@
 ## `generate`
 *() => Array*
 
-将 `this._data` 映射为具体的 Leaflet 元素 L.CircleMarker Array。
+将 `this._data` 映射为 `Array<L.CircleMarker>`。
 ### `_data` 参数要求:
 + coordinate: Marker 的经纬度坐标
 + options: Marker 的样式设置，与 L.CircleMarker options 相同。
@@ -32,7 +32,7 @@ var coords = [
     {name:'山东', geoCoord:[36.65, 117 ]},
     ...
 ]
-    pLayer = new dmap.pointLayer(options);
+var pLayer = new dmap.PointLayer(options);
 
 pLayer.data(coords, (d)=>{return {coordinate: d}})
     .enter()

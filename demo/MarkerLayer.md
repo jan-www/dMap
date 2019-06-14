@@ -11,7 +11,7 @@
 ## `generate`
 *() => Array*
 
-将 `this._data` 映射为具体的 Leaflet 元素 L.Marker Array。
+将 `this._data` 映射为 `Array<L.Marker>`。
 ### `_data` 参数要求:
 + coordinate: Marker 的经纬度坐标
 + options: Marker 的样式设置，与 L.Marker options 相同。
