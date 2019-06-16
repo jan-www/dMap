@@ -1,9 +1,17 @@
 # MarkerLayer : GroupLayer
 
+## Marker说明
+`L.Marker` 是Leaflet的多边形类，根据坐标 `coordinate` 和属性 `options` 渲染标记元素。参见 [L.Marker](https://leafletjs.com/reference-1.4.0.html#marker)。
 
-
-## Marker参数说明
+## PolygonLayer图层参数说明
 以 Leaflet 元素 *L.Marker* 的形式，对数据集中的每个坐标在地图上定位。
+
+| Option | Type | Default | Description |
+| :----- | :---:| :-----: | :---------  |
+| zIndex | Number | 300   | 图层在z轴的层级高度 
+
+
+## Marker options 参数说明
 包含`L.Marker`的全部参数`options`
 
 ## 方法说明

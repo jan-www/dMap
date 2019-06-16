@@ -1,10 +1,17 @@
 # PolygonLayer : GroupLayer
 
+## Polygon说明
+`L.Polygon` 是Leaflet的多边形类，根据坐标序列 `coordinates` 和属性 `options` 渲染多边形元素。参见 [L.Polygon](https://leafletjs.com/reference-1.4.0.html#polygon)。
 
+## PolygonLayer图层参数说明
+以 Leaflet 元素 `L.Polygon` 的形式，将数据集中的多边形数据渲染到地图上。
 
-## Polygon参数说明
-以 Leaflet 元素 *L.Polygon* 的形式，将数据集中的多边形数据渲染到地图上。
-包含`L.Polygon`的全部参数`options`
+| Option | Type | Default | Description |
+| :----- | :---:| :-----: | :---------  |
+| zIndex | Number | 300   | 图层在z轴的层级高度 |
+
+## Polygon options 说明
+包含`L.Polygon`的全部参数`options`。
 
 ## 方法说明
 ### data

@@ -1,5 +1,14 @@
 # CanvasPolylineLayer : CanvasLayer
 
+## Polyline参数说明
+Polyline 是 dmap 为 CanvasPolylineLayer 设计的折线数据结构。用于构造折线元素。
+
+| Option | Type | Default | Description |
+| :----- | :---:| :-----: | :---------  |
+| color | String | `'#000000'` | 折线颜色 |
+| width | Number | `1` | 折线宽度，单位为px | 
+| zoomLevel | Number | `1` | 最小显示缩放程序，默认在任意缩放大小下均显示 |
+
 ## CanvasPolylineLayer图层参数说明
 以 *Polyline* 对象的形式组织路网结构，并通过Canvas图层在地图上渲染。
 
@@ -11,12 +20,6 @@
 | cursor  | String | `'pointer'` | 指定鼠标划过折线时的CSS样式 |
 | dividePart  | Number | `2` | 优化交互检索效率，将图层折线按照 dividePart 数目横纵划分 |
 
-## Polyline参数说明
-| Option | Type | Default | Description |
-| :----- | :---:| :-----: | :---------  |
-| color | String | `'#000000'` | 折线颜色 |
-| width | Number | `1` | 折线宽度，单位为px | 
-| zoomLevel | Number | `1` | 最小显示缩放程序，默认在任意缩放大小下均显示 |
 
 ## 方法说明
 ### data

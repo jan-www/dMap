@@ -1,10 +1,14 @@
 # PointLayer : GroupLayer
 
+## CircleMarker 说明
+`L.CircleMarker` 是Leaflet的圆形类，根据坐标 `coordinate` 和属性 `options` 渲染圆形元素。参见 [L.CircleMarker](https://leafletjs.com/reference-1.4.0.html#circlemarker)。
 
+## PointLayer图层参数说明
+以 Leaflet 元素 `L.CircleMarker` 的形式，将数据集中的多边形数据渲染到地图上。
 
-## Point参数说明
-以 Leaflet 元素 *L.CircleMarker* 的形式，对数据集中的每个坐标在地图上定位。
-包含`L.CircleMarker`的全部参数`options`
+| Option | Type | Default | Description |
+| :----- | :---:| :-----: | :---------  |
+| zIndex | Number | 300   | 图层在z轴的层级高度 |
 
 ## 方法说明
 ### data

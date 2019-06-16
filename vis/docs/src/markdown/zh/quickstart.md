@@ -50,18 +50,18 @@ pLayer.data(coords, function (data) {
 ```
 本例中，我们将 `coords` 数组映射为了由结构为 `coordinate, options` 的对象构成的数组。此时，`pLayer._data` 应已完成更新。
 
-# 用数据渲染图层
+## 用数据渲染图层
 更新数据后，我们采用 `enter` 方法使用新数据构建对应的图层元素。此处的图层元素为点。之后 `addTo` 方法将 `pLayer` 图层加载到上文的 `map` 容器中
 ```js
 pLayer.enter().addTo(map)
 ```
 
-# 切换地图视角
+## 切换地图视角
 ```js
 map.fitBounds(pLayer.getBounds())
 ```
 
-# （xx）原始数据
+## 原始数据示例
 ```js
 var coords = [
     { name: '甘肃', geoCoord: [36.03, 103.73] },

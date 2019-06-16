@@ -2,8 +2,15 @@
 
 
 
-## Point参数说明
+## Polyline说明
+`L.Polyline` 是Leaflet的折线类，根据坐标序列 `coordinates` 和属性 `options` 渲染折线元素。参见 [L.Polyline](https://leafletjs.com/reference-1.4.0.html#polyline)。
+
+## PolylineLayer图层参数说明
 以 Leaflet 元素 *L.Polyline* 的形式，对数据集中的路网、轨迹等坐标序列进行渲染。
+
+| Option | Type | Default | Description |
+| :----- | :---:| :-----: | :---------  |
+| zIndex | Number | 300   | 图层在z轴的层级高度 |
 
 ## 方法说明
 ### data

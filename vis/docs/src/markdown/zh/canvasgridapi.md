@@ -1,6 +1,9 @@
 # CanvasGridLayer : CanvasLayer
 
-## CanvasPolylineLayer图层参数说明
+## Grid说明
+在dMap中，我们通过 `dMap.ScalarField` 表示二维的网格数据，包含了二维矩阵的基本信息。
+
+## CanvasGridLayer图层参数说明
 将二维网格数据以不同颜色渲染到地图上。
 
 | Option | Type | Default | Description |
@@ -19,7 +22,7 @@
 ### data
 *(Array&lt;any&gt;, Function, params) => this*
 
-将原始数据集映射为具有指定字段格式的对象数组`this._data`。映射后的结构应为二维矩阵。可使用`dmap.ScalarField.fromASCIIGrid`从ASC文件导出二维矩阵结构`arr`，并将`arr.grid`与`arr.params`作为`data`方法的第一、三参数传入。
+将原始数据集映射为具有指定字段格式的对象数组`this._data`。输入数据应为二维矩阵或一维数组，映射后的结构应为二维矩阵，元素为Number类型，代表所属网格的值。可使用`dmap.ScalarField.fromASCIIGrid`从ASC文件导出二维矩阵结构`arr`，并将`arr.grid`与`arr.params`作为`data`方法的第一、三参数传入。
 
 `params`参数包含了方格图的行列数量、行列宽度、起始坐标等参数。
 
