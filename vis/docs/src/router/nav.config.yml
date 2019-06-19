@@ -33,9 +33,7 @@ zh:
     - title: 演示
       name: Demo
       items:
-        - title: Design
-          name: design
-        - title: OD图
+        - title: 全部
           name: demood
      
 en:
