@@ -6,7 +6,6 @@
         <transition name="fade" mode="out-in" @after-leave="afterLeave">
           <router-view></router-view>
         </transition>
-        <div>Hello world!</div>
       </div>
     </div>
     <m-footer></m-footer>
@@ -43,7 +42,7 @@ export default {
   },
   data () {
     return {
-      navs: navsConfig.zh.resource
+      navs: navsConfig.en.demo
     }
   },
   methods: {
