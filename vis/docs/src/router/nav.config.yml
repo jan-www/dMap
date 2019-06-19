@@ -29,9 +29,9 @@ zh:
           name: CanvasPolylineAPI
         - title: Canvas方格图/CanvasGridLayer
           name: CanvasGridAPI
-  resource:
+  demo:
     - title: 演示
-      name: Resource
+      name: Demo
       items:
         - title: Design
           name: design

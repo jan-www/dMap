@@ -2,11 +2,11 @@
   <div class="wrapper">
     <m-header></m-header>
     <div class="at-container row">
+      <sidebar :data="navs"></sidebar>
       <div class="at-markdown col-sm-24 col-md-18 col-lg-20">
         <transition name="fade" mode="out-in" @after-leave="afterLeave">
           <router-view></router-view>
         </transition>
-        <div>Hello world!</div>
       </div>
     </div>
     <m-footer></m-footer>
@@ -43,7 +43,7 @@ export default {
   },
   data () {
     return {
-      navs: navsConfig.zh.resource
+      navs: navsConfig.zh.demo
     }
   },
   methods: {

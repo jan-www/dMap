@@ -72,11 +72,7 @@ routes = routes.concat([{
   path: '/en',
   name: 'Home-en',
   components: require('../views/index-en.vue')
-}, {
-  path: '/zh/demo',
-  name: 'Demo', 
-  components: require('../views/demo.vue')
-},{  
+}, {  
   path: '/',
   redirect: { name: userLang === 'zh' ? 'Home' : `Home-${userLang}` }
 }, {
@@ -109,16 +105,16 @@ routes.forEach(page => {
       name: 'Docs-en',
       redirect: { name: page.children[0].name }
     })
-  } else if (page.path === '/zh/resource') {
+  } else if (page.path === '/zh/demo') {
     page.children.push({
       path: '',
-      name: 'Resource',
+      name: 'Demo',
       redirect: { name: page.children[0].name }
     })
-  } else if (page.path === '/en/resource') {
+  } else if (page.path === '/en/demo') {
     page.children.push({
       path: '',
-      name: 'Resource-en',
+      name: 'Demo-en',
       redirect: { name: page.children[0].name }
     })
   }

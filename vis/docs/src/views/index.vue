@@ -56,7 +56,7 @@
           </div>
           <div class="title">演示</div>
           <div class="desc">提供丰富的展示案例，便于您调用和扩展</div>
-          <div class="btn-readmore"><router-link :to="{ name: 'Resource' }">查看详情 <i class="icon icon-chevron-right"></i></router-link></div>
+          <div class="btn-readmore"><router-link :to="{ name: 'Demo' }">查看详情 <i class="icon icon-chevron-right"></i></router-link></div>
         </div>
       </div>
     </section>
