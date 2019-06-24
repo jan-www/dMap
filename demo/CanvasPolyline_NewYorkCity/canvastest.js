@@ -1,6 +1,7 @@
 var map = L.map('mapid').setView([6.9270786, 79.861243], 3);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    id: 'mapbox.streets'
 }).addTo(map);
 
 map.doubleClickZoom.disable();
@@ -54,7 +55,7 @@ $.getJSON('newyorkcity_streetcenterline.json', function(json) {
         switch (rw_type) {
             case 1: color = 'grey'; break;
             case 2: color = 'blue'; break;
-            case 3: color = 'brown'; break;
+            case 3: color = '#7C1200'; break;
             default: color = 'black';
         }
         return {
