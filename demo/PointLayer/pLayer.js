@@ -47,7 +47,7 @@ pLayer.data(coords, function (data) {
     return {
         coordinate: data.geoCoord,
         options: {
-            radius: 0.2,
+            radius: 2.4,
             color: '#7C1200'
         }
     }

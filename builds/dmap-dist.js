@@ -57,248 +57,110 @@ var dmap = (function (exports) {
     return target;
   }
 
-  var GeoJson =
-  /*#__PURE__*/
-  function () {
-    function GeoJson(data, options) {
-      _classCallCheck(this, GeoJson);
-
-      this.geojson = L.geoJSON(data, options);
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function");
     }
 
-    _createClass(GeoJson, [{
-      key: "bindPopup",
-      value: function bindPopup(func) {
-        this.geojson.bindPoup(func);
-        return this;
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        writable: true,
+        configurable: true
       }
-    }, {
-      key: "addTo",
-      value: function addTo(map) {
-        this.geojson.addTo(map);
-        return this;
-      }
-    }, {
-      key: "addData",
-      value: function addData(data) {
-        this.geojson.addTo(data);
-        return this;
-      }
-    }, {
-      key: "setStyle",
-      value: function setStyle(style) {
-        this.geojson.setStyle(style);
-        return this;
-      } // @method on
-      //  
-      // overwrite the method on
+    });
+    if (superClass) _setPrototypeOf(subClass, superClass);
+  }
 
-    }, {
-      key: "on",
-      value: function on(event_type, callback) {
-        this.geojson.eachLayer(function (layer) {
-          if (layer && layer.feature) {
-            callback(layer, layer.feature);
-          }
-        }, this);
-        return this;
-      }
-    }]);
+  function _getPrototypeOf(o) {
+    _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+      return o.__proto__ || Object.getPrototypeOf(o);
+    };
+    return _getPrototypeOf(o);
+  }
 
-    return GeoJson;
-  }();
+  function _setPrototypeOf(o, p) {
+    _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+      o.__proto__ = p;
+      return o;
+    };
 
-  // import {PointLayer} from "./PointLayer.js"
-  var TimelineLayer =
-  /*#__PURE__*/
-  function () {
-    function TimelineLayer(mymap, options) {
-      _classCallCheck(this, TimelineLayer);
+    return _setPrototypeOf(o, p);
+  }
 
-      this._times = [];
-      this._data = [];
-      this.times2index = {};
-      this._layers = [];
-      this._curlayer = null;
-      this._map = mymap;
-      this._isrunning = false;
-
-      this.timechangefun = function (d, i, t, layer) {};
-
-      this.timeline = document.createElement("div");
-      this.timeline.id = "timeline";
-      this.timeline.style.visibility = "visible";
-      document.body.appendChild(this.timeline);
-      this.slider = document.createElement("input");
-      this.slider.type = "range";
-      this.slider.min = 0;
-      this.slider.max = 4;
-      this.slider.value = 0;
-      this.slider.id = "myRange";
-      this.bt_play = document.createElement("button");
-      this.bt_play.type = "button";
-      this.bt_play.id = "bt_play";
-      this.bt_play.textContent = "play";
-      this.par = document.createElement("p");
-      this.par.textContent = "Vaule: ";
-      this.output = document.createElement("span");
-      this.output.id = "demo";
-      this.par.appendChild(this.output);
-      this.timeline.appendChild(this.slider);
-      this.timeline.appendChild(this.bt_play);
-      this.timeline.appendChild(this.par);
-      this.setOption(options);
-      var tmp = this;
-
-      this.slider.onclick = function () {
-        tmp.renderAtTime(tmp.output.innerHTML, tmp._map);
-      };
+  function _assertThisInitialized(self) {
+    if (self === void 0) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
     }
 
-    _createClass(TimelineLayer, [{
-      key: "setOption",
-      value: function setOption(options) {
-        this.options = options;
+    return self;
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (call && (typeof call === "object" || typeof call === "function")) {
+      return call;
+    }
+
+    return _assertThisInitialized(self);
+  }
+
+  function _slicedToArray(arr, i) {
+    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
+  }
+
+  function _toConsumableArray(arr) {
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
+  }
+
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+      return arr2;
+    }
+  }
+
+  function _arrayWithHoles(arr) {
+    if (Array.isArray(arr)) return arr;
+  }
+
+  function _iterableToArray(iter) {
+    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+  }
+
+  function _iterableToArrayLimit(arr, i) {
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+    var _e = undefined;
+
+    try {
+      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
       }
-    }, {
-      key: "data",
-      value: function data(time, _data, fn) {
-        this._times = time;
-        this._data = _data;
-        this.slider.max = time.length - 1;
-
-        for (var i = 0; i < time.length; i++) {
-          this.times2index[this._times[i]] = i;
-        }
-
-        for (var _i = 0; _i < time.length; _i++) {
-          if (this.options.layerType == "PointMap") {
-            var l = new PointLayer();
-            this._layers[_i] = l.data(_data[_i], fn).enter();
-          } else if (this.options.layerType == "heatmap") ;
-        }
-
-        this.listen();
-        return this;
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"] != null) _i["return"]();
+      } finally {
+        if (_d) throw _e;
       }
-    }, {
-      key: "listen",
-      value: function listen() {
-        //添加slider监听事件
-        var tmp = this;
+    }
 
-        this.slider.oninput = function () {
-          tmp.output.innerHTML = tmp._times[tmp.slider.value];
-          return tmp.output.innerHTML;
-        };
+    return _arr;
+  }
 
-        this.output.innerHTML = this._times[this.slider.value]; // Display the default slider value
-        //the timeline is(not) visible
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance");
+  }
 
-        if (this.options.enableControl == false) {
-          timeline.style.visibility = "hidden";
-        } else {
-          timeline.style.visibility = "visible";
-        } //是否自动播放
-
-
-        if (this.options.autoPlay == true) {
-          this.play(this._times[0], this._map);
-        } else {
-          this.renderAtTime(this._times[0], this._map);
-        } //添加播放按钮监听事件
-
-
-        var tmp = this;
-
-        this.bt_play.onclick = function () {
-          // tmp.running = 1;
-          tmp.play(tmp._times[0], tmp._map);
-        }; // this.bt_stop.onclick = function(){
-        //     tmp.running = 2;
-        // }
-        // this.bt_pause.onclick = function(){
-        //     tmp.running = 3;
-        // }
-
-      }
-    }, {
-      key: "renderAtTime",
-      value: function renderAtTime(time_index) {
-        if (this._curlayer != null) {
-          this._curlayer.remove();
-        }
-
-        switch (this.options.layerType) {
-          case "PointMap":
-            this._layers[this.times2index[time_index]].addTo(this._map);
-
-            this._curlayer = this._layers[this.times2index[time_index]];
-            break;
-
-          case "heatmap":
-            this._curlayer = new HeatmapOverlay(this.options.layerOption).addTo(this._map);
-
-            this._curlayer.setData(this._data[this.times2index[time_index]]);
-
-            break;
-
-          default:
-            throw new Error(this.options.layerType + 'is not exist in the timelinelayer');
-        }
-
-        this.slider.value = this.times2index[time_index];
-        this.output.innerHTML = time_index;
-        var index = Number(this.slider.value);
-        this.timechangefun(this._data[index], index, this._times[index], this._curlayer);
-      }
-    }, {
-      key: "on",
-      value: function on(event, f) {
-        if (event === "timechange") {
-          this.timechangefun = f;
-        }
-
-        return this;
-      }
-    }, {
-      key: "play",
-      value: function play(time) {
-        var _this = this;
-
-        var index = this.times2index[time];
-
-        if (this._isrunning == false) {
-          this._isrunning = true; //es6 promise
-
-          var _loop = function _loop(i) {
-            tmp = _this;
-
-            (function () {
-              setTimeout(function () {
-                tmp.renderAtTime(tmp._times[i], tmp._map);
-
-                if (i == tmp._times.length - 1) {
-                  tmp._isrunning = false;
-                }
-              }, tmp.options.tickTime * i);
-            })();
-          };
-
-          for (var i = index; i < this._times.length; i++) {
-            var tmp;
-
-            _loop(i);
-          }
-        }
-      }
-    }]);
-
-    return TimelineLayer;
-  }();
-
-  // export * from "./BaseLayer.js"
-   // export * from './vector/index';
+  function _nonIterableRest() {
+    throw new TypeError("Invalid attempt to destructure non-iterable instance");
+  }
 
   /**
    * A class to parse color values
@@ -677,8 +539,6 @@ var dmap = (function (exports) {
     return this;
   }
 
-<<<<<<< HEAD
-=======
   // Define BaseLayer class and basic methods here.
   // @class BaseLayer
   // Base class of all dmap.layer.
@@ -792,7 +652,7 @@ var dmap = (function (exports) {
   }).addTo(map)
    */
 
-  var PointLayer = GroupLayer.extend({
+  var PointLayer$1 = GroupLayer.extend({
     generate: function generate() {
       return this._data.map(function (data) {
         return L.circleMarker(data.coordinate, data.options);
@@ -1381,8 +1241,8 @@ var dmap = (function (exports) {
         return od(data.origin, data.destination, data.options);
       });
     },
-    // use prefix before event type: 'org_click'
-    // or several space-separated types: 'org_click mouseover'
+    // use prefix before the event type: 'org_click'
+    // *** and several space-separated types: 'org_click mouseover'
     on: function on(event_type, callback) {
       var types = event_type.split('_');
       var item_type = types[0]; //specify the type of item
@@ -3969,6 +3829,58 @@ var dmap = (function (exports) {
     }
   });
 
+  var GeoJson =
+  /*#__PURE__*/
+  function () {
+    function GeoJson(data, options) {
+      _classCallCheck(this, GeoJson);
+
+      this.geojson = L.geoJSON(data, options);
+    }
+
+    _createClass(GeoJson, [{
+      key: "bindPopup",
+      value: function bindPopup(func) {
+        this.geojson.bindPoup(func);
+        return this;
+      }
+    }, {
+      key: "addTo",
+      value: function addTo(map) {
+        this.geojson.addTo(map);
+        return this;
+      }
+    }, {
+      key: "addData",
+      value: function addData(data) {
+        this.geojson.addTo(data);
+        return this;
+      }
+    }, {
+      key: "setStyle",
+      value: function setStyle(style) {
+        this.geojson.setStyle(style);
+        return this;
+      } // @method on
+      //  
+      // overwrite the method on
+
+    }, {
+      key: "on",
+      value: function on(event_type, callback) {
+        this.geojson.eachLayer(function (layer) {
+          if (layer && layer.feature) {
+            callback(layer, layer.feature);
+          }
+        }, this);
+        return this;
+      }
+    }]);
+
+    return GeoJson;
+  }();
+
+  // import {PointLayer} from "./PointLayer.js"
   var TimelineLayer =
   /*#__PURE__*/
   function () {
@@ -4032,8 +3944,10 @@ var dmap = (function (exports) {
         }
 
         for (var _i = 0; _i < time.length; _i++) {
-          var l = new PointLayer();
-          this._layers[_i] = l.data(_data[_i], fn).enter();
+          if (this.options.layerType == "PointMap") {
+            var l = new PointLayer();
+            this._layers[_i] = l.data(_data[_i], fn).enter();
+          } else if (this.options.layerType == "heatmap") ;
         }
 
         this.listen();
@@ -4155,7 +4069,6 @@ var dmap = (function (exports) {
     return TimelineLayer;
   }();
 
->>>>>>> 526da5646ac99932f96326114a595b3cf0a312e1
   /**
    * A class to define animation queue
    * @author Stoyan Stefanov <sstoo@gmail.com>
@@ -4596,8 +4509,23 @@ var dmap = (function (exports) {
   var Util = util;
 
   exports.Util = Util;
+  exports.GroupLayer = GroupLayer;
+  exports.PointLayer = PointLayer$1;
+  exports.PolygonLayer = PolygonLayer;
+  exports.MarkerLayer = MarkerLayer;
+  exports.ODLayer = ODLayer;
+  exports.PolylineLayer = PolylineLayer;
+  exports.HeatmapLayer = HeatmapLayer;
+  exports.CanvasGridLayer = CanvasGridLayer;
+  exports.canvasGridLayer = canvasGridLayer;
+  exports.SVGGridLayer = SVGGridLayer;
+  exports.CanvasPolylineLayer = CanvasPolylineLayer;
   exports.GeoJson = GeoJson;
   exports.TimelineLayer = TimelineLayer;
+  exports.BaseLayer = BaseLayer;
+  exports.OD = OD;
+  exports.od = od;
+  exports.ScalarField = ScalarField;
 
   return exports;
 
