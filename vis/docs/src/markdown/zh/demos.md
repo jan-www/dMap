@@ -4,9 +4,8 @@
     <a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">
       <at-card style="width: 300px;" :body-style="{ padding: 0 }">
         <h4 slot="title">OD 图</h4>
-        <!-- <div slot="extra"><a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">详情</a></div> -->
         <div>
-          <img style="width: 100%" src="https://misc.aotu.io/koppthe/at-ui/cover.jpg">
+          <img style="width: 100%" src="/static/demos/od_layer.png">
         </div>
       </at-card>
     </a>
@@ -15,9 +14,8 @@
     <a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">
       <at-card style="width: 300px;" :body-style="{ padding: 0 }">
         <h4 slot="title">点图</h4>
-        <!-- <div slot="extra"><a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">详情</a></div> -->
         <div>
-          <img style="width: 100%" src="https://misc.aotu.io/koppthe/at-ui/cover.jpg">
+          <img style="width: 100%;" src="/static/demos/point_layer.png">
         </div>
       </at-card>
     </a>
@@ -26,9 +24,8 @@
     <a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">
       <at-card style="width: 300px;" :body-style="{ padding: 0 }">
         <h4 slot="title">标记图</h4>
-        <!-- <div slot="extra"><a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">详情</a></div> -->
         <div>
-          <img style="width: 100%" src="https://misc.aotu.io/koppthe/at-ui/cover.jpg">
+          <img style="width: 100%;" src="/static/demos/marker_layer.png">
         </div>
       </at-card>
     </a>
@@ -61,7 +58,7 @@
         <h4 slot="title">Canvas线图</h4>
         <!-- <div slot="extra"><a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">详情</a></div> -->
         <div>
-          <img style="width: 100%" src="https://misc.aotu.io/koppthe/at-ui/cover.jpg">
+          <img style="width: 100%" src="/static/demos/canvas_polyline_layer.png">
         </div>
       </at-card>
     </a>
@@ -72,7 +69,7 @@
         <h4 slot="title">Canvas方格图</h4>
         <!-- <div slot="extra"><a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">详情</a></div> -->
         <div>
-          <img style="width: 100%" src="https://misc.aotu.io/koppthe/at-ui/cover.jpg">
+          <img style="width: 100%" src="/static/demos/canvas_grid_layer.png">
         </div>
       </at-card>
     </a>
