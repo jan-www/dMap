@@ -47,11 +47,11 @@ NODATA_value  -9999
 
 ## 方法说明
 ### data
-*(Array&lt;any&gt;, Function, Object) => this*
+*(Array&lt;any&gt;: grid, Function: map_function, Object: params) => this*
 
 将原始数据集映射为具有指定字段格式的对象数组`this._data`。输入数据应为二维矩阵或一维数组，映射后的结构应为二维矩阵，元素为Number类型，代表所属网格的值。
 
-`data` 方法的一、三参数可以分别从 `fromASCIIGrid` 返回的 `ScalarField` 对象的 `grid` 与 `grid` 属性获取。
+`data` 方法的一、三参数 `grid` 和 `params` 可以分别从 `fromASCIIGrid` 返回的 `ScalarField` 对象的 `grid` 与 `params` 属性获取。
 
 ### hide
 *() => ()*

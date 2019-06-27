@@ -29,6 +29,10 @@ zh:
           name: CanvasPolylineAPI
         - title: Canvas方格图/CanvasGridLayer
           name: CanvasGridAPI
+        - title: 基类/BaseLayer
+          name: BaseAPI
+        - title: 集合图层/GroupLayer
+          name: GroupAPI
   demo:
     - title: 演示
       name: Demo
