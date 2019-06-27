@@ -1,23 +1,27 @@
 # PolygonLayer : GroupLayer
 
-## Polygon说明
-`L.Polygon` 是Leaflet的多边形类，根据坐标序列 `coordinates` 和属性 `options` 渲染多边形元素。参见 [L.Polygon](https://leafletjs.com/reference-1.4.0.html#polygon)。
+## 元素说明
+我们以 Leaflet 的元素 [`L.Polygon`](https://leafletjs.com/reference-1.5.0.html#polygon) 作为 `PolygonLayer` 图层的显示元素，从而将坐标序列数据在地图上渲染为多边形样式。
 
-## PolygonLayer图层参数说明
-以 Leaflet 元素 `L.Polygon` 的形式，将数据集中的多边形数据渲染到地图上。
+`L.Polygon` 类由坐标序列 `coordinates` 构造，以此序列依次在地图上成多边形图形。
+
+## 参数说明
+
++ options: 均继承自 BaseLayer
 
 | Option | Type | Default | Description |
 | :----- | :---:| :-----: | :---------  |
 | zIndex | Number | 300   | 图层在z轴的层级高度 |
 
-## Polygon options 说明
-包含`L.Polygon`的全部参数`options`。
 
 ## 方法说明
+
 ### data
 *(Array&lt;any&gt;, Function) => this*
 
-将原始数据集映射为具有指定字段格式的对象数组`this._data`。
+将原始数据集映射为具有指定字段格式的对象数组`this._data`。。
+
+`data` 方法的调用方式可参见[教程](#/zh/guide/quickstart)。
 
 | key    | Type  | Description |
 | :----- | :---: | :---------  |
@@ -32,12 +36,18 @@
 ### generate
 *() => Array*
 
-将 `this._data` 映射为 `Array<L.Polygon>`。
+将 `this._data` 映射为 `Array<L.Polygon>`，形成 `PolygonLayer` 的一个实例。。
 
 ### addTo
-*(Map) => this*
+*(L.Map) => this*
 
 将图层添加到Leaflet地图容器中。
+
+### `on`
+
+*(String:event_type, Function:callback) => this*
+
+将一个事件一次性绑定在所有层内所有共同属性的元素上
 
 ### getBounds
 *() => L.Bounds*

@@ -1,7 +1,9 @@
 # CanvasPolylineLayer : CanvasLayer
 
-## Polyline参数说明
-Polyline 是 dmap 为 CanvasPolylineLayer 设计的折线数据结构。用于构造折线元素。
+## 元素说明
+`Polyline` 是 dmap 为 CanvasPolylineLayer 设计的折线数据结构。用于构造折线元素。基本数据格式包含了 `coordinates` 与 `options` 字段，分别代表坐标序列与折线样式。从而以折线的形式在 canvas 上进行绘制渲染，支持点击等交互形式。
+
+`Polyline` 的 `options` 格式如下，由 `data` 方法构造。
 
 | Option | Type | Default | Description |
 | :----- | :---:| :-----: | :---------  |
@@ -9,8 +11,7 @@ Polyline 是 dmap 为 CanvasPolylineLayer 设计的折线数据结构。用于�
 | width | Number | `1` | 折线宽度，单位为px | 
 | zoomLevel | Number | `1` | 最小显示缩放程序，默认在任意缩放大小下均显示 |
 
-## CanvasPolylineLayer图层参数说明
-以 *Polyline* 对象的形式组织路网结构，并通过Canvas图层在地图上渲染。
+## 参数说明
 
 | Option | Type | Default | Description |
 | :----- | :---:| :-----: | :---------  |
@@ -22,6 +23,7 @@ Polyline 是 dmap 为 CanvasPolylineLayer 设计的折线数据结构。用于�
 
 
 ## 方法说明
+
 ### data
 *(Array&lt;any&gt;, Function) => this*
 
@@ -77,6 +79,9 @@ Polyline 是 dmap 为 CanvasPolylineLayer 设计的折线数据结构。用于�
 
 
 ## 代码示例
+
+下方代码以 `CanvasPolylineLayer` 绘制纽约市的路网数据，并支持鼠标单击标记、双击清楚全部标记的交互方式。
+
 ```javascript
 map.doubleClickZoom.disable();
 

@@ -1,20 +1,27 @@
 # PointLayer : GroupLayer
 
-## CircleMarker 说明
-`L.CircleMarker` 是Leaflet的圆形类，根据坐标 `coordinate` 和属性 `options` 渲染圆形元素。参见 [L.CircleMarker](https://leafletjs.com/reference-1.4.0.html#circlemarker)。
+## 元素说明
 
-## PointLayer图层参数说明
-以 Leaflet 元素 `L.CircleMarker` 的形式，将数据集中的多边形数据渲染到地图上。
+我们以 Leaflet 的元素 [L.CircleMarker](https://leafletjs.com/reference-1.4.0.html#circlemarker) 作为`PointLayer` 图层的显示元素，从而以圆点的方式在地图上标记坐标。
+
+`L.CircleMarker` 的坐标位置由参数 `coordinate` 确定。
+
+## 参数说明
+
++ options: 均继承自 BaseLayer
 
 | Option | Type | Default | Description |
 | :----- | :---:| :-----: | :---------  |
 | zIndex | Number | 300   | 图层在z轴的层级高度 |
 
 ## 方法说明
+
 ### data
 *(Array&lt;any&gt;, Function) => this*
 
 将原始数据集映射为具有指定字段格式的对象数组`this._data`。
+
+`data` 方法的调用方式可参见[教程](#/zh/guide/quickstart)。
 
 | key    | Type  | Description |
 | :----- | :---: | :---------  |
@@ -32,7 +39,7 @@
 将 `this._data` 映射为 `Array<L.CircleMarker>`。
 
 ### addTo
-*(Map) => this*
+*(L.Map) => this*
 
 将图层添加到Leaflet地图容器中。
 
@@ -45,6 +52,9 @@
 *注意：CircleMap 渲染的点大小不随 map缩放变化，如果希望使用可缩放变换点图，使用 L.Circle 渲染*
 
 ## 代码示例
+
+通过以下代码展示中国各省会直辖市的坐标位置。
+
 ```javascript
 var coords = [
     {name:'甘肃', geoCoord:[36.03, 103.73 ]},

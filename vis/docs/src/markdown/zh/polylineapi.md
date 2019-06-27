@@ -1,22 +1,24 @@
 # PolylineLayer : GroupLayer
 
+## 元素说明
+我们以 Leaflet 的元素 [L.Polyline](https://leafletjs.com/reference-1.4.0.html#polyline) 作为 `PolylineLayer` 图层的显示元素，从而以折线的形式在地图上渲染坐标序列。
 
+## 参数说明
 
-## Polyline说明
-`L.Polyline` 是Leaflet的折线类，根据坐标序列 `coordinates` 和属性 `options` 渲染折线元素。参见 [L.Polyline](https://leafletjs.com/reference-1.4.0.html#polyline)。
-
-## PolylineLayer图层参数说明
-以 Leaflet 元素 *L.Polyline* 的形式，对数据集中的路网、轨迹等坐标序列进行渲染。
++ options: 均继承自 BaseLayer
 
 | Option | Type | Default | Description |
 | :----- | :---:| :-----: | :---------  |
 | zIndex | Number | 300   | 图层在z轴的层级高度 |
 
 ## 方法说明
+
 ### data
 *(Array&lt;any&gt;, Function) => this*
 
 将原始数据集映射为具有指定字段格式的对象数组`this._data`。
+
+`data` 方法的调用方式可参见[教程](#/zh/guide/quickstart)。
 
 | key    | Type  | Description |
 | :----- | :---: | :---------  |
@@ -43,10 +45,10 @@
 
 返回该图层的渲染范围，为地图缩放等功能提供参数。
 
-
-*注意：CircleMap 渲染的点大小不随 map缩放变化，如果希望使用可缩放变换点图，使用 L.Circle 渲染*
-
 ## 代码示例
+
+显示一小段路网数据。
+
 ```javascript
 var roads = [
     {

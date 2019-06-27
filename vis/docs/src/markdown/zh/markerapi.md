@@ -1,24 +1,27 @@
 # MarkerLayer : GroupLayer
 
-## Marker说明
-`L.Marker` 是Leaflet的多边形类，根据坐标 `coordinate` 和属性 `options` 渲染标记元素。参见 [L.Marker](https://leafletjs.com/reference-1.4.0.html#marker)。
+## 元素说明
 
-## PolygonLayer图层参数说明
-以 Leaflet 元素 *L.Marker* 的形式，对数据集中的每个坐标在地图上定位。
+我们以 Leaflet 的元素 [L.Marker](https://leafletjs.com/reference-1.4.0.html#marker) 作为`MarkerLayer` 图层的显示元素，从而以 `L.Marker` 的方式在地图上标记坐标。
+
+`L.Marker` 的坐标位置由参数 `coordinate` 确定。
+
+## 参数说明
+
++ options: 均继承自 BaseLayer
 
 | Option | Type | Default | Description |
 | :----- | :---:| :-----: | :---------  |
 | zIndex | Number | 300   | 图层在z轴的层级高度 
 
-
-## Marker options 参数说明
-包含`L.Marker`的全部参数`options`
-
 ## 方法说明
+
 ### data
 *(Array&lt;any&gt;, Function) => this*
 
 将原始数据集映射为具有指定字段格式的对象数组`this._data`。
+
+`data` 方法的调用方式可参见[教程](#/zh/guide/quickstart)。
 
 | key    | Type  | Description |
 | :----- | :---: | :---------  |
@@ -36,7 +39,7 @@
 将 `this._data` 映射为 `Array<L.Marker>`。
 
 ### addTo
-*(Map) => this*
+*(L.Map) => this*
 
 将图层添加到Leaflet地图容器中。
 
@@ -47,6 +50,9 @@
 
 
 ## 代码示例
+
+通过 `MarkerLayer` 展示若干亚洲城市位置。
+
 ```javascript
 let capitals = [ 
       [39.83912266447, 116.3671875], 
