@@ -48,19 +48,18 @@ var c = new dmap.CanvasPolylineLayer({
 
 // c.addTo(map)
  
-$.getJSON('newyorkcity_streetcenterline.json', function(json) {
+$.getJSON('nyc.json', function(json) {
     c.data(json.data, function(d) {
         let color = undefined,
-            rw_type = parseInt(d.RW_TYPE)
+            rw_type = parseInt(d.t)
         switch (rw_type) {
-            case 1: color = 'grey'; break;
-            case 2: color = 'blue'; break;
-            case 3: color = '#7C1200'; break;
-            default: color = 'black';
+            case 2: color = '#ed5736'; break;
+            case 3: color = '#ff7500'; break;
+            default: color = '#2e4e7e';
         }
         return {
-            coordinates: d.coords,
-            options: { // options.style
+            coordinates: d.c,
+            options: { 
                 zoomLevel: rw_type == 2 ? 1 : 11,
                 color: color,
                 width: 0.5
