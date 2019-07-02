@@ -53,7 +53,7 @@ $.getJSON('nyc.json', function(json) {
         let color = undefined,
             rw_type = parseInt(d.t)
         switch (rw_type) {
-            case 2: color = '#ed5736'; break;
+            case 2: color = '#f2be45'; break;
             case 3: color = '#ff7500'; break;
             default: color = '#2e4e7e';
         }
