@@ -34,9 +34,15 @@ export var GroupLayer = BaseLayer.extend({
         return this;
     },
 
-    onAdd: function(map) {
-        this._layer_group && this._layer_group.addTo(map);
+    addTo: function(map) {
+        if (this._layer_group) {
+            this._layer_group.addTo(map);
+        }
         return this;
+    },
+
+    onAdd: function(map) {
+        this.addTo(map)
     },
 
     enter: function() {
