@@ -17,7 +17,7 @@
 
 ( data: *L.geoJSON*, options: *GeoJSON options*)
 
-Geojson图层的构造函数。根据data和options参数进行构造。
+GeoJson图层的构造函数。根据data和options参数进行构造。
 
 例子：
 

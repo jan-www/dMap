@@ -33,6 +33,12 @@ zh:
           name: BaseAPI
         - title: 集合图层/GroupLayer
           name: GroupAPI
+        - title: 热力图/Heatmap
+          name: HeatMapAPI
+        - title: GeoJSON图/GeoJson
+          name: GeoJsonAPI
+        - title: 时间轴图层/TimelineLayer
+          name: TimelineAPI
   demo:
     - title: 演示
       name: Demo
