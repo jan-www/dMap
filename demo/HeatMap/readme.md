@@ -145,4 +145,4 @@ heatmapLayer.addData(tmp);
 
 Then you will see this in your browser：
 
-![heat](./heat.jpg)
+![heat](./HeatmapDemo.jpg)
