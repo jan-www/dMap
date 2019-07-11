@@ -34,7 +34,6 @@
     <a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">
       <at-card style="width: 300px;" :body-style="{ padding: 0 }">
         <h4 slot="title">多边形图</h4>
-        <!-- <div slot="extra"><a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">详情</a></div> -->
         <div>
           <img style="width: 100%" src="https://misc.aotu.io/koppthe/at-ui/cover.jpg">
         </div>
@@ -45,7 +44,6 @@
     <a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">
       <at-card style="width: 300px;" :body-style="{ padding: 0 }">
         <h4 slot="title">线图</h4>
-        <!-- <div slot="extra"><a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">详情</a></div> -->
         <div>
           <img style="width: 100%" src="https://misc.aotu.io/koppthe/at-ui/cover.jpg">
         </div>
@@ -56,7 +54,6 @@
     <a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">
       <at-card style="width: 300px;" :body-style="{ padding: 0 }">
         <h4 slot="title">Canvas线图</h4>
-        <!-- <div slot="extra"><a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">详情</a></div> -->
         <div>
           <img style="width: 100%" src="/static/demos/canvas_polyline_layer.png">
         </div>
@@ -70,6 +67,36 @@
         <!-- <div slot="extra"><a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">详情</a></div> -->
         <div>
           <img style="width: 100%" src="/static/demos/canvas_grid_layer.png">
+        </div>
+      </at-card>
+    </a>
+  </div>
+  <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 col-xs-24" style="padding: 0px 8px 16px;">
+    <a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">
+      <at-card style="width: 300px;" :body-style="{ padding: 0 }">
+        <h4 slot="title">热力图</h4>
+        <div>
+          <img style="width: 100%" src="/static/demos/heatmap_layer.png">
+        </div>
+      </at-card>
+    </a>
+  </div>
+  <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 col-xs-24" style="padding: 0px 8px 16px;">
+    <a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">
+      <at-card style="width: 300px;" :body-style="{ padding: 0 }">
+        <h4 slot="title">GeoJSON图</h4>
+        <div>
+          <img style="width: 100%" src="/static/demos/geojson_layer.png">
+        </div>
+      </at-card>
+    </a>
+  </div>
+  <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 col-xs-24" style="padding: 0px 8px 16px;">
+    <a href="https://github.com/AT-UI/feather-font" target="_blank" class="flex flex-middle">
+      <at-card style="width: 300px;" :body-style="{ padding: 0 }">
+        <h4 slot="title">时间轴图</h4>
+        <div>
+          <img style="width: 100%" src="/static/demos/timeline_layer.png">
         </div>
       </at-card>
     </a>
