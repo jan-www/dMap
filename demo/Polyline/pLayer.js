@@ -15,10 +15,15 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
     id: 'mapbox.streets'
 }).addTo(map);
 
+metros.forEach(line => {
+    line.forEach(coord => bd09togcj02(coord.reverse()))
+})
+
 pLayer = new dmap.PolylineLayer();
+pointLayer = new dmap.PointLayer();
 
 pLayer.data(metros, function (data, index) {
-    data.forEach(x => x.reverse())
+
     const color = index === 0 
         ? "rgb(161,40,48)"
         : index === 1
@@ -33,5 +38,21 @@ pLayer.data(metros, function (data, index) {
 })
 
 pLayer.enter().addTo(map)
+
+const stations = metros.flat()
+
+pointLayer.data(stations, function (data, index) {
+    return { 
+        coordinate: data,
+        options: {
+            radius: 3,
+            fillColor: '#FF9900',
+            color: '#FF9900',
+            fillOpacity: 1
+        }
+    }
+})
+
+pointLayer.enter().addTo(map)
 
 map.fitBounds(pLayer.getBounds())
