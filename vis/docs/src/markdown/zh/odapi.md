@@ -15,6 +15,28 @@
 
 ## 方法说明
 
+### `data`
+
+*(trail_data, callback) => this*
+
+将轨迹数据灌入 `ODLayer` 中，举个例子。
+
+```javascript
+let paths = [
+    [origin0, destination0], [origin1, destination1], ...
+]
+let odLayer = new dmap.ODLayer();
+
+odLayer.data(paths, function(path) {
+    return {
+        origin: path[0], 
+        destination: path[1],
+        options: {color: 'red', ...}
+    }
+}).enter().addTo(map);
+
+```
+
 ### `generate`
 
 *() => Array*
