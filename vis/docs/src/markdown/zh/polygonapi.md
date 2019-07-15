@@ -53,3 +53,20 @@
 *() => L.Bounds*
 
 返回该图层的渲染范围，为地图缩放等功能提供参数。
+
+## 代码示例
+
+以 `dmap.PolygonLayer` 展示澳大利亚的行政划分。
+
+```javascript
+pLayer = new dmap.PolygonLayer();
+
+pLayer.data(coordsAustralia, coords => {
+    coords.forEach(coord=>coord.reverse())
+    return { coordinates: coords }
+})
+
+pLayer.enter().addTo(map)
+
+map.fitBounds(pLayer.getBounds())
+```

@@ -7,14 +7,9 @@ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=p
 
 pLayer = new dmap.PolygonLayer();
 
-pLayer.data(mauritius, function (data) {
-    data.forEach(lnglat => lnglat.reverse())
-    return {
-        coordinates: data,
-        options: {
-            color: "#16a951"
-        }
-    }
+pLayer.data(coordsAustralia, coords => {
+    coords.forEach(coord=>coord.reverse())
+    return { coordinates: coords }
 })
 
 pLayer.enter().addTo(map)
