@@ -43,12 +43,12 @@ zh:
       items:
         - title: 全部
           name: demos
-  # about:
-  #   - title: 关于我们
-  #     name: About
-  #     items:
-  #       - title: 全部
-  #         name: demos
+  about:
+    - title: 关于我们
+      name: About
+      items:
+        - title: 关于我们
+          name: Us
      
 en:
   guide:

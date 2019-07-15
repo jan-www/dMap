@@ -36,7 +36,7 @@
           <li><router-link :to="{ name: 'Guide' }">指南</router-link></li>
           <li><router-link :to="{ name: 'Docs' }">API</router-link></li>
           <li><router-link :to="{ name: 'Demo' }">演示</router-link></li>
-          <!-- <li><router-link :to="{ name: 'About' }">关于我们</router-link></li> -->
+          <li><router-link :to="{ name: 'About' }">关于我们</router-link></li>
         </ul>
       </div>
     </div>
