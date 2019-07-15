@@ -45,7 +45,7 @@
       <at-card style="width: 300px;" :body-style="{ padding: 0 }">
         <h4 slot="title">线图</h4>
         <div>
-          <img style="width: 100%" src="https://misc.aotu.io/koppthe/at-ui/cover.jpg">
+          <img style="width: 100%" src="/static/demos/polyline_layer.png">
         </div>
       </at-card>
     </a>

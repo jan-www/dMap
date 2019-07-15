@@ -56,13 +56,13 @@ function regeisterRoute (navConfig) {
 }
 
 let routes = regeisterRoute(NavConfig)
-let navigatorLang = window.navigator.language.slice(0, 2)
+// let navigatorLang = window.navigator.language.slice(0, 2)
 
-if (['en', 'zh'].indexOf(navigatorLang) <= -1) {
-  navigatorLang = ''
-}
+// if (['en', 'zh'].indexOf(navigatorLang) <= -1) {
+//   navigatorLang = ''
+// }
 
-const userLang = localStorage.getItem('at-ui-language') || navigatorLang || 'zh'
+// const userLang = localStorage.getItem('at-ui-language') || navigatorLang || 'zh'
 
 routes = routes.concat([{
   path: '/zh',
@@ -74,7 +74,7 @@ routes = routes.concat([{
   components: require('../views/index-en.vue')
 }, {  
   path: '/',
-  redirect: { name: userLang === 'zh' ? 'Home' : `Home-${userLang}` }
+  redirect: { name: 'Home' } // userLang === 'zh' ? 'Home' : `Home-${userLang}`
 }, {
   path: '*',
   redirect: { name: 'Home' }
@@ -117,17 +117,16 @@ routes.forEach(page => {
       name: 'Demo-en',
       redirect: { name: page.children[0].name }
     })
+  } else if (page.path === '/zh/about') {
+    page.children.push({
+      path: '',
+      name: 'About',
+      redirect: { name: page.children[0].name }
+    })
   }
 })
 
 export default new Router({
-  // routes: [
-  //   {
-  //     path: '/',
-  //     name: 'HelloWorld',
-  //     component: HelloWorld
-  //   }
-  // ]
   routes,
   //root: process.env.serverConfig.portalPrefix,
   scrollBehavior (to, from, savedPosition) {

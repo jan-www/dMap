@@ -15,7 +15,7 @@
         </div>
         <i class="icon icon-menu nav-icon" @click="toggleMenu"></i>
       </div>
-      <div v-if="lang === 'en'" class="nav-right">
+      <!-- <div v-if="lang === 'en'" class="nav-right">
         <ul class="navbar">
           <li><router-link :to="{ name: 'Guide-en' }">Guide</router-link></li>
           <li><router-link :to="{ name: 'Docs-en' }">API</router-link></li>
@@ -30,6 +30,14 @@
           <li><router-link :to="{ name: 'Demo' }">演示</router-link></li>
         </ul>   
         <div class="btn-language" @click="switchLang('en')">EN</div>
+      </div> -->
+      <div class="nav-right">
+        <ul class="navbar">
+          <li><router-link :to="{ name: 'Guide' }">指南</router-link></li>
+          <li><router-link :to="{ name: 'Docs' }">API</router-link></li>
+          <li><router-link :to="{ name: 'Demo' }">演示</router-link></li>
+          <li><router-link :to="{ name: 'About' }">关于我们</router-link></li>
+        </ul>
       </div>
     </div>
   </header>
