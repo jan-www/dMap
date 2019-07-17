@@ -3,7 +3,7 @@
     <nav class="at-nav">
       <template v-for="item in data">
         <h2 class="at-nav__title" :key="item.title">{{ item.title }}</h2>
-        <ul class="at-nav__items" :key="item.title">
+        <ul class="at-nav__items" :key="item.name">
           <template v-if="item.items">
             <li class="at-nav__item" v-for="navItem in item.items" :key="navItem.name">
               <router-link class="at-nav__page" :to="navItem.name.toLowerCase()">{{ navItem.title }}</router-link>

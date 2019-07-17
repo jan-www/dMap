@@ -19,7 +19,7 @@
 
 <style lang="scss" scoped>
 .wrapper {
-  background-color: #F8FAFF;
+  background-color: rgb(255, 255, 255);
 }
 .page-header {
   position: relative !important;
