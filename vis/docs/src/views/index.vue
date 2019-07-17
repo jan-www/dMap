@@ -18,22 +18,15 @@
             </g>
           </svg>
         </div>
-        <h1>一款轻量级、数据驱动的地理信息可视化库</h1>
+        <h1>一款轻量级、数据驱动的时空数据可视化库</h1>
         <div class="btn-container">
           <div class="btn btn-begin"><router-link :to="{ name: 'Introduction-zh' }">开始使用</router-link></div>
-          <div class="btn btn-github"><a href="https://github.com/sugarspectre/dMap/">Github</a></div>
+          <div class="btn btn-github"><a href="https://github.com/sugarspectre/dMap/" target="_blank">Github</a></div>
         </div>
       </div>
-      <div class="prototype-screens flex">
-        <div class="prototype prototype-1"><img src="../assets/prototype-1.png" alt=""></div>
-        <div class="prototype prototype-2"><img src="../assets/prototype-2.png" alt=""></div>
-        <div class="prototype prototype-3"><img src="../assets/prototype-3.png" alt=""></div>
-        <div class="prototype prototype-4"><img src="../assets/prototype-4.png" alt=""></div>
-      </div>
-      <div class="separate-panel"></div>
     </section>
     <section class="section section-navigation">
-      <div class="container flex flex-around">
+      <div class="container flex flex-around" style="margin-bottom: 40px">
         <div class="navigation-panel">
           <div class="icon-cnt">
             <img src="../assets/icon-navigation-1.png" alt="">
