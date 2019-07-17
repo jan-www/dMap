@@ -2,7 +2,7 @@
   <footer class="footer">
     <div class="container">
       <div class="footer-desc">
-        <div class="footer-copyright">© 2019 Created by<a href="//aotu.io" target="_blank"> BIGScity</a></div>
+        <div class="footer-copyright">© 2019 Created by<a href="https://www.bigscity.com/" target="_blank"> BIGSCity</a></div>
       </div>
     </div>
   </footer>

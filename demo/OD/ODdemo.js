@@ -4,10 +4,9 @@ var map = L.map('mapid', {
     maxZoom: 17, 
     minZoom: 2, 
     maxBounds: bounds
-}).setView([0, 0], 2);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
+}).setView([25, -50], 3);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 // Prepare the data of airports and airlines
 let  airports = odData.Airport_LOC,
