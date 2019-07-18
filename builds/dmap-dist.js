@@ -57,248 +57,110 @@ var dmap = (function (exports) {
     return target;
   }
 
-  var GeoJson =
-  /*#__PURE__*/
-  function () {
-    function GeoJson(data, options) {
-      _classCallCheck(this, GeoJson);
-
-      this.geojson = L.geoJSON(data, options);
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function");
     }
 
-    _createClass(GeoJson, [{
-      key: "bindPopup",
-      value: function bindPopup(func) {
-        this.geojson.bindPoup(func);
-        return this;
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        writable: true,
+        configurable: true
       }
-    }, {
-      key: "addTo",
-      value: function addTo(map) {
-        this.geojson.addTo(map);
-        return this;
-      }
-    }, {
-      key: "addData",
-      value: function addData(data) {
-        this.geojson.addTo(data);
-        return this;
-      }
-    }, {
-      key: "setStyle",
-      value: function setStyle(style) {
-        this.geojson.setStyle(style);
-        return this;
-      } // @method on
-      //  
-      // overwrite the method on
+    });
+    if (superClass) _setPrototypeOf(subClass, superClass);
+  }
 
-    }, {
-      key: "on",
-      value: function on(event_type, callback) {
-        this.geojson.eachLayer(function (layer) {
-          if (layer && layer.feature) {
-            callback(layer, layer.feature);
-          }
-        }, this);
-        return this;
-      }
-    }]);
+  function _getPrototypeOf(o) {
+    _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+      return o.__proto__ || Object.getPrototypeOf(o);
+    };
+    return _getPrototypeOf(o);
+  }
 
-    return GeoJson;
-  }();
+  function _setPrototypeOf(o, p) {
+    _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+      o.__proto__ = p;
+      return o;
+    };
 
-  // import {PointLayer} from "./PointLayer.js"
-  var TimelineLayer =
-  /*#__PURE__*/
-  function () {
-    function TimelineLayer(mymap, options) {
-      _classCallCheck(this, TimelineLayer);
+    return _setPrototypeOf(o, p);
+  }
 
-      this._times = [];
-      this._data = [];
-      this.times2index = {};
-      this._layers = [];
-      this._curlayer = null;
-      this._map = mymap;
-      this._isrunning = false;
-
-      this.timechangefun = function (d, i, t, layer) {};
-
-      this.timeline = document.createElement("div");
-      this.timeline.id = "timeline";
-      this.timeline.style.visibility = "visible";
-      document.body.appendChild(this.timeline);
-      this.slider = document.createElement("input");
-      this.slider.type = "range";
-      this.slider.min = 0;
-      this.slider.max = 4;
-      this.slider.value = 0;
-      this.slider.id = "myRange";
-      this.bt_play = document.createElement("button");
-      this.bt_play.type = "button";
-      this.bt_play.id = "bt_play";
-      this.bt_play.textContent = "play";
-      this.par = document.createElement("p");
-      this.par.textContent = "Vaule: ";
-      this.output = document.createElement("span");
-      this.output.id = "demo";
-      this.par.appendChild(this.output);
-      this.timeline.appendChild(this.slider);
-      this.timeline.appendChild(this.bt_play);
-      this.timeline.appendChild(this.par);
-      this.setOption(options);
-      var tmp = this;
-
-      this.slider.onclick = function () {
-        tmp.renderAtTime(tmp.output.innerHTML, tmp._map);
-      };
+  function _assertThisInitialized(self) {
+    if (self === void 0) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
     }
 
-    _createClass(TimelineLayer, [{
-      key: "setOption",
-      value: function setOption(options) {
-        this.options = options;
+    return self;
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (call && (typeof call === "object" || typeof call === "function")) {
+      return call;
+    }
+
+    return _assertThisInitialized(self);
+  }
+
+  function _slicedToArray(arr, i) {
+    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
+  }
+
+  function _toConsumableArray(arr) {
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
+  }
+
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+      return arr2;
+    }
+  }
+
+  function _arrayWithHoles(arr) {
+    if (Array.isArray(arr)) return arr;
+  }
+
+  function _iterableToArray(iter) {
+    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+  }
+
+  function _iterableToArrayLimit(arr, i) {
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+    var _e = undefined;
+
+    try {
+      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
       }
-    }, {
-      key: "data",
-      value: function data(time, _data, fn) {
-        this._times = time;
-        this._data = _data;
-        this.slider.max = time.length - 1;
-
-        for (var i = 0; i < time.length; i++) {
-          this.times2index[this._times[i]] = i;
-        }
-
-        for (var _i = 0; _i < time.length; _i++) {
-          if (this.options.layerType == "PointMap") {
-            var l = new PointLayer();
-            this._layers[_i] = l.data(_data[_i], fn).enter();
-          } else if (this.options.layerType == "heatmap") ;
-        }
-
-        this.listen();
-        return this;
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"] != null) _i["return"]();
+      } finally {
+        if (_d) throw _e;
       }
-    }, {
-      key: "listen",
-      value: function listen() {
-        //添加slider监听事件
-        var tmp = this;
+    }
 
-        this.slider.oninput = function () {
-          tmp.output.innerHTML = tmp._times[tmp.slider.value];
-          return tmp.output.innerHTML;
-        };
+    return _arr;
+  }
 
-        this.output.innerHTML = this._times[this.slider.value]; // Display the default slider value
-        //the timeline is(not) visible
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance");
+  }
 
-        if (this.options.enableControl == false) {
-          timeline.style.visibility = "hidden";
-        } else {
-          timeline.style.visibility = "visible";
-        } //是否自动播放
-
-
-        if (this.options.autoPlay == true) {
-          this.play(this._times[0], this._map);
-        } else {
-          this.renderAtTime(this._times[0], this._map);
-        } //添加播放按钮监听事件
-
-
-        var tmp = this;
-
-        this.bt_play.onclick = function () {
-          // tmp.running = 1;
-          tmp.play(tmp._times[0], tmp._map);
-        }; // this.bt_stop.onclick = function(){
-        //     tmp.running = 2;
-        // }
-        // this.bt_pause.onclick = function(){
-        //     tmp.running = 3;
-        // }
-
-      }
-    }, {
-      key: "renderAtTime",
-      value: function renderAtTime(time_index) {
-        if (this._curlayer != null) {
-          this._curlayer.remove();
-        }
-
-        switch (this.options.layerType) {
-          case "PointMap":
-            this._layers[this.times2index[time_index]].addTo(this._map);
-
-            this._curlayer = this._layers[this.times2index[time_index]];
-            break;
-
-          case "heatmap":
-            this._curlayer = new HeatmapOverlay(this.options.layerOption).addTo(this._map);
-
-            this._curlayer.setData(this._data[this.times2index[time_index]]);
-
-            break;
-
-          default:
-            throw new Error(this.options.layerType + 'is not exist in the timelinelayer');
-        }
-
-        this.slider.value = this.times2index[time_index];
-        this.output.innerHTML = time_index;
-        var index = Number(this.slider.value);
-        this.timechangefun(this._data[index], index, this._times[index], this._curlayer);
-      }
-    }, {
-      key: "on",
-      value: function on(event, f) {
-        if (event === "timechange") {
-          this.timechangefun = f;
-        }
-
-        return this;
-      }
-    }, {
-      key: "play",
-      value: function play(time) {
-        var _this = this;
-
-        var index = this.times2index[time];
-
-        if (this._isrunning == false) {
-          this._isrunning = true; //es6 promise
-
-          var _loop = function _loop(i) {
-            tmp = _this;
-
-            (function () {
-              setTimeout(function () {
-                tmp.renderAtTime(tmp._times[i], tmp._map);
-
-                if (i == tmp._times.length - 1) {
-                  tmp._isrunning = false;
-                }
-              }, tmp.options.tickTime * i);
-            })();
-          };
-
-          for (var i = index; i < this._times.length; i++) {
-            var tmp;
-
-            _loop(i);
-          }
-        }
-      }
-    }]);
-
-    return TimelineLayer;
-  }();
-
-  // export * from "./BaseLayer.js"
-   // export * from './vector/index';
+  function _nonIterableRest() {
+    throw new TypeError("Invalid attempt to destructure non-iterable instance");
+  }
 
   /**
    * A class to parse color values
@@ -676,6 +538,3536 @@ var dmap = (function (exports) {
 
     return this;
   }
+
+  // Define BaseLayer class and basic methods here.
+  // @class BaseLayer
+  // Base class of all dmap.layer.
+
+  var BaseLayer = L.Layer.extend({
+    options: {
+      theme: undefined,
+      zIndex: 300
+    },
+    initialize: function initialize(options) {
+      L.Util.setOptions(this, options);
+      console.log('Layer init with options: ', options);
+    },
+    data: function data(_data, fn) {
+      throw new Error('this method must be override.');
+    },
+    enter: function enter() {
+      throw new Error('this method must be override.');
+    },
+    exit: function exit() {
+      throw new Error('this method must be override.');
+    },
+    setZIndex: function setZIndex(z_index) {
+      return this;
+    },
+    fire: function fire$$1(type, data, propagate) {
+      return fire.call(this, type, data, propagate);
+    }
+  });
+
+  var GroupLayer = BaseLayer.extend({
+    initialize: function initialize(options) {
+      this._data = []; // {}
+
+      this._layer_group = undefined;
+      BaseLayer.prototype.initialize.call(this, options);
+    },
+    on: function on(event_type, callback_function) {
+      var _this = this;
+
+      if (this._layer_group == undefined) return this;
+
+      this._layer_group.getLayers().forEach(function (layer, index) {
+        layer.on(event_type, function (e) {
+          callback_function(_this._data[index], index, layer, e);
+        }, _this);
+      });
+
+      return this;
+    },
+    // set options for each element in this._data
+    // not for Leaflet components.
+    setElementOptions: function setElementOptions(data, map_function) {
+      var array_options = data.map(map_function, this),
+          i = 0;
+
+      for (i = 0; i < Math.min(data.length, this._data.length); ++i) {
+        L.Util.setOptions(this._data[i], array_options[i]);
+      }
+
+      return this;
+    },
+    data: function data(_data, map_function) {
+      this._data = _data.map(map_function, this);
+      return this;
+    },
+    onAdd: function onAdd(map) {
+      this._layer_group && this._layer_group.addTo(map);
+      return this;
+    },
+    enter: function enter() {
+      this._layer_group !== undefined && this.remove();
+      this._layer_group = L.featureGroup(this.generate());
+      this.setZIndex();
+      return this;
+    },
+    exit: function exit() {
+      this.remove();
+      return this;
+    },
+    remove: function remove() {
+      this._layer_group !== undefined && this._layer_group.remove();
+      return this;
+    },
+    getBounds: function getBounds() {
+      return this._layer_group ? this._layer_group.getBounds() : undefined;
+    },
+    setZIndex: function setZIndex(zindex) {
+      this._layer_group && this._layer_group.setZIndex(zindex ? zindex : this.options.zindex);
+      return this;
+    }
+  });
+
+  // PointLayer.js
+  /**
+  var coords = [
+      {name:'GanSu', geoCoord:[36.03, 103.73 ]},
+      {name:'QingHai', geoCoord:[36.56, 101.74 ]},
+      ...
+  ] // full `coords` is after definition of PointLayer 
+
+  let pLayer = new dmap.PointLayer();
+  pLayer.data(coords, function(data) {
+      return {
+          name: data.name, 
+          coordinate: data.geoCoord,
+          options: {radius: 1, color: '#7C1200'}
+      }
+  }).enter().on('click', function(data) {
+      console.log(data.name)
+  }).addTo(map)
+   */
+
+  var PointLayer$1 = GroupLayer.extend({
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.circleMarker(data.coordinate, data.options);
+      });
+    }
+  });
+  /**
+   var coords = [
+      {name:'甘肃', geoCoord:[36.03, 103.73 ]},
+      {name:'青海', geoCoord:[36.56, 101.74 ]},
+      {name:'四川', geoCoord:[30.67, 104.06 ]},
+      {name:'河北', geoCoord:[38.03, 114.48 ]},
+      {name:'云南', geoCoord:[25.04, 102.73 ]},
+      {name:'贵州', geoCoord:[26.57, 106.71 ]},
+      {name:'湖北', geoCoord:[30.52, 114.31 ]},
+      {name:'河南', geoCoord:[34.76, 113.65 ]},
+      {name:'山东', geoCoord:[36.65, 117 ]},
+      {name:'江苏', geoCoord:[32.04, 118.78 ]},
+      {name:'安徽', geoCoord:[31.86, 117.27 ]},
+      {name:'浙江', geoCoord:[30.26, 120.19 ]},
+      {name:'江西', geoCoord:[28.68, 115.89 ]},
+      {name:'福建', geoCoord:[26.08, 119.3 ]},
+      {name:'广东', geoCoord:[23.16, 113.23 ]},
+      {name:'湖南', geoCoord:[28.21, 113 ]},
+      {name:'海南', geoCoord:[20.02, 110.35 ]},
+      {name:'辽宁', geoCoord:[ 41.8, 123.3,]},
+      {name:'吉林', geoCoord:[43.88, 125.35 ]},
+      {name:'黑龙江', geoCoord:[45.75, 126.63 ]},
+      {name:'山西', geoCoord:[37.87, 112.53 ]},
+      {name:'陕西', geoCoord:[34.27, 108.95 ]},
+      {name:'台湾', geoCoord:[25.03, 121.30 ]},
+      {name:'北京', geoCoord:[39.92, 116.46 ]},
+      {name:'上海', geoCoord:[31.22, 121.48 ]},
+      {name:'重庆', geoCoord:[29.59, 106.54 ]},
+      {name:'天津', geoCoord:[39.13, 117.2 ]},
+      {name:'内蒙古', geoCoord:[40.82, 111.65 ]},
+      {name:'广西', geoCoord:[22.84, 108.33 ]},
+      {name:'西藏', geoCoord:[29.97, 91.11 ]},
+      {name:'宁夏', geoCoord:[38.47, 106.27 ]},
+      {name:'新疆', geoCoord:[43.77, 87.68 ]},
+      {name:'香港', geoCoord:[22.28, 114.17 ]},
+      {name:'澳门', geoCoord:[22.19, 113.54 ]}
+  ]
+   */
+
+  // PolygonLayer.js
+  /**
+  var states = [
+      ["Alaska", [[70.0187, -141.0205], ...],
+      ["...", ...],
+      ...
+  ]
+  var pLayer = new dmap.PolygonLayer();
+  pLayer.data(states, function (data) {
+      return {
+          name: data[0],
+          coordinates: data[1]
+      }
+  }).enter().addTo(map)
+   */
+
+  var PolygonLayer = GroupLayer.extend({
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.polygon(data.coordinates, data.options);
+      });
+    }
+  });
+
+  /**
+   * let capitals = [ 
+   *     [39.83912266447, 116.3671875], [35.56462917627, 139.7460937], [37.55247109621, 126.9799804], [39.01838346715, 125.7275390], [47.92830585913, 107.0068359] 
+   * ] 
+   * let mLayer = new dmap.MarkerLayer(); 
+   * 
+   * mLayer.data(capitals, (d)=>{return {coordinate: d}})
+   *  .enter()
+   *  .addTo(map);
+   * 
+   */
+
+  var MarkerLayer = GroupLayer.extend({
+    /**
+     * Generate method for BaseLayer.enter.
+     * Return an Array of L.Marker.
+     * 
+     * Make sure _data is an Array of Object like {coordinate: ..., options: ...}
+     */
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.marker(data.coordinate, data.options);
+      });
+    }
+  });
+
+  /*
+   * @class OD
+   * @inherits L.Path
+   *
+   * A class for drawing OD-trail overlays on a map. Extends `L.Path`.
+   *
+   * @example
+   *
+   * ```js
+   * // create a red OD-trail(Bezier curve) from an array of LatLng points
+   * var trial = dmap.OD([45.51, -122.68], 
+   *              [37.77, -122.43], {color: 'red'}).addTo(map);
+   * ```
+   */
+  var OD = L.Path.extend({
+    // @section
+    // @aka OD options
+    options: {
+      // @option color: String = '#4682B4'
+      // Specify the color of the trail. You can also use description like 
+      // 'color: "red"'.
+      color: '#4682B4',
+      // @option opacity: Number = 0.5
+      // Specify the opacity of the trail.
+      opacity: 0.5,
+      // @option weight: Number = 3
+      // Specify the width of the trail.
+      weight: 3,
+      // @option icon: Object = icon
+      // Give an icon to show animation on the trail. Default is a plane.
+      icon: {
+        iconUrl: "plane.png"
+      },
+      // @option curvature: Number = 4.0
+      // How much to simplify the trial on map. More means less curved the 
+      // trial is, and less means more curved the trial is.
+      // Note that curvature have to be greater than 3.0.
+      curvature: 4.0,
+      // @option leftSide: Boolean = false.
+      // Make the trial on the right side of line from origin to destination. 
+      leftSide: false,
+      // @option points: Boolean = false.
+      // Whether to add origin and destination points on the map.
+      points: false,
+      // @option pointsColor: String = '#00C5CD'
+      // Specify the color of the origin and destination points.
+      pointsColor: '#00C5CD',
+      //Turquoise3
+      // @option pointsRadius: Number = 2
+      // Specify the size of the origin and destination points.
+      pointsRadius: 2,
+      // @option pointsOpacity: Number = 2
+      // Specify the opacity of the origin and destination points.
+      pointsOpacity: 0.5,
+      // @option preferCenter: Object = L.latLng(destination)
+      // When the difference between org.lng and dst.lng is lager than 180,
+      // we choose the point nearer to preferCenter as the base point and
+      // move another one to make the trail sense. Default is destinaton.
+      preferCenter: undefined,
+      // @option popup: Boolean = false.
+      // Whether to bind popup of latlng to the origin and destination points.
+      popup: false,
+      // @option popupContent: Object = undefined
+      // Specify the popup content when popup is true.
+      // Note that it is supposed to be like 
+      // `{org: "your content a", dst: "your content b"} `
+      // Default is {org: org.latLng, dst: dst.latLng}.
+      popuopContent: undefined,
+      // @optoin trailHighlight: Boolean = false.
+      // Whether to highlight the trail.
+      trailHighlight: false,
+      // @option trailAnimate: Boolean = false.
+      // Whether to setup animation of trial by using the icon in options.
+      trailAnimate: false,
+      // @option twoWay: Boolean = false.
+      // Whether the trail is two-way.
+      twoWay: false
+    },
+    initialize: function initialize(origin, destination, options) {
+      L.setOptions(this, options);
+
+      if (this.options.preferCenter === undefined) {
+        //set the default preferCenter
+        this.options.preferCenter = destination;
+      }
+
+      this._initialUpdate = true;
+
+      var points = this._normalizePoints(L.latLng(origin), L.latLng(destination));
+
+      this.setPath(points.origin, points.destination); // this.setPath(L.latLng(origin), L.latLng(destination));
+    },
+    // Normalize the points to get a trail with shortest distance
+    // parameters org and dst must be L.latLng
+    _normalizePoints: function _normalizePoints(org, dst) {
+      var o = org,
+          d = dst,
+          c = this.options.preferCenter;
+
+      if (Math.abs(o.lng - d.lng) < 180) {
+        return {
+          origin: o,
+          destination: d
+        };
+      } // redundancy o
+
+
+      if (o.distanceTo(L.latLng(c)) < d.distanceTo(L.latLng(c))) {
+        return {
+          origin: o,
+          destination: L.latLng(d.lat, d.lng > 0 ? d.lng - 360 : d.lng + 360)
+        };
+      } // redundancy d
+      else {
+          return {
+            origin: L.latLng(o.lat, o.lng > 0 ? o.lng - 360 : o.lng + 360),
+            destination: d
+          };
+        }
+    },
+    onAdd: function onAdd(map) {
+      this._renderer._initPath(this);
+
+      this._reset(); // _project() + _update()
+
+
+      this._renderer._addPath(this); // add path on map
+      // map.on('click', function(){
+      //     this._latlngs.org
+      // });
+
+    },
+    animateIcon: function animateIcon(path) {
+      // make icon move along the trail
+      if (this.spaceship_img) this.spaceship_img.remove();
+      var SnapSvg = Snap('.leaflet-overlay-pane>svg');
+      var spaceship_img = this.spaceship_img = SnapSvg.image(this.options.icon.iconUrl).attr({
+        visibility: "hidden"
+      });
+      var spaceship = SnapSvg.group(spaceship_img);
+      var flight_path = SnapSvg.path(path).attr({
+        'fill': 'none',
+        'stroke': 'none'
+      });
+      var full_path_length = Snap.path.getTotalLength(flight_path);
+      var forth_path_length = full_path_length / 4;
+
+      var width = forth_path_length / this._map.getZoom();
+
+      var height = forth_path_length / this._map.getZoom();
+
+      width = Math.min(Math.max(width, 30), 64);
+      height = Math.min(Math.max(height, 30), 64);
+      this.on('click', function (e) {
+        Snap.animate(0, full_path_length, function (step) {
+          //console.log(full_path_length);
+          spaceship_img.attr({
+            visibility: "visible"
+          });
+          spaceship_img.attr({
+            width: width,
+            height: height
+          });
+          var point = Snap.path.getPointAtLength(flight_path, step); // 根据path长度变化获取坐标
+
+          var m = new Snap.Matrix();
+          m.translate(point.x - width / 2, point.y - height / 2);
+          m.rotate(point.alpha - 90, width / 2, height / 2); // 使飞机总是朝着曲线方向。point.alpha：点的切线和水平线形成的夹角
+
+          spaceship_img.transform(m);
+        }, 7000, mina.easeinout, function () {
+          spaceship_img.attr({
+            visibility: "hidden"
+          });
+        });
+      }); // this.on('click', function(e){
+      //     Snap.animate(0, forth_path_length, function (step) {
+      //         //show image when plane start to animate
+      //         spaceship_img.attr({
+      //             visibility: "visible"
+      //         });
+      //         spaceship_img.attr({width: width, height: height});
+      //         //last_step = step;
+      //         let moveToPoint = Snap.path.getPointAtLength(flight_path, step);
+      //         let x = moveToPoint.x - (width / 2);
+      //         let y = moveToPoint.y - (height / 2);
+      //         spaceship.transform('translate(' + x + ',' + y + ') rotate(' + (moveToPoint.alpha - 90) + ', ' + width / 2 + ', ' + height / 2 + ')');
+      //     }, 2500,  function () {
+      //         Snap.animate(forth_path_length, half_path_length, function (step) {
+      //             //last_step = step;
+      //             let moveToPoint = Snap.path.getPointAtLength(flight_path, step);
+      //             let x = moveToPoint.x - width / 2;
+      //             let y = moveToPoint.y - height / 2;
+      //             spaceship.transform('translate(' + x + ',' + y + ') rotate(' + (moveToPoint.alpha - 90) + ', ' + width / 2 + ', ' + height / 2 + ')');
+      //         }, 2500, function () {
+      //             // Snap.animate(half_path_length, half_path_length + forth_path_length, function(step){
+      //             //     let moveToPoint = Snap.path.getPointAtLength(flight_path, step);
+      //             // }, 2500, function(){
+      //             // })
+      //             //done
+      //             spaceship_img.attr({
+      //                 visibility: "hidden"
+      //             });
+      //         });
+      //     });
+      // });
+    },
+    addPoints: function addPoints() {
+      this._orgMarker.addTo(this._map);
+
+      this._dstMarker.addTo(this._map);
+    },
+    setPointsPopup: function setPointsPopup() {
+      var content = this.options.popuopContent; // TODO: Check whether content has fields `org` and `dst`
+
+      var orgMarker = this._orgMarker;
+      orgMarker.bindPopup(content.org);
+      orgMarker.on('mouseover', function (e) {
+        orgMarker.openPopup();
+      });
+      orgMarker.on('mouseout', function (e) {
+        setTimeout(function () {
+          orgMarker.closePopup();
+        }, 300);
+      });
+      var dstMarker = this._dstMarker;
+      dstMarker.bindPopup(content.dst);
+      dstMarker.on('mouseover', function (e) {
+        dstMarker.openPopup();
+      });
+      dstMarker.on('mouseout', function (e) {
+        setTimeout(function () {
+          dstMarker.closePopup();
+        }, 300);
+      });
+    },
+    getPath: function getPath() {
+      return this._latlngs;
+    },
+    setPath: function setPath(org, dst) {
+      var middlePoint = this.getMidPoint(org, dst, this.options.curvature, this.options.leftSide);
+
+      this._setPath(org, dst, middlePoint);
+
+      return this.redraw();
+    },
+    getBounds: function getBounds() {
+      return this._bounds;
+    },
+    getMidPoint: function getMidPoint(org, dst, deep) {
+      var round_side = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'LEFT_ROUND';
+      var offset = 3.14;
+
+      if (deep < 3.0) {
+        // straighten the trail if deep is less than 3
+        deep = 1.0;
+      }
+
+      if (round_side === 'RIGHT_ROUND') offset = offset * -1;
+      var latlng1 = org,
+          latlng2 = dst;
+      var offsetX = latlng2.lng - latlng1.lng,
+          offsetY = latlng2.lat - latlng1.lat;
+      var r = Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2)),
+          theta = Math.atan2(offsetY, offsetX);
+      var thetaOffset = offset / (deep ? deep : 4);
+      var r2 = r / 2 / Math.cos(thetaOffset),
+          theta2 = theta + thetaOffset;
+      var midpointX = r2 * Math.cos(theta2) + latlng1.lng,
+          midpointY = r2 * Math.sin(theta2) + latlng1.lat;
+      var midpointLatLng = [midpointY, midpointX];
+      return midpointLatLng;
+    },
+    _setPath: function _setPath(org, dst, mid) {
+      this._latlngs = {
+        org: org,
+        dst: dst,
+        mid: mid
+      }; // set points
+
+      this._setPoints();
+
+      this._bounds = this._computeBounds();
+    },
+    _setPoints: function _setPoints() {
+      var markerOptins = {
+        color: this.options.pointsColor,
+        radius: this.options.pointsRadius,
+        opacity: this.options.pointsOpacity
+      };
+      this._orgMarker = L.circleMarker(this._latlngs.org, markerOptins);
+      this._dstMarker = L.circleMarker(this._latlngs.dst, markerOptins); // set default popup content
+
+      if (this.options.popuopContent === undefined) {
+        this.options.popuopContent = {
+          org: this._orgMarker.getLatLng().toString(),
+          dst: this._dstMarker.getLatLng().toString()
+        };
+      }
+    },
+    // return items which can be listen
+    getItem: function getItem(item_type) {
+      if (item_type === 'org') {
+        return this._orgMarker;
+      } else if (item_type === 'dst') {
+        return this._dstMarker;
+      } else if (item_type === 'trail') {
+        return this;
+      } else {
+        return null;
+      }
+    },
+    getOrigin: function getOrigin() {
+      return this._orgMarker;
+    },
+    getDestination: function getDestination() {
+      return this._dstMarker;
+    },
+    getTrail: function getTrail() {
+      return this._path;
+    },
+    _computeBounds: function _computeBounds() {
+      var bound = new L.LatLngBounds();
+      bound.extend(this._latlngs.org);
+      bound.extend(this._latlngs.dst);
+      bound.extend(this._latlngs.mid);
+      return bound;
+    },
+    getCenter: function getCenter() {
+      return this._bounds.getCenter();
+    },
+    _update: function _update() {
+      if (!this._map) {
+        return;
+      }
+
+      this._updatePath();
+    },
+    trailHighlight: function trailHighlight() {
+      // highlight trail
+      var trial = this.getTrail(); //get svgpath
+
+      var _options = this.options;
+      var tpopup = L.popup();
+      this.on('mouseover', function (e) {
+        trial.setAttribute('stroke-dasharray', 1);
+        trial.setAttribute('stroke-width', _options.weight * 1.25);
+        trial.setAttribute('stroke-opacity', 1.0);
+
+        if (_options.twoWay) {
+          // render two-way trail
+          tpopup.setLatLng(e.latlng).setContent('I am a two-way trail.').openOn(this._map);
+        }
+      });
+      this.on('mouseout', function (e) {
+        setTimeout(function () {
+          trial.setAttribute('stroke-dasharray', _options.dashArray);
+          trial.setAttribute('stroke-width', _options.weight);
+          trial.setAttribute('stroke-opacity', _options.opacity);
+
+          if (_options.twoWay) {
+            tpopup.remove();
+          }
+        }, 300);
+      });
+    },
+    _updatePath: function _updatePath() {
+      var latlngs = this._renderer._updateTrail(this); // Add points to map.
+
+
+      if (this.options.points) {
+        this.addPoints(); //Bind popup of latlng to the points.
+
+        if (this.options.popup) {
+          this.setPointsPopup();
+        }
+      }
+
+      if (this.options.trailHighlight) {
+        this.trailHighlight(); // highlight the trail
+      } // Animate plane after trail updated
+
+
+      if (this.options.trailAnimate) {
+        this.animateIcon(latlngs);
+      }
+    },
+    _project: function _project() {
+      this._points = [];
+
+      this._points.push('M');
+
+      var curPoint = this._map.latLngToLayerPoint(this._latlngs.org);
+
+      this._points.push(curPoint);
+
+      if (this._latlngs.mid) {
+        this._points.push('Q');
+
+        curPoint = this._map.latLngToLayerPoint(this._latlngs.mid);
+
+        this._points.push(curPoint);
+      }
+
+      curPoint = this._map.latLngToLayerPoint(this._latlngs.dst);
+
+      this._points.push(curPoint);
+    }
+  }); // @factory L.od(latlng: origin, latlng: destination, options?: OD options)
+  // Instantiates an OD object given two geographical points (i.e. origin point 
+  // and destination point) and optionally an options object.
+
+  function od(origin, destination, options) {
+    return new OD(origin, destination, options);
+  }
+  /* @namespace L.SVG
+   * @section Layer events
+   *
+   * @event _updateOD: LayerEvent
+   * Fired when there is a need to update the layer on the map.
+   *
+   *
+   * @section Methods for Layers and Controls
+   */
+
+  L.SVG.include({
+    _updateTrail: function _updateTrail(layer) {
+      var svgPath = this._trailPointsToPath(layer._points);
+
+      this._setPath(layer, svgPath);
+
+      if (layer.options.dashHandle) {
+        var path = layer._path;
+        var length = path.getTotalLength();
+
+        if (!layer.options.dashArray) {
+          path.style.strokeDasharray = length + ' ' + length;
+        }
+
+        if (layer._initialUpdate) {
+          path.animate([{
+            strokeDashoffset: length
+          }, {
+            strokeDashoffset: 0
+          }], layer.options.dashHandle);
+          layer._initialUpdate = false;
+        }
+      }
+
+      return svgPath;
+    },
+    _trailPointsToPath: function _trailPointsToPath(points) {
+      var point,
+          curCommand,
+          str = '';
+
+      for (var i = 0, len = points.length; i < len; i++) {
+        point = points[i];
+
+        if (typeof point === 'string' || point instanceof String) {
+          curCommand = point;
+          str += curCommand;
+        } else str += point.x + ',' + point.y + ' ';
+      }
+
+      return str || 'M0 0';
+    }
+  });
+
+  /**
+   * let paths = [
+   *      [origin0, destination0], [origin1, destination1], ...
+   * ]
+   * let odLayer = new dmap.ODLayer();
+   * 
+   * odLayer.data(paths, function(path) {
+   *      return {
+   *          origin: path[0], 
+   *          destination: path[1],
+   *          options: {color: 'red', ...}
+   *      }
+   * }).enter().addTo(map);
+   */
+
+  var ODLayer = GroupLayer.extend({
+    // @method generate
+    // 
+    // Return Array of L.od.
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return od(data.origin, data.destination, data.options);
+      });
+    },
+    // use prefix before the event type: 'org_click'
+    // *** and several space-separated types: 'org_click mouseover'
+    on: function on(event_type, callback) {
+      var types = event_type.split('_');
+      var item_type = types[0]; //specify the type of item
+
+      var real_event_type = types[1]; //specify the type of event
+
+      if (this._layer_group !== undefined) {
+        this._layer_group.eachLayer(function (layer) {
+          layer.getItem(item_type).on(real_event_type, callback);
+        });
+      }
+
+      return this;
+    }
+  });
+
+  var PolylineLayer = GroupLayer.extend({
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.polyline(data.coordinates, data.options);
+      });
+    }
+  });
+
+  function HeatmapLayer(options) {
+    var that = this;
+
+    (function (name, context, factory) {
+      // Supports UMD. AMD, CommonJS/Node.js and browser context
+      if (typeof module !== "undefined" && module.exports) {
+        module.exports = factory();
+      } else if (typeof define === "function" && define.amd) {
+        define(factory);
+      } else {
+        context[name] = factory();
+      }
+    })("h337", this, function () {
+      // Heatmap Config stores default values and will be merged with instance config
+      var HeatmapConfig = {
+        defaultRadius: 40,
+        defaultRenderer: 'canvas2d',
+        defaultGradient: {
+          0.25: "rgb(0,0,255)",
+          0.55: "rgb(0,255,0)",
+          0.85: "yellow",
+          1.0: "rgb(255,0,0)"
+        },
+        defaultMaxOpacity: 1,
+        defaultMinOpacity: 0,
+        defaultBlur: .85,
+        defaultXField: 'x',
+        defaultYField: 'y',
+        defaultValueField: 'value',
+        plugins: {}
+      };
+
+      var Store = function StoreClosure() {
+        var Store = function Store(config) {
+          this._coordinator = {};
+          this._data = [];
+          this._radi = [];
+          this._min = 10;
+          this._max = 1;
+          this._xField = config['xField'] || config.defaultXField;
+          this._yField = config['yField'] || config.defaultYField;
+          this._valueField = config['valueField'] || config.defaultValueField;
+
+          if (config["radius"]) {
+            this._cfgRadius = config["radius"];
+          }
+        };
+
+        var defaultRadius = HeatmapConfig.defaultRadius;
+        Store.prototype = {
+          // when forceRender = false -> called from setData, omits renderall event
+          _organiseData: function _organiseData(dataPoint, forceRender) {
+            var x = dataPoint[this._xField];
+            var y = dataPoint[this._yField];
+            var radi = this._radi;
+            var store = this._data;
+            var max = this._max;
+            var min = this._min;
+            var value = dataPoint[this._valueField] || 1;
+            var radius = dataPoint.radius || this._cfgRadius || defaultRadius;
+
+            if (!store[x]) {
+              store[x] = [];
+              radi[x] = [];
+            }
+
+            if (!store[x][y]) {
+              store[x][y] = value;
+              radi[x][y] = radius;
+            } else {
+              store[x][y] += value;
+            }
+
+            var storedVal = store[x][y];
+
+            if (storedVal > max) {
+              if (!forceRender) {
+                this._max = storedVal;
+              } else {
+                this.setDataMax(storedVal);
+              }
+
+              return false;
+            } else if (storedVal < min) {
+              if (!forceRender) {
+                this._min = storedVal;
+              } else {
+                this.setDataMin(storedVal);
+              }
+
+              return false;
+            } else {
+              return {
+                x: x,
+                y: y,
+                value: value,
+                radius: radius,
+                min: min,
+                max: max
+              };
+            }
+          },
+          _unOrganizeData: function _unOrganizeData() {
+            var unorganizedData = [];
+            var data = this._data;
+            var radi = this._radi;
+
+            for (var x in data) {
+              for (var y in data[x]) {
+                unorganizedData.push({
+                  x: x,
+                  y: y,
+                  radius: radi[x][y],
+                  value: data[x][y]
+                });
+              }
+            }
+
+            return {
+              min: this._min,
+              max: this._max,
+              data: unorganizedData
+            };
+          },
+          _onExtremaChange: function _onExtremaChange() {
+            this._coordinator.emit('extremachange', {
+              min: this._min,
+              max: this._max
+            });
+          },
+          addData: function addData() {
+            if (arguments[0].length > 0) {
+              var dataArr = arguments[0];
+              var dataLen = dataArr.length;
+
+              while (dataLen--) {
+                this.addData.call(this, dataArr[dataLen]);
+              }
+            } else {
+              // add to store  
+              var organisedEntry = this._organiseData(arguments[0], true);
+
+              if (organisedEntry) {
+                // if it's the first datapoint initialize the extremas with it
+                if (this._data.length === 0) {
+                  this._min = this._max = organisedEntry.value;
+                }
+
+                this._coordinator.emit('renderpartial', {
+                  min: this._min,
+                  max: this._max,
+                  data: [organisedEntry]
+                });
+              }
+            }
+
+            return this;
+          },
+          setData: function setData(data) {
+            var dataPoints = data.data;
+            var pointsLen = dataPoints.length; // reset data arrays
+
+            this._data = [];
+            this._radi = [];
+
+            for (var i = 0; i < pointsLen; i++) {
+              this._organiseData(dataPoints[i], false);
+            }
+
+            this._max = data.max;
+            this._min = data.min || 0;
+
+            this._onExtremaChange();
+
+            this._coordinator.emit('renderall', this._getInternalData());
+
+            return this;
+          },
+          removeData: function removeData() {// TODO: implement
+          },
+          setDataMax: function setDataMax(max) {
+            this._max = max;
+
+            this._onExtremaChange();
+
+            this._coordinator.emit('renderall', this._getInternalData());
+
+            return this;
+          },
+          setDataMin: function setDataMin(min) {
+            this._min = min;
+
+            this._onExtremaChange();
+
+            this._coordinator.emit('renderall', this._getInternalData());
+
+            return this;
+          },
+          setCoordinator: function setCoordinator(coordinator) {
+            this._coordinator = coordinator;
+          },
+          _getInternalData: function _getInternalData() {
+            return {
+              max: this._max,
+              min: this._min,
+              data: this._data,
+              radi: this._radi
+            };
+          },
+          getData: function getData() {
+            return this._unOrganizeData();
+          }
+          /*,
+             TODO: rethink.
+          getValueAt: function(point) {
+             var value;
+             var radius = 100;
+             var x = point.x;
+             var y = point.y;
+             var data = this._data;
+             if (data[x] && data[x][y]) {
+             return data[x][y];
+             } else {
+             var values = [];
+             // radial search for datapoints based on default radius
+             for(var distance = 1; distance < radius; distance++) {
+                 var neighbors = distance * 2 +1;
+                 var startX = x - distance;
+                 var startY = y - distance;
+                 for(var i = 0; i < neighbors; i++) {
+                 for (var o = 0; o < neighbors; o++) {
+                     if ((i == 0 || i == neighbors-1) || (o == 0 || o == neighbors-1)) {
+                     if (data[startY+i] && data[startY+i][startX+o]) {
+                         values.push(data[startY+i][startX+o]);
+                     }
+                     } else {
+                     continue;
+                     } 
+                 }
+                 }
+             }
+             if (values.length > 0) {
+                 return Math.max.apply(Math, values);
+             }
+             }
+             return false;
+          }*/
+
+        };
+        return Store;
+      }();
+
+      var Canvas2dRenderer = function Canvas2dRendererClosure() {
+        var _getColorPalette = function _getColorPalette(config) {
+          var gradientConfig = config.gradient || config.defaultGradient;
+          var paletteCanvas = document.createElement('canvas');
+          var paletteCtx = paletteCanvas.getContext('2d');
+          paletteCanvas.width = 256;
+          paletteCanvas.height = 1;
+          var gradient = paletteCtx.createLinearGradient(0, 0, 256, 1);
+
+          for (var key in gradientConfig) {
+            gradient.addColorStop(key, gradientConfig[key]);
+          }
+
+          paletteCtx.fillStyle = gradient;
+          paletteCtx.fillRect(0, 0, 256, 1);
+          return paletteCtx.getImageData(0, 0, 256, 1).data;
+        };
+
+        var _getPointTemplate = function _getPointTemplate(radius, blurFactor) {
+          var tplCanvas = document.createElement('canvas');
+          var tplCtx = tplCanvas.getContext('2d');
+          var x = radius;
+          var y = radius;
+          tplCanvas.width = tplCanvas.height = radius * 2;
+
+          if (blurFactor == 1) {
+            tplCtx.beginPath();
+            tplCtx.arc(x, y, radius, 0, 2 * Math.PI, false);
+            tplCtx.fillStyle = 'rgba(0,0,0,1)';
+            tplCtx.fill();
+          } else {
+            var gradient = tplCtx.createRadialGradient(x, y, radius * blurFactor, x, y, radius);
+            gradient.addColorStop(0, 'rgba(0,0,0,1)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            tplCtx.fillStyle = gradient;
+            tplCtx.fillRect(0, 0, 2 * radius, 2 * radius);
+          }
+
+          return tplCanvas;
+        };
+
+        var _prepareData = function _prepareData(data) {
+          var renderData = [];
+          var min = data.min;
+          var max = data.max;
+          var radi = data.radi;
+          var data = data.data;
+          var xValues = Object.keys(data);
+          var xValuesLen = xValues.length;
+
+          while (xValuesLen--) {
+            var xValue = xValues[xValuesLen];
+            var yValues = Object.keys(data[xValue]);
+            var yValuesLen = yValues.length;
+
+            while (yValuesLen--) {
+              var yValue = yValues[yValuesLen];
+              var value = data[xValue][yValue];
+              var radius = radi[xValue][yValue];
+              renderData.push({
+                x: xValue,
+                y: yValue,
+                value: value,
+                radius: radius
+              });
+            }
+          }
+
+          return {
+            min: min,
+            max: max,
+            data: renderData
+          };
+        };
+
+        function Canvas2dRenderer(config) {
+          var container = config.container;
+          var shadowCanvas = this.shadowCanvas = document.createElement('canvas');
+          var canvas = this.canvas = config.canvas || document.createElement('canvas');
+          var renderBoundaries = this._renderBoundaries = [10000, 10000, 0, 0];
+          var computed = getComputedStyle(config.container) || {};
+          canvas.className = 'heatmap-canvas';
+          this._width = canvas.width = shadowCanvas.width = config.width || +computed.width.replace(/px/, '');
+          this._height = canvas.height = shadowCanvas.height = config.height || +computed.height.replace(/px/, '');
+          this.shadowCtx = shadowCanvas.getContext('2d');
+          this.ctx = canvas.getContext('2d'); // @TODO:
+          // conditional wrapper
+
+          canvas.style.cssText = shadowCanvas.style.cssText = 'position:absolute;left:0;top:0;';
+          container.style.position = 'relative';
+          container.appendChild(canvas);
+          this._palette = _getColorPalette(config);
+          this._templates = {};
+
+          this._setStyles(config);
+        }
+        Canvas2dRenderer.prototype = {
+          renderPartial: function renderPartial(data) {
+            if (data.data.length > 0) {
+              this._drawAlpha(data);
+
+              this._colorize();
+            }
+          },
+          renderAll: function renderAll(data) {
+            // reset render boundaries
+            this._clear();
+
+            if (data.data.length > 0) {
+              this._drawAlpha(_prepareData(data));
+
+              this._colorize();
+            }
+          },
+          _updateGradient: function _updateGradient(config) {
+            this._palette = _getColorPalette(config);
+          },
+          updateConfig: function updateConfig(config) {
+            if (config['gradient']) {
+              this._updateGradient(config);
+            }
+
+            this._setStyles(config);
+          },
+          setDimensions: function setDimensions(width, height) {
+            this._width = width;
+            this._height = height;
+            this.canvas.width = this.shadowCanvas.width = width;
+            this.canvas.height = this.shadowCanvas.height = height;
+          },
+          _clear: function _clear() {
+            this.shadowCtx.clearRect(0, 0, this._width, this._height);
+            this.ctx.clearRect(0, 0, this._width, this._height);
+          },
+          _setStyles: function _setStyles(config) {
+            this._blur = config.blur == 0 ? 0 : config.blur || config.defaultBlur;
+
+            if (config.backgroundColor) {
+              this.canvas.style.backgroundColor = config.backgroundColor;
+            }
+
+            this._width = this.canvas.width = this.shadowCanvas.width = config.width || this._width;
+            this._height = this.canvas.height = this.shadowCanvas.height = config.height || this._height;
+            this._opacity = (config.opacity || 0) * 255;
+            this._maxOpacity = (config.maxOpacity || config.defaultMaxOpacity) * 255;
+            this._minOpacity = (config.minOpacity || config.defaultMinOpacity) * 255;
+            this._useGradientOpacity = !!config.useGradientOpacity;
+          },
+          _drawAlpha: function _drawAlpha(data) {
+            var min = this._min = data.min;
+            var max = this._max = data.max;
+            var data = data.data || [];
+            var dataLen = data.length; // on a point basis?
+
+            var blur = 1 - this._blur;
+
+            while (dataLen--) {
+              var point = data[dataLen];
+              var x = point.x;
+              var y = point.y;
+              var radius = point.radius; // if value is bigger than max
+              // use max as value
+
+              var value = Math.min(point.value, max);
+              var rectX = x - radius;
+              var rectY = y - radius;
+              var shadowCtx = this.shadowCtx;
+              var tpl;
+
+              if (!this._templates[radius]) {
+                this._templates[radius] = tpl = _getPointTemplate(radius, blur);
+              } else {
+                tpl = this._templates[radius];
+              } // value from minimum / value range
+              // => [0, 1]
+
+
+              var templateAlpha = (value - min) / (max - min); // this fixes #176: small values are not visible because globalAlpha < .01 cannot be read from imageData
+
+              shadowCtx.globalAlpha = templateAlpha < .01 ? .01 : templateAlpha;
+              shadowCtx.drawImage(tpl, rectX, rectY); // update renderBoundaries
+
+              if (rectX < this._renderBoundaries[0]) {
+                this._renderBoundaries[0] = rectX;
+              }
+
+              if (rectY < this._renderBoundaries[1]) {
+                this._renderBoundaries[1] = rectY;
+              }
+
+              if (rectX + 2 * radius > this._renderBoundaries[2]) {
+                this._renderBoundaries[2] = rectX + 2 * radius;
+              }
+
+              if (rectY + 2 * radius > this._renderBoundaries[3]) {
+                this._renderBoundaries[3] = rectY + 2 * radius;
+              }
+            }
+          },
+          _colorize: function _colorize() {
+            var x = this._renderBoundaries[0];
+            var y = this._renderBoundaries[1];
+            var width = this._renderBoundaries[2] - x;
+            var height = this._renderBoundaries[3] - y;
+            var maxWidth = this._width;
+            var maxHeight = this._height;
+            var opacity = this._opacity;
+            var maxOpacity = this._maxOpacity;
+            var minOpacity = this._minOpacity;
+            var useGradientOpacity = this._useGradientOpacity;
+
+            if (x < 0) {
+              x = 0;
+            }
+
+            if (y < 0) {
+              y = 0;
+            }
+
+            if (x + width > maxWidth) {
+              width = maxWidth - x;
+            }
+
+            if (y + height > maxHeight) {
+              height = maxHeight - y;
+            }
+
+            var img = this.shadowCtx.getImageData(x, y, width, height);
+            var imgData = img.data;
+            var len = imgData.length;
+            var palette = this._palette;
+
+            for (var i = 3; i < len; i += 4) {
+              var alpha = imgData[i];
+              var offset = alpha * 4;
+
+              if (!offset) {
+                continue;
+              }
+
+              var finalAlpha;
+
+              if (opacity > 0) {
+                finalAlpha = opacity;
+              } else {
+                if (alpha < maxOpacity) {
+                  if (alpha < minOpacity) {
+                    finalAlpha = minOpacity;
+                  } else {
+                    finalAlpha = alpha;
+                  }
+                } else {
+                  finalAlpha = maxOpacity;
+                }
+              }
+
+              imgData[i - 3] = palette[offset];
+              imgData[i - 2] = palette[offset + 1];
+              imgData[i - 1] = palette[offset + 2];
+              imgData[i] = useGradientOpacity ? palette[offset + 3] : finalAlpha;
+            }
+
+            img.data = imgData;
+            this.ctx.putImageData(img, x, y);
+            this._renderBoundaries = [1000, 1000, 0, 0];
+          },
+          getValueAt: function getValueAt(point) {
+            var value;
+            var shadowCtx = this.shadowCtx;
+            var img = shadowCtx.getImageData(point.x, point.y, 1, 1);
+            var data = img.data[3];
+            var max = this._max;
+            var min = this._min;
+            value = Math.abs(max - min) * (data / 255) >> 0;
+            return value;
+          },
+          getDataURL: function getDataURL() {
+            return this.canvas.toDataURL();
+          }
+        };
+        return Canvas2dRenderer;
+      }();
+
+      var Renderer = function RendererClosure() {
+        var rendererFn = false;
+
+        if (HeatmapConfig['defaultRenderer'] === 'canvas2d') {
+          rendererFn = Canvas2dRenderer;
+        }
+
+        return rendererFn;
+      }();
+
+      var Util = {
+        merge: function merge() {
+          var merged = {};
+          var argsLen = arguments.length;
+
+          for (var i = 0; i < argsLen; i++) {
+            var obj = arguments[i];
+
+            for (var key in obj) {
+              merged[key] = obj[key];
+            }
+          }
+
+          return merged;
+        }
+      }; // Heatmap Constructor
+
+      var Heatmap = function HeatmapClosure() {
+        var Coordinator = function CoordinatorClosure() {
+          function Coordinator() {
+            this.cStore = {};
+          }
+          Coordinator.prototype = {
+            on: function on(evtName, callback, scope) {
+              var cStore = this.cStore;
+
+              if (!cStore[evtName]) {
+                cStore[evtName] = [];
+              }
+
+              cStore[evtName].push(function (data) {
+                return callback.call(scope, data);
+              });
+            },
+            emit: function emit(evtName, data) {
+              var cStore = this.cStore;
+
+              if (cStore[evtName]) {
+                var len = cStore[evtName].length;
+
+                for (var i = 0; i < len; i++) {
+                  var callback = cStore[evtName][i];
+                  callback(data);
+                }
+              }
+            }
+          };
+          return Coordinator;
+        }();
+
+        var _connect = function _connect(scope) {
+          var renderer = scope._renderer;
+          var coordinator = scope._coordinator;
+          var store = scope._store;
+          coordinator.on('renderpartial', renderer.renderPartial, renderer);
+          coordinator.on('renderall', renderer.renderAll, renderer);
+          coordinator.on('extremachange', function (data) {
+            scope._config.onExtremaChange && scope._config.onExtremaChange({
+              min: data.min,
+              max: data.max,
+              gradient: scope._config['gradient'] || scope._config['defaultGradient']
+            });
+          });
+          store.setCoordinator(coordinator);
+        };
+
+        function Heatmap() {
+          var config = this._config = Util.merge(HeatmapConfig, arguments[0] || {});
+          this._coordinator = new Coordinator();
+
+          if (config['plugin']) {
+            var pluginToLoad = config['plugin'];
+
+            if (!HeatmapConfig.plugins[pluginToLoad]) {
+              throw new Error('Plugin \'' + pluginToLoad + '\' not found. Maybe it was not registered.');
+            } else {
+              var plugin = HeatmapConfig.plugins[pluginToLoad]; // set plugin renderer and store
+
+              this._renderer = new plugin.renderer(config);
+              this._store = new plugin.store(config);
+            }
+          } else {
+            this._renderer = new Renderer(config);
+            this._store = new Store(config);
+          }
+
+          _connect(this);
+        }
+        // add API documentation
+
+        Heatmap.prototype = {
+          addData: function addData() {
+            this._store.addData.apply(this._store, arguments);
+
+            return this;
+          },
+          removeData: function removeData() {
+            this._store.removeData && this._store.removeData.apply(this._store, arguments);
+            return this;
+          },
+          setData: function setData() {
+            this._store.setData.apply(this._store, arguments);
+
+            return this;
+          },
+          setDataMax: function setDataMax() {
+            this._store.setDataMax.apply(this._store, arguments);
+
+            return this;
+          },
+          setDataMin: function setDataMin() {
+            this._store.setDataMin.apply(this._store, arguments);
+
+            return this;
+          },
+          configure: function configure(config) {
+            this._config = Util.merge(this._config, config);
+
+            this._renderer.updateConfig(this._config);
+
+            this._coordinator.emit('renderall', this._store._getInternalData());
+
+            return this;
+          },
+          repaint: function repaint() {
+            this._coordinator.emit('renderall', this._store._getInternalData());
+
+            return this;
+          },
+          getData: function getData() {
+            return this._store.getData();
+          },
+          getDataURL: function getDataURL() {
+            return this._renderer.getDataURL();
+          },
+          getValueAt: function getValueAt(point) {
+            if (this._store.getValueAt) {
+              return this._store.getValueAt(point);
+            } else if (this._renderer.getValueAt) {
+              return this._renderer.getValueAt(point);
+            } else {
+              return null;
+            }
+          }
+        };
+        return Heatmap;
+      }(); // core
+
+
+      var heatmapFactory = {
+        create: function create(config) {
+          return new Heatmap(config);
+        },
+        register: function register(pluginKey, plugin) {
+          HeatmapConfig.plugins[pluginKey] = plugin;
+        }
+      };
+      return heatmapFactory;
+    });
+
+    (function (name, context, factory) {
+      // Supports UMD. AMD, CommonJS/Node.js and browser context
+      if (typeof module !== "undefined" && module.exports) {
+        module.exports = factory();
+      } else if (typeof define === "function" && define.amd) {
+        define(factory);
+      } else {
+        context[name] = factory();
+      }
+    })("HeatmapOverlay", this, function () {
+      // Leaflet < 0.8 compatibility
+      if (typeof L.Layer === 'undefined') {
+        L.Layer = L.Class;
+      }
+
+      var HeatmapOverlay = L.Layer.extend({
+        initialize: function initialize(config) {
+          this.cfg = config;
+          this._el = L.DomUtil.create('div', 'leaflet-zoom-hide');
+          this._data = [];
+          this._max = 1;
+          this._min = 0;
+          this.cfg.container = this._el;
+        },
+        onAdd: function onAdd(map) {
+          var size = map.getSize();
+          var h337 = typeof require !== 'undefined' ? require('heatmap.js') : that.h337;
+          this._map = map;
+          this._width = size.x;
+          this._height = size.y;
+          this._el.style.width = size.x + 'px';
+          this._el.style.height = size.y + 'px';
+          this._el.style.position = 'absolute';
+
+          this._resetOrigin();
+
+          map.getPanes().overlayPane.appendChild(this._el);
+
+          if (!this._heatmap) {
+            this._heatmap = h337.create(this.cfg);
+          } // this resets the origin and redraws whenever
+          // the zoom changed or the map has been moved
+
+
+          map.on('moveend', this._resetOrigin, this);
+
+          this._draw();
+        },
+        addTo: function addTo(map) {
+          map.addLayer(this);
+          return this;
+        },
+        onRemove: function onRemove(map) {
+          // remove layer's DOM elements and listeners
+          map.getPanes().overlayPane.removeChild(this._el);
+          map.off('moveend', this._resetOrigin, this);
+        },
+        _draw: function _draw() {
+          if (!this._map) {
+            return;
+          }
+
+          var mapPane = this._map.getPanes().mapPane;
+
+          var point = mapPane._leaflet_pos; // reposition the layer
+
+          this._el.style[HeatmapOverlay.CSS_TRANSFORM] = 'translate(' + -Math.round(point.x) + 'px,' + -Math.round(point.y) + 'px)';
+
+          this._update();
+        },
+        _update: function _update() {
+          var bounds, zoom, scale;
+          var generatedData = {
+            max: this._max,
+            min: this._min,
+            data: []
+          };
+          bounds = this._map.getBounds();
+          zoom = this._map.getZoom();
+          scale = Math.pow(2, zoom);
+
+          if (this._data.length == 0) {
+            if (this._heatmap) {
+              this._heatmap.setData(generatedData);
+            }
+
+            return;
+          }
+
+          var latLngPoints = [];
+          var radiusMultiplier = this.cfg.scaleRadius ? scale : 1;
+          var localMax = 0;
+          var localMin = 0;
+          var valueField = this.cfg.valueField;
+          var len = this._data.length;
+
+          while (len--) {
+            var entry = this._data[len];
+            var value = entry[valueField];
+            var latlng = entry.latlng; // we don't wanna render points that are not even on the map ;-)
+
+            if (!bounds.contains(latlng)) {
+              continue;
+            } // local max is the maximum within current bounds
+
+
+            localMax = Math.max(value, localMax);
+            localMin = Math.min(value, localMin);
+
+            var point = this._map.latLngToContainerPoint(latlng);
+
+            var latlngPoint = {
+              x: Math.round(point.x),
+              y: Math.round(point.y)
+            };
+            latlngPoint[valueField] = value;
+            var radius;
+
+            if (entry.radius) {
+              radius = entry.radius * radiusMultiplier;
+            } else {
+              radius = (this.cfg.radius || 2) * radiusMultiplier;
+            }
+
+            latlngPoint.radius = radius;
+            latLngPoints.push(latlngPoint);
+          }
+
+          if (this.cfg.useLocalExtrema) {
+            generatedData.max = localMax;
+            generatedData.min = localMin;
+          }
+
+          generatedData.data = latLngPoints;
+
+          this._heatmap.setData(generatedData);
+        },
+        setData: function setData(data) {
+          this._max = data.max || this._max;
+          this._min = data.min || this._min;
+          var latField = this.cfg.latField || 'lat';
+          var lngField = this.cfg.lngField || 'lng';
+          var valueField = this.cfg.valueField || 'value'; // transform data to latlngs
+
+          var data = data.data;
+          var len = data.length;
+          var d = [];
+
+          while (len--) {
+            var entry = data[len];
+            var latlng = new L.LatLng(entry[latField], entry[lngField]);
+            var dataObj = {
+              latlng: latlng
+            };
+            dataObj[valueField] = entry[valueField];
+
+            if (entry.radius) {
+              dataObj.radius = entry.radius;
+            }
+
+            d.push(dataObj);
+          }
+
+          this._data = d;
+
+          this._draw();
+        },
+        // experimential... not ready.
+        addData: function addData(pointOrArray) {
+          if (pointOrArray.length > 0) {
+            var len = pointOrArray.length;
+
+            while (len--) {
+              this.addData(pointOrArray[len]);
+            }
+          } else {
+            var latField = this.cfg.latField || 'lat';
+            var lngField = this.cfg.lngField || 'lng';
+            var valueField = this.cfg.valueField || 'value';
+            var entry = pointOrArray;
+            var latlng = new L.LatLng(entry[latField], entry[lngField]);
+            var dataObj = {
+              latlng: latlng
+            };
+            dataObj[valueField] = entry[valueField];
+            this._max = Math.max(this._max, dataObj[valueField]);
+            this._min = Math.min(this._min, dataObj[valueField]);
+
+            if (entry.radius) {
+              dataObj.radius = entry.radius;
+            }
+
+            this._data.push(dataObj);
+
+            this._draw();
+          }
+        },
+        _resetOrigin: function _resetOrigin() {
+          this._origin = this._map.layerPointToLatLng(new L.Point(0, 0));
+
+          var size = this._map.getSize();
+
+          if (this._width !== size.x || this._height !== size.y) {
+            this._width = size.x;
+            this._height = size.y;
+            this._el.style.width = this._width + 'px';
+            this._el.style.height = this._height + 'px';
+          }
+
+          this._draw();
+        }
+      });
+
+      HeatmapOverlay.CSS_TRANSFORM = function () {
+        var div = document.createElement('div');
+        var props = ['transform', 'WebkitTransform', 'MozTransform', 'OTransform', 'msTransform'];
+
+        for (var i = 0; i < props.length; i++) {
+          var prop = props[i];
+
+          if (div.style[prop] !== undefined) {
+            return prop;
+          }
+        }
+
+        return props[0];
+      }();
+
+      return HeatmapOverlay;
+    });
+
+    var heatmapLayer = new that.HeatmapOverlay(options);
+    return heatmapLayer;
+  }
+
+  /*
+    1.0.1 (downloaded from https://github.com/Sumbera/gLayers.Leaflet/releases/tag/v1.0.1)
+
+    Generic  Canvas Layer for leaflet 0.7 and 1.0-rc,
+    copyright Stanislav Sumbera,  2016 , sumbera.com , license MIT
+    originally created and motivated by L.CanvasOverlay  available here: https://gist.github.com/Sumbera/11114288
+  */
+  var CanvasLayer = BaseLayer.extend({
+    options: {
+      cursor: 'pointer',
+      createPane: true,
+      zIndex: 300
+    },
+    // -- initialized is called on prototype
+    initialize: function initialize(options) {
+      L.Util.setOptions(this, options);
+      this._map = null;
+      this._canvas = null;
+      this._frame = null;
+      this._delegate = null;
+      this._visible = true;
+      this.options.cursor && this.on('mousemove', this._changeCursorOn, this);
+      BaseLayer.prototype.initialize.call(this, options);
+    },
+    _changeCursorOn: function _changeCursorOn(v) {
+      if (!this.isVisible()) return;
+      if (!this.options.cursor) return;
+      var cursor = this.options.cursor;
+
+      var style = this._map.getContainer().style;
+
+      style.cursor = v !== null ? cursor : 'grab';
+    },
+    delegate: function delegate(del) {
+      this._delegate = del;
+      return this;
+    },
+    needRedraw: function needRedraw() {
+      if (!this._frame) {
+        this._frame = L.Util.requestAnimFrame(this.drawLayer, this);
+      }
+
+      return this;
+    },
+    //-------------------------------------------------------------
+    _onLayerDidResize: function _onLayerDidResize(resizeEvent) {
+      this._canvas.width = resizeEvent.newSize.x;
+      this._canvas.height = resizeEvent.newSize.y;
+    },
+    //-------------------------------------------------------------
+    _onLayerDidMove: function _onLayerDidMove() {
+      var topLeft = this._map.containerPointToLayerPoint([0, 0]);
+
+      L.DomUtil.setPosition(this._canvas, topLeft);
+      this.drawLayer();
+    },
+    //-------------------------------------------------------------
+    getEvents: function getEvents() {
+      var events = {
+        resize: this._onLayerDidResize,
+        moveend: this._onLayerDidMove
+      };
+
+      if (this._map.options.zoomAnimation && L.Browser.any3d) {
+        events.zoomanim = this._animateZoom;
+      }
+
+      return events;
+    },
+    //-------------------------------------------------------------
+    onAdd: function onAdd(map) {
+      this._map = map;
+      this._canvas = L.DomUtil.create('canvas', 'leaflet-layer');
+      this.tiles = {};
+
+      var size = this._map.getSize();
+
+      this._canvas.width = size.x;
+      this._canvas.height = size.y;
+      var animated = this._map.options.zoomAnimation && L.Browser.any3d;
+      L.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide')); // map._panes.overlayPane.appendChild(this._canvas);
+
+      this._pane = this.options.createPane ? map.getPane(String(this._leaflet_id)) || map.createPane(String(this._leaflet_id)) : map.getPanes().overlayPane;
+
+      this._pane.appendChild(this._canvas);
+
+      map.on(this.getEvents(), this);
+      var del = this._delegate || this;
+      del.onLayerDidMount && del.onLayerDidMount(); // -- callback
+
+      this._delegateListeners(map);
+
+      this.setZIndex();
+      this.needRedraw();
+    },
+    //-------------------------------------------------------------
+    onRemove: function onRemove(map) {
+      var del = this._delegate || this;
+      del.onLayerWillUnmount && del.onLayerWillUnmount(); // -- callback
+
+      map.getPanes().overlayPane.removeChild(this._canvas);
+      map.off(this.getEvents(), this);
+      this._canvas = null;
+
+      this._unDelegateListeners(map);
+    },
+    //------------------------------------------------------------
+    addTo: function addTo(map) {
+      map.addLayer(this);
+      return this;
+    },
+    // --------------------------------------------------------------------------------
+    _delegateListeners: function _delegateListeners(map) {
+      map = map || this._map;
+      if (!map) return;
+
+      for (var type in this._events) {
+        map.on(type, this._enableIdentify, this);
+      }
+    },
+    _unDelegateListeners: function _unDelegateListeners(map) {
+      map = map || this._map;
+      if (!map) return;
+
+      for (var type in this._events) {
+        map.off(type, this._enableIdentify, this);
+      }
+    },
+    LatLonToMercator: function LatLonToMercator(latlon) {
+      return {
+        x: latlon.lng * 6378137 * Math.PI / 180,
+        y: Math.log(Math.tan((90 + latlon.lat) * Math.PI / 360)) * 6378137
+      };
+    },
+    show: function show() {
+      this._visible = true;
+
+      this._showCanvas();
+
+      this._delegateListeners();
+    },
+    hide: function hide() {
+      this._visible = false;
+
+      this._hideCanvas();
+
+      this._unDelegateListeners();
+    },
+    isVisible: function isVisible() {
+      return this._visible && this._map;
+    },
+    _showCanvas: function _showCanvas() {
+      if (this._canvas && this._visible) {
+        this._canvas.style.visibility = 'visible';
+      }
+    },
+    _hideCanvas: function _hideCanvas() {
+      if (this._canvas) {
+        this._canvas.style.visibility = 'hidden';
+      }
+    },
+    //------------------------------------------------------------------------------
+    drawLayer: function drawLayer() {
+      // -- todo make the viewInfo properties  flat objects.
+      var size = this._map.getSize();
+
+      var bounds = this._map.getBounds();
+
+      var zoom = this._map.getZoom();
+
+      var center = this.LatLonToMercator(this._map.getCenter());
+      var corner = this.LatLonToMercator(this._map.containerPointToLatLng(this._map.getSize()));
+      var del = this._delegate || this;
+      del.onDrawLayer && del.onDrawLayer({
+        layer: this,
+        canvas: this._canvas,
+        bounds: bounds,
+        size: size,
+        zoom: zoom,
+        center: center,
+        corner: corner
+      });
+      this._frame = null;
+    },
+    //------------------------------------------------------------------------------
+    _animateZoom: function _animateZoom(e) {
+      var scale = this._map.getZoomScale(e.zoom);
+
+      var offset = this._map._latLngToNewLayerPoint(this._map.getBounds().getNorthWest(), e.zoom, e.center);
+
+      L.DomUtil.setTransform(this._canvas, offset, scale);
+    },
+    setZIndex: function setZIndex(z_index) {
+      if (this._pane) this._pane.style.zIndex = z_index ? z_index : this.options.zIndex;
+      return this;
+    },
+    exit: function exit() {
+      this.remove();
+      return this;
+    },
+    _enableIdentify: function _enableIdentify(e) {
+      this.fire(e.type, e);
+    },
+    on: function on(event_type, fn, context) {
+      this._events = this._events || [];
+
+      if (!this._events[event_type] && this._map) {
+        this._map.on(event_type, this._enableIdentify, this);
+      }
+
+      BaseLayer.prototype.on.call(this, event_type, fn, context);
+      return this;
+    },
+    off: function off(event_type, fn, context) {
+      BaseLayer.prototype.off.call(this, event_type, fn, context);
+      this._events = this._events || [];
+
+      if (this._events[event_type] && this._map) {
+        this._map.off(event_type, this._enableIdentify, this);
+      }
+
+      return this;
+    }
+  });
+
+  /**
+   *  Abstract class for a set of values (Vector | Scalar)
+   *  assigned to a regular 2D-grid (lon-lat), aka 'a Raster source'
+   */
+  var Field =
+  /*#__PURE__*/
+  function () {
+    function Field(params) {
+      _classCallCheck(this, Field);
+
+      this.params = params;
+      this.nCols = params['nCols'];
+      this.nRows = params['nRows']; // alias
+
+      this.width = params['nCols'];
+      this.height = params['nRows']; // ll = lower-left
+
+      this.xllCorner = params['xllCorner'];
+      this.yllCorner = params['yllCorner']; // ur = upper-right
+
+      this.xurCorner = params['xllCorner'] + params['nCols'] * params['cellXSize'];
+      this.yurCorner = params['yllCorner'] + params['nRows'] * params['cellYSize'];
+      this.cellXSize = params['cellXSize'];
+      this.cellYSize = params['cellYSize'];
+      this.grid = null; // to be defined by subclasses
+
+      this.isContinuous = this.xurCorner - this.xllCorner >= 360;
+      this.longitudeNeedsToBeWrapped = this.xurCorner > 180; // [0, 360] --> [-180, 180]
+
+      this._inFilter = null;
+      this._spatialMask = null;
+    }
+    /**
+     * Builds a grid with a value at each point (either Vector or Number)
+     * Original params must include the required input values, following
+     * x-ascending & y-descending order (same as in ASCIIGrid)
+     * @abstract
+     * @private
+     * @returns {Array.<Array.<Vector|Number>>} - grid[row][column]--> Vector|Number
+     */
+
+
+    _createClass(Field, [{
+      key: "_buildGrid",
+      value: function _buildGrid() {
+        throw new TypeError('Must be overriden');
+      }
+    }, {
+      key: "_updateRange",
+      value: function _updateRange() {
+        this.range = this._calculateRange();
+      }
+      /**
+       * Number of cells in the grid (rows * cols)
+       * @returns {Number}
+       */
+
+    }, {
+      key: "numCells",
+      value: function numCells() {
+        return this.nRows * this.nCols;
+      }
+      /**
+       * Apply a filter function to field values
+       * @param   {Function} f - boolean function
+       */
+
+    }, {
+      key: "setFilter",
+      value: function setFilter(f) {
+        this._inFilter = f;
+
+        this._updateRange();
+      }
+      /**
+       * Apply a spatial mask to field values
+       * @param {L.Polygon} m 
+       * 
+       * var poly = L.polygon([...]);
+       * var s = ScalarField.fromASCIIGrid(...);
+       * s.setSpatialMask(poly);
+       */
+
+    }, {
+      key: "setSpatialMask",
+      value: function setSpatialMask(m) {
+        this._spatialMask = m;
+      }
+      /**
+       * Grid extent
+       * @returns {Number[]} [xmin, ymin, xmax, ymax]
+       */
+
+    }, {
+      key: "extent",
+      value: function extent() {
+        var _this$_getWrappedLong = this._getWrappedLongitudes(),
+            _this$_getWrappedLong2 = _slicedToArray(_this$_getWrappedLong, 2),
+            xmin = _this$_getWrappedLong2[0],
+            xmax = _this$_getWrappedLong2[1];
+
+        return [xmin, this.yllCorner, xmax, this.yurCorner];
+      }
+      /**
+       * [xmin, xmax] in [-180, 180] range
+       */
+
+    }, {
+      key: "_getWrappedLongitudes",
+      value: function _getWrappedLongitudes() {
+        var xmin = this.xllCorner;
+        var xmax = this.xurCorner;
+
+        if (this.longitudeNeedsToBeWrapped) {
+          if (this.isContinuous) {
+            xmin = -180;
+            xmax = 180;
+          } else {
+            // not sure about this (just one particular case, but others...?)
+            xmax = this.xurCorner - 360;
+            xmin = this.xllCorner - 360;
+            /* eslint-disable no-console */
+            // console.warn(`are these xmin: ${xmin} & xmax: ${xmax} OK?`);
+            // TODO: Better throw an exception on no-controlled situations.
+
+            /* eslint-enable no-console */
+          }
+        }
+
+        return [xmin, xmax];
+      }
+      /**
+       * Returns whether or not the grid contains the point, considering
+       * the spatialMask if it has been previously set
+       * @param   {Number} lon - longitude
+       * @param   {Number} lat - latitude
+       * @returns {Boolean}
+       */
+
+    }, {
+      key: "contains",
+      value: function contains(lon, lat) {
+        if (this._spatialMask) {
+          return this._pointInMask(lon, lat);
+        }
+
+        return this._pointInExtent(lon, lat);
+      }
+      /**
+       * Checks if coordinates are inside the Extent (considering wrapped longitudes if needed)
+       * @param {Number} lon 
+       * @param {Number} lat 
+       */
+
+    }, {
+      key: "_pointInExtent",
+      value: function _pointInExtent(lon, lat) {
+        var _this$_getWrappedLong3 = this._getWrappedLongitudes(),
+            _this$_getWrappedLong4 = _slicedToArray(_this$_getWrappedLong3, 2),
+            xmin = _this$_getWrappedLong4[0],
+            xmax = _this$_getWrappedLong4[1];
+
+        var longitudeIn = lon >= xmin && lon <= xmax;
+        var latitudeIn = lat >= this.yllCorner && lat <= this.yurCorner;
+        return longitudeIn && latitudeIn;
+      }
+      /**
+       * Check if coordinates are inside the spatialMask (Point in Polygon analysis)
+       * @param {Number} lon 
+       * @param {Number} lat 
+       */
+
+    }, {
+      key: "_pointInMask",
+      value: function _pointInMask(lon, lat) {
+        var pt = {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [lon, lat] // geojson, lon-lat order !
+
+          },
+          properties: {}
+        };
+        var poly = this._spatialMask;
+        return this._inside(pt, poly);
+      }
+      /**
+       * Check if point is inside the polygon.
+       * @param {Object} pt 
+       * @param {L.Polygon} poly 
+       */
+
+    }, {
+      key: "_inside",
+      value: function _inside(pt, poly) {
+        var inside = false;
+        var x = pt.geometry.coordinates[1],
+            y = pt.geometry.coordinates[0];
+
+        for (var ii = 0; ii < poly.getLatLngs().length; ii++) {
+          var polyPoints = poly.getLatLngs()[ii];
+
+          for (var i = 0, j = polyPoints.length - 1; i < polyPoints.length; j = i++) {
+            var xi = polyPoints[i].lat,
+                yi = polyPoints[i].lng;
+            var xj = polyPoints[j].lat,
+                yj = polyPoints[j].lng;
+            var intersect = yi > y != yj > y && x < (xj - xi) * (y - yi) / (yj - yi) + xi;
+            if (intersect) inside = !inside;
+          }
+        }
+
+        return inside;
+      }
+    }, {
+      key: "notContains",
+
+      /**
+       * Returns if the grid doesn't contain the point
+       * @param   {Number} lon - longitude
+       * @param   {Number} lat - latitude
+       * @returns {Boolean}
+       */
+      value: function notContains(lon, lat) {
+        return !this.contains(lon, lat);
+      }
+      /**
+       * Get decimal indexes
+       * @private
+       * @param {Number} lon
+       * @param {Number} lat
+       * @returns {Array}    [[Description]]
+       */
+
+    }, {
+      key: "_getDecimalIndexes",
+      value: function _getDecimalIndexes(lon, lat) {
+        if (this.longitudeNeedsToBeWrapped && lon < this.xllCorner) {
+          lon = lon + 360;
+        }
+
+        var i = (lon - this.xllCorner) / this.cellXSize;
+        var j = (this.yurCorner - lat) / this.cellYSize;
+        return [i, j];
+      }
+      /**
+       * Nearest value at lon-lat coordinates
+       * @param   {Number} longitude
+       * @param   {Number} latitude
+       * @returns {Vector|Number}
+       */
+
+    }, {
+      key: "valueAt",
+      value: function valueAt(lon, lat) {
+        if (this.notContains(lon, lat)) return null;
+
+        var _this$_getDecimalInde = this._getDecimalIndexes(lon, lat),
+            _this$_getDecimalInde2 = _slicedToArray(_this$_getDecimalInde, 2),
+            i = _this$_getDecimalInde2[0],
+            j = _this$_getDecimalInde2[1];
+
+        var ii = Math.floor(i);
+        var jj = Math.floor(j);
+
+        var ci = this._clampColumnIndex(ii);
+
+        var cj = this._clampRowIndex(jj);
+
+        var value = this._valueAtIndexes(ci, cj);
+
+        if (this._inFilter) {
+          if (!this._inFilter(value)) return null;
+        }
+
+        return value;
+      }
+      /**
+       * Returns whether or not the field has a value at the point
+       * @param   {Number} lon - longitude
+       * @param   {Number} lat - latitude
+       * @returns {Boolean}
+       */
+
+    }, {
+      key: "hasValueAt",
+      value: function hasValueAt(lon, lat) {
+        var value = this.valueAt(lon, lat);
+        var hasValue = value !== null;
+        var included = true;
+
+        if (this._inFilter) {
+          included = this._inFilter(value);
+        }
+
+        return hasValue && included;
+      }
+      /**
+       * Returns if the grid has no value at the point
+       * @param   {Number} lon - longitude
+       * @param   {Number} lat - latitude
+       * @returns {Boolean}
+       */
+
+    }, {
+      key: "notHasValueAt",
+      value: function notHasValueAt(lon, lat) {
+        return !this.hasValueAt(lon, lat);
+      }
+      /**
+       * Gives a random position to 'o' inside the grid
+       * @param {Object} [o] - an object (eg. a particle)
+       * @returns {{x: Number, y: Number}} - object with x, y (lon, lat)
+       */
+
+    }, {
+      key: "randomPosition",
+      value: function randomPosition() {
+        var o = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        var i = Math.random() * this.nCols | 0;
+        var j = Math.random() * this.nRows | 0;
+        o.x = this._longitudeAtX(i);
+        o.y = this._latitudeAtY(j);
+        return o;
+      }
+      /**
+       * Value for grid indexes
+       * @param   {Number} i - column index (integer)
+       * @param   {Number} j - row index (integer)
+       * @returns {Vector|Number}
+       */
+
+    }, {
+      key: "_valueAtIndexes",
+      value: function _valueAtIndexes(i, j) {
+        return this.grid[j][i]; // <-- j,i !!
+      }
+      /**
+       * Lon-Lat for grid indexes
+       * @param   {Number} i - column index (integer)
+       * @param   {Number} j - row index (integer)
+       * @returns {Number[]} [lon, lat]
+       */
+
+    }, {
+      key: "_lonLatAtIndexes",
+      value: function _lonLatAtIndexes(i, j) {
+        var lon = this._longitudeAtX(i);
+
+        var lat = this._latitudeAtY(j);
+
+        return [lon, lat];
+      }
+      /**
+       * Longitude for grid-index
+       * @param   {Number} i - column index (integer)
+       * @returns {Number} longitude at the center of the cell
+       */
+
+    }, {
+      key: "_longitudeAtX",
+      value: function _longitudeAtX(i) {
+        var halfXPixel = this.cellXSize / 2.0;
+        var lon = this.xllCorner + halfXPixel + i * this.cellXSize;
+
+        if (this.longitudeNeedsToBeWrapped) {
+          lon = lon > 180 ? lon - 360 : lon;
+        }
+
+        return lon;
+      }
+      /**
+       * Latitude for grid-index
+       * @param   {Number} j - row index (integer)
+       * @returns {Number} latitude at the center of the cell
+       */
+
+    }, {
+      key: "_latitudeAtY",
+      value: function _latitudeAtY(j) {
+        var halfYPixel = this.cellYSize / 2.0;
+        return this.yurCorner - halfYPixel - j * this.cellYSize;
+      }
+      /**
+       * Apply the interpolation
+       * @abstract
+       * @private
+       */
+
+      /* eslint-disable no-unused-vars */
+
+    }, {
+      key: "_doInterpolation",
+      value: function _doInterpolation(x, y, g00, g10, g01, g11) {
+        throw new TypeError('Must be overriden');
+      }
+      /* eslint-disable no-unused-vars */
+
+      /**
+       * Check the column index is inside the field,
+       * adjusting to min or max when needed
+       * @private
+       * @param   {Number} ii - index
+       * @returns {Number} i - inside the allowed indexes
+       */
+
+    }, {
+      key: "_clampColumnIndex",
+      value: function _clampColumnIndex(ii) {
+        var i = ii;
+
+        if (ii < 0) {
+          i = 0;
+        }
+
+        var maxCol = this.nCols - 1;
+
+        if (ii > maxCol) {
+          i = maxCol;
+        }
+
+        return i;
+      }
+      /**
+       * Check the row index is inside the field,
+       * adjusting to min or max when needed
+       * @private
+       * @param   {Number} jj index
+       * @returns {Number} j - inside the allowed indexes
+       */
+
+    }, {
+      key: "_clampRowIndex",
+      value: function _clampRowIndex(jj) {
+        var j = jj;
+
+        if (jj < 0) {
+          j = 0;
+        }
+
+        var maxRow = this.nRows - 1;
+
+        if (jj > maxRow) {
+          j = maxRow;
+        }
+
+        return j;
+      }
+      /**
+       * Is valid (not 'null' nor 'undefined')
+       * @private
+       * @param   {Object} x object
+       * @returns {Boolean}
+       */
+
+    }, {
+      key: "_isValid",
+      value: function _isValid(x) {
+        return x !== null && x !== undefined;
+      }
+    }]);
+
+    return Field;
+  }();
+  /**
+   * Scalar Field
+   */
+
+
+  var ScalarField =
+  /*#__PURE__*/
+  function (_Field) {
+    _inherits(ScalarField, _Field);
+
+    _createClass(ScalarField, null, [{
+      key: "fromASCIIGrid",
+
+      /**
+       * Creates a ScalarField from the content of an ASCIIGrid file
+       * @param   {String}   asc
+       * @returns {ScalarField}
+       */
+      value: function fromASCIIGrid(asc) {
+        var scaleFactor = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+        //console.time('ScalarField from ASC');
+        var lines = asc.split('\n'); // Header
+
+        var header = ScalarField._parseASCIIGridHeader(lines.slice(0, 6)); // Data (left-right and top-down)
+
+
+        var zs = [];
+
+        for (var i = 6; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (line === '') break;
+          var items = line.split(' ');
+          items.forEach(function (it) {
+            var floatItem = parseFloat(it);
+            var v = floatItem !== header.noDataValue ? floatItem * scaleFactor : null;
+            zs.push(v);
+          });
+        }
+
+        var p = header;
+        p.zs = zs; // p.range = [min_value, max]
+        //console.timeEnd('ScalarField from ASC');
+
+        return new ScalarField(p);
+      }
+      /**
+       * Parse an ASCII Grid header, made with 6 lines
+       * It allows the use of XLLCORNER/YLLCORNER or XLLCENTER/YLLCENTER conventions
+       * @param {Array.String} headerLines
+       */
+
+    }, {
+      key: "_parseASCIIGridHeader",
+      value: function _parseASCIIGridHeader(headerLines) {
+        try {
+          var headerItems = headerLines.map(function (line) {
+            var items = line.split(' ').filter(function (i) {
+              return i != '';
+            });
+            var param = items[0].trim().toUpperCase();
+            var value = param === 'CELLSIZE' ? items.slice(1, 3) : parseFloat(items[1].trim());
+            return _defineProperty({}, param, value);
+          }); // headerItems: [{ncols: xxx}, {nrows: xxx}, ...]
+
+          var usesCorner = 'XLLCORNER' in headerItems[2];
+          var cellXSize, cellYSize;
+
+          if (headerItems[4]['CELLSIZE'].length == 2) {
+            cellXSize = parseFloat(headerItems[4]['CELLSIZE'][0].trim());
+            cellYSize = parseFloat(headerItems[4]['CELLSIZE'][1].trim());
+          } else {
+            cellXSize = cellYSize = parseFloat(headerItems[4]['CELLSIZE'][0].trim());
+          } // const cellSize = headerItems[4]['CELLSIZE'];
+
+
+          var header = {
+            nCols: parseInt(headerItems[0]['NCOLS']),
+            nRows: parseInt(headerItems[1]['NROWS']),
+            xllCorner: usesCorner ? headerItems[2]['XLLCORNER'] : headerItems[2]['XLLCENTER'] - cellXSize,
+            yllCorner: usesCorner ? headerItems[3]['YLLCORNER'] : headerItems[3]['YLLCENTER'] - cellYSize,
+            cellXSize: cellXSize,
+            cellYSize: cellYSize,
+            noDataValue: headerItems[5]['NODATA_VALUE']
+          };
+          return header;
+        } catch (err) {
+          throw new Error("Not a valid ASCIIGrid Header: ".concat(err));
+        }
+      }
+      /**
+       * Creates a ScalarField from the content of a GeoTIFF file
+       * @param   {ArrayBuffer}   data
+       * @param   {Number}   bandIndex
+       * @returns {ScalarField}
+       */
+
+    }, {
+      key: "fromGeoTIFF",
+      value: function fromGeoTIFF(data) {
+        var bandIndex = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+        return ScalarField.multipleFromGeoTIFF(data, [bandIndex])[0];
+      }
+      /**
+       * Creates a ScalarField array (one per band) from the content of a GeoTIFF file
+       * @param   {ArrayBuffer}   data
+       * @param   {Array}   bandIndexes - if not provided all bands are returned
+       * @returns {Array.<ScalarField>}
+       */
+
+    }, {
+      key: "multipleFromGeoTIFF",
+      value: function multipleFromGeoTIFF(data, bandIndexes) {
+        //console.time('ScalarField from GeoTIFF');
+        var tiff = GeoTIFF.parse(data); // geotiff.js
+
+        var image = tiff.getImage();
+        var rasters = image.readRasters();
+        var tiepoint = image.getTiePoints()[0];
+        var fileDirectory = image.getFileDirectory();
+
+        var _fileDirectory$ModelP = _slicedToArray(fileDirectory.ModelPixelScale, 2),
+            xScale = _fileDirectory$ModelP[0],
+            yScale = _fileDirectory$ModelP[1];
+
+        if (typeof bandIndexes === 'undefined' || bandIndexes.length === 0) {
+          bandIndexes = _toConsumableArray(Array(rasters.length).keys());
+        }
+
+        var scalarFields = [];
+        scalarFields = bandIndexes.map(function (bandIndex) {
+          var zs = rasters[bandIndex]; // left-right and top-down order
+
+          if (fileDirectory.GDAL_NODATA) {
+            var noData = parseFloat(fileDirectory.GDAL_NODATA);
+            var simpleZS = Array.from(zs); // to simple array, so null is allowed | TODO efficiency??
+
+            zs = simpleZS.map(function (z) {
+              return z === noData ? null : z;
+            });
+          }
+
+          var p = {
+            nCols: image.getWidth(),
+            nRows: image.getHeight(),
+            xllCorner: tiepoint.x,
+            yllCorner: tiepoint.y - image.getHeight() * yScale,
+            cellXSize: xScale,
+            cellYSize: yScale,
+            zs: zs
+          };
+          return new ScalarField(p);
+        }); //console.timeEnd('ScalarField from GeoTIFF');
+
+        return scalarFields;
+      }
+    }]);
+
+    function ScalarField(params, grid) {
+      var _this;
+
+      _classCallCheck(this, ScalarField);
+
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(ScalarField).call(this, params));
+      _this.zs = params['zs'];
+      _this.grid = grid || _this._buildGrid();
+
+      _this._updateRange();
+
+      return _this;
+    }
+    /**
+     * Builds a grid with a Number at each point, from an array
+     * 'zs' following x-ascending & y-descending order
+     * (same as in ASCIIGrid)
+     * @private
+     * @returns {Array.<Array.<Number>>} - grid[row][column]--> Number
+     */
+
+
+    _createClass(ScalarField, [{
+      key: "_buildGrid",
+      value: function _buildGrid() {
+        var grid = this._arrayTo2d(this.zs, this.nRows, this.nCols);
+
+        return grid;
+      }
+    }, {
+      key: "_arrayTo2d",
+      value: function _arrayTo2d(array, nRows, nCols) {
+        var grid = [];
+        var p = 0;
+
+        for (var j = 0; j < nRows; j++) {
+          var row = [];
+
+          for (var i = 0; i < nCols; i++, p++) {
+            var z = array[p];
+            row[i] = this._isValid(z) ? z : null; // <<<
+          }
+
+          grid[j] = row;
+        }
+
+        return grid;
+      }
+    }, {
+      key: "_newDataArrays",
+      value: function _newDataArrays(params) {
+        params['zs'] = [];
+      }
+    }, {
+      key: "_pushValueToArrays",
+      value: function _pushValueToArrays(params, value) {
+        params['zs'].push(value);
+      }
+    }, {
+      key: "_makeNewFrom",
+      value: function _makeNewFrom(params) {
+        return new ScalarField(params);
+      }
+      /**
+       * Calculate min & max values
+       * @private
+       * @returns {Array} - [min, max]
+       */
+
+    }, {
+      key: "_calculateRange",
+      value: function _calculateRange() {
+        var data = this.grid;
+
+        if (this._inFilter) {
+          data = data.filter(this._inFilter);
+        }
+
+        var min_value = undefined,
+            max_value = undefined;
+
+        for (var i = 0, nRows = this.nRows; i < nRows; ++i) {
+          for (var j = 0, nCols = this.nCols; j < nCols; ++j) {
+            var v = data[i][j];
+            if (v === null) continue;
+            min_value = min_value === undefined ? v : min_value > v ? v : min_value;
+            max_value = max_value === undefined ? v : max_value < v ? v : max_value;
+          }
+        }
+
+        return [min_value, max_value];
+      }
+      /**
+       * Bilinear interpolation for Number
+       * https://en.wikipedia.org/wiki/Bilinear_interpolation
+       * @param   {Number} x
+       * @param   {Number} y
+       * @param   {Number} g00
+       * @param   {Number} g10
+       * @param   {Number} g01
+       * @param   {Number} g11
+       * @returns {Number}
+       */
+
+    }, {
+      key: "_doInterpolation",
+      value: function _doInterpolation(x, y, g00, g10, g01, g11) {
+        var rx = 1 - x;
+        var ry = 1 - y;
+        return g00 * rx * ry + g10 * x * ry + g01 * rx * y + g11 * x * y;
+      }
+    }]);
+
+    return ScalarField;
+  }(Field);
+
+  /**
+   * Abstract class for a Field layer on canvas, aka 'a Raster layer'
+   * (ScalarField or a VectorField)
+   */
+
+  var FieldMap = CanvasLayer.extend({
+    options: {
+      opacity: 1,
+      inFilter: null
+    },
+    initialize: function initialize(options) {
+      L.Util.setOptions(this, options);
+      this._visible = true;
+      CanvasLayer.prototype.initialize.call(this, options);
+    },
+    getEvents: function getEvents() {
+      var events = CanvasLayer.prototype.getEvents.call(this);
+      events.zoomstart = this._hideCanvas.bind(this);
+      events.zoomend = this._showCanvas.bind(this);
+      return events;
+    },
+    onLayerDidMount: function onLayerDidMount() {
+      // this._enableIdentify();
+      this._ensureCanvasAlignment(); // this._addControlBar();
+
+    },
+    // _enableIdentify() {
+    //     this._map.on('click', this._onClick, this);
+    //     this._map.on('mousemove', this._onMouseMove, this);
+    //     this.options.onClick && this.on('click', this.options.onClick, this);
+    //     this.options.onMouseMove &&
+    //         this.on('mousemove', this.options.onMouseMove, this);
+    // },
+    // _disableIdentify() {
+    //     this._map.off('click', this._onClick, this);
+    //     this._map.off('mousemove', this._onMouseMove, this);
+    //     this.options.onClick && this.off('click', this.options.onClick, this);
+    //     this.options.onMouseMove &&
+    //         this.off('mousemove', this.options.onMouseMove, this);
+    // },
+    // _addControlBar() {
+    //     if (!this.options.controlBar || !this.options.color.getAttr) return;
+    //     if (!this._controlBar) {
+    //         let control = L.control({position: 'bottomright'}), 
+    //             that = this;
+    //         control.onAdd = function(map) {
+    //             var div = L.DomUtil.create('div', 'controlbar');
+    //             let attrs = that.options.color.getAttr();
+    //             for (let i in attrs.colors) {
+    //                 let color = attrs.colors[i].toHex(),
+    //                     value = attrs.values[i],
+    //                     innerDiv = L.DomUtil.create('div', 'controlbar-list', div),
+    //                     leftColor = L.DomUtil.create('div', 'left', innerDiv),
+    //                     rightValue = L.DomUtil.create('span', 'right', innerDiv);
+    //                 leftColor.style.backgroundColor = color;
+    //                 rightValue.innerHTML = value;
+    //             }
+    //             return div;
+    //         }
+    //         control.onRemove = function(){}
+    //         this._controlBar = control;
+    //     }
+    //     this._controlBar.addTo(this._map)
+    // },
+    _ensureCanvasAlignment: function _ensureCanvasAlignment() {
+      var topLeft = this._map.containerPointToLayerPoint([0, 0]);
+
+      L.DomUtil.setPosition(this._canvas, topLeft);
+    },
+    _animateZoom: function _animateZoom() {},
+    onLayerWillUnmount: function onLayerWillUnmount() {// this._disableIdentify();
+    },
+    needRedraw: function needRedraw() {
+      if (this._map && this._field) {
+        CanvasLayer.prototype.needRedraw.call(this);
+      }
+    },
+
+    /* eslint-disable no-unused-vars */
+    onDrawLayer: function onDrawLayer(viewInfo) {
+      throw new TypeError('Must be overriden');
+    },
+
+    /* eslint-enable no-unused-vars */
+    // `data`: 2d Array
+    // `map_function`: value: value
+    // `params`: 
+    //      params.nCols
+    //      params.nRows
+    //      params.xllCorner
+    //      params.yllCorner
+    //      params.cellXSize
+    //      params.cellYSize
+    data: function data(_data, map_function, params) {
+      var is2d = false,
+          i,
+          len;
+      this.remove();
+
+      if (Array.isArray(_data) && _data.length) {
+        is2d = true;
+
+        for (i = 0, len = _data.length; i < len; ++i) {
+          if (!Array.isArray(_data[i])) {
+            is2d = false;
+            break;
+          }
+        }
+      }
+
+      this._params = params || {};
+      if (is2d) this._data = _data.map(function (row, i) {
+        return row.map(function (value, j) {
+          return map_function(value, [i, j]);
+        });
+      });else {
+        this._data = [];
+
+        for (i = 0, len = _data.length; i < len; ++i) {
+          this._data.push(map_function(_data[i], [i / params.nCols, i % params.nRows]));
+        }
+      } // this.needRedraw();
+
+      return this;
+    },
+    setFilter: function setFilter(f) {
+      this.options.inFilter = f;
+      this._field && this._field.setFilter(f);
+      this.needRedraw();
+    },
+    setOpacity: function setOpacity(opacity) {
+      this.options.opacity = opacity;
+
+      if (this._canvas) {
+        this._updateOpacity();
+      }
+
+      return this;
+    },
+    getBounds: function getBounds() {
+      if (!this._field) return undefined;
+
+      var bb = this._field.extent();
+
+      var southWest = L.latLng(bb[1], bb[0]),
+          northEast = L.latLng(bb[3], bb[2]);
+      var bounds = L.latLngBounds(southWest, northEast);
+      return bounds;
+    },
+    // _onClick: function (e) {
+    //     let v = this._queryValue(e);
+    //     this.fire('click', v);
+    // },
+    // _onMouseMove: function (e) {
+    //     let v = this._queryValue(e);
+    //     this._changeCursorOn(v);
+    //     this.fire('mousemove', v);
+    // },
+    _updateOpacity: function _updateOpacity() {
+      L.DomUtil.setOpacity(this._canvas, this.options.opacity);
+    },
+    _queryValue: function _queryValue(e) {
+      if (!e) return e;
+      var latlng = e.latlng,
+          lat = latlng.lat,
+          lng = latlng.lng,
+          v = this._field ? this._field.valueAt(lng, lat) : null,
+          originData = null,
+          ii = null,
+          jj = null;
+
+      if (this._field && this._field.contains(lng, lat)) {
+        var _this$_field$_getDeci = this._field._getDecimalIndexes(lng, lat);
+
+        var _this$_field$_getDeci2 = _slicedToArray(_this$_field$_getDeci, 2);
+
+        jj = _this$_field$_getDeci2[0];
+        ii = _this$_field$_getDeci2[1];
+        jj = this._field._clampColumnIndex(Math.floor(jj));
+        ii = this._field._clampRowIndex(Math.floor(ii));
+        originData = this._data[ii][jj];
+      }
+
+      var result = _objectSpread({}, e, {
+        index: [ii, jj],
+        value: v,
+        originData: e
+      });
+
+      return result;
+    },
+    _getDrawingContext: function _getDrawingContext() {
+      var g = this._canvas.getContext('2d');
+
+      g.clearRect(0, 0, this._canvas.width, this._canvas.height);
+      return g;
+    },
+    enter: function enter() {
+      this._field = new ScalarField(this._params, this._data);
+      this.needRedraw();
+      return this;
+    }
+  });
+  /**
+   * ScalarField on canvas (a 'Raster')
+   */
+
+  var CanvasGridLayer = FieldMap.extend({
+    options: {
+      color: null,
+      // function colorFor(value) [e.g. chromajs.scale],
+      // controlBar: false,
+      border: false,
+      borderWidth: 0.5,
+      borderColor: '#000000',
+      borderOpacity: 0.99
+    },
+    initialize: function initialize(options) {
+      FieldMap.prototype.initialize.call(this, options);
+      L.Util.setOptions(this, options);
+    },
+    _defaultColorScale: function _defaultColorScale() {
+      return colorScale(['white', 'black']).domain(this._field.range); // return chroma.scale(['white', 'black']).domain(this._field.range);
+    },
+    setColor: function setColor(f) {
+      this.options.color = f;
+      this.needRedraw();
+    },
+
+    /* eslint-disable no-unused-vars */
+    onDrawLayer: function onDrawLayer(viewInfo) {
+      if (!this.isVisible()) return;
+
+      this._updateOpacity();
+
+      this._drawImage();
+    },
+
+    /* eslint-enable no-unused-vars */
+    _ensureColor: function _ensureColor() {
+      if (this.options.color === null) {
+        this.setColor(this._defaultColorScale());
+      }
+    },
+    _showCanvas: function _showCanvas() {
+      FieldMap.prototype._showCanvas.call(this);
+
+      this.needRedraw(); // TODO check spurious redraw (e.g. hide/show without moving map)
+    },
+    _drawImage: function _drawImage() {
+      this._ensureColor();
+
+      var borderColor = this.getBorderColor().toRGBA(),
+          ctx = this._getDrawingContext(),
+          bounds = this._pixelBounds(),
+          pixelXSize = (bounds.max.x - bounds.min.x) / this._field.nCols,
+          pixelYSize = (bounds.max.y - bounds.min.y) / this._field.nRows;
+
+      ctx.lineWidth = this.options.borderWidth / 2;
+      ctx.strokeStyle = borderColor;
+
+      for (var j = 0; j < this._field.nRows; ++j) {
+        for (var i = 0; i < this._field.nCols; ++i) {
+          var value = this._field._valueAtIndexes(i, j);
+
+          if (value === null) continue;
+
+          var _xll = this._field.xllCorner + i * this._field.cellXSize,
+              _yur = this._field.yurCorner - j * this._field.cellYSize;
+
+          var _xllPixel = this._map.latLngToContainerPoint([_yur, _xll]).x,
+              _yurPixel = this._map.latLngToContainerPoint([_yur, _xll]).y;
+
+          var color = this._getColorFor(value);
+
+          ctx.fillStyle = color.toRGBA();
+          ctx.fillRect(_xllPixel, _yurPixel, pixelXSize, pixelYSize);
+          this.options.border && this.options.borderWidth * 2 < Math.min(pixelXSize, pixelYSize) && ctx.strokeRect(_xllPixel, _yurPixel, pixelXSize, pixelYSize);
+        }
+      }
+    },
+    getBorderColor: function getBorderColor() {
+      var color = new RGBColor(this.options.borderColor);
+
+      if (color.a === null) {
+        color.a = this.options.borderOpacity;
+      }
+
+      return color;
+    },
+    _isOnBorder: function _isOnBorder(x, y, epsilon) {
+      var bounds = this._pixelBounds();
+
+      var pixelXSize = (bounds.max.x - bounds.min.x) / this._field.nCols,
+          pixelYSize = (bounds.max.y - bounds.min.y) / this._field.nRows;
+      if ((x - bounds.min.x) % pixelXSize <= epsilon || (x - bounds.min.x) % pixelXSize >= pixelXSize - epsilon) return true;
+      if ((y - bounds.min.y) % pixelYSize <= epsilon || (y - bounds.min.y) % pixelYSize >= pixelYSize - epsilon) return true;
+      return false;
+    },
+    _pixelBounds: function _pixelBounds() {
+      var bounds = this.getBounds();
+
+      var northWest = this._map.latLngToContainerPoint(bounds.getNorthWest());
+
+      var southEast = this._map.latLngToContainerPoint(bounds.getSouthEast());
+
+      var pixelBounds = L.bounds(northWest, southEast);
+      return pixelBounds;
+    },
+
+    /**
+     * Gets a chroma color for a pixel value, according to 'options.color'
+     */
+    _getColorFor: function _getColorFor(v) {
+      var c = this.options.color; // e.g. for a constant 'red'
+
+      if (typeof c === 'function') {
+        c = String(this.options.color(v));
+      }
+
+      var color = new RGBColor(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
+
+      return color;
+    }
+  });
+  var canvasGridLayer = function canvasGridLayer(scalarField, options) {
+    return new CanvasGridLayer(scalarField, options);
+  };
+
+  var SVGGridLayer = GroupLayer.extend({
+    options: {
+      color: null,
+      border: false,
+      borderWidth: 0.5,
+      borderColor: '#000000',
+      borderOpacity: 0.99
+    },
+    setField: function setField(field) {
+      this._field = field;
+    },
+    _ensureColor: function _ensureColor() {
+      if (this.options.color === undefined) {
+        this.options.color = this._defaultColorScale();
+      }
+    },
+    _defaultColorScale: function _defaultColorScale() {
+      return colorScale(['white', 'black']).domain(this._field.range);
+    },
+    _getColorFor: function _getColorFor(v) {
+      var c = this.options.color; // e.g. for a constant 'red'
+
+      if (typeof c === 'function') {
+        c = String(this.options.color(v));
+      }
+
+      var color = new RGBColor(c); // to be more flexible, a chroma color object is always created || TODO improve efficiency
+
+      return color;
+    },
+    data: function data(field) {
+      this.setField(field);
+
+      this._ensureColor();
+
+      this._data = [];
+
+      for (var i = 0; i < this._field.nRows; ++i) {
+        for (var j = 0; j < this._field.nCols; ++j) {
+          var value = this._field.grid[i][j];
+          if (value === null) continue;
+
+          var color = this._getColorFor(value),
+              point = {
+            coordinates: [[this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize], [this._field.yurCorner - i * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + (j + 1) * this._field.cellXSize], [this._field.yurCorner - (i + 1) * this._field.cellYSize, this._field.xllCorner + j * this._field.cellXSize]],
+            options: {
+              fillOpacity: 0.9,
+              fillColor: color,
+              color: this.options.borderColor,
+              weight: this.options.border ? this.options.borderWidth : 0
+            }
+          };
+
+          this._data.push(point);
+        }
+      }
+
+      return this;
+    },
+    generate: function generate() {
+      return this._data.map(function (data) {
+        return L.polygon(data.coordinates, data.options);
+      });
+    }
+  });
+
+  var CanvasPolylineLayer = CanvasLayer.extend({
+    options: {
+      divideParts: 2
+    },
+
+    /**
+     * 
+     * @param {Array} data 
+     * @param {function} fn 
+     * 
+     * var l = new CanvasPolylineLayer(options);
+     * var arr = [[[1, 2], [11, 12], [21, 22]], [another polyline]];
+     * l.data(arr, function(d) {
+     *      return {
+     *          coordinates: d.map(x => L.latLng(x)), 
+     *          options: { color: d.length > 2 ? 'gray' : 'black' }
+     *      }
+     *  });
+     * 
+     * 
+     */
+    data: function data(_data, map_function) {
+      this._data = _data.map(map_function, this);
+      return this;
+    },
+    enter: function enter() {
+      this._polylines = this._data.map(function (d, i) {
+        var polyline = {
+          coordinates: d.coordinates.map(function (x) {
+            return L.latLng(x);
+          }),
+          latLngBounds: L.latLngBounds(),
+          options: {
+            color: '#000000',
+            width: 1,
+            zoomLevel: 1
+          },
+          index: i
+        };
+        polyline.coordinates.forEach(function (x) {
+          polyline.latLngBounds.extend(x);
+        });
+        L.setOptions(polyline, d.options);
+        return polyline;
+      }); // calculate new bounds
+
+      this._bounds = undefined;
+      this.getBounds();
+      return this;
+    },
+    _updateOpacity: function _updateOpacity() {
+      L.DomUtil.setOpacity(this._canvas, this.options.opacity);
+    },
+    setOpacity: function setOpacity(opacity) {
+      this.options.opacity = opacity;
+
+      if (this._canvas) {
+        this._updateOpacity();
+      }
+
+      return this;
+    },
+    getBounds: function getBounds() {
+      if (this._bounds === undefined) {
+        var bounds = L.latLngBounds();
+
+        this._polylines.forEach(function (pl) {
+          bounds.extend(pl.latLngBounds);
+        });
+
+        this._bounds = bounds;
+
+        this._divideParts();
+      }
+
+      return this._bounds;
+    },
+    _divideParts: function _divideParts() {
+      var _this = this;
+
+      var n = this.options.divideParts,
+          west = this.getBounds().getWest(),
+          east = this.getBounds().getEast(),
+          north = this.getBounds().getNorth(),
+          south = this.getBounds().getSouth();
+      this._divideBoundsParts = [];
+      this._dividePolylinesParts = [];
+
+      for (var i = 0; i < n; ++i) {
+        var lat_rate_1 = i / n,
+            lat_rate_2 = (i + 1) / n;
+
+        for (var j = 0; j < n; ++j) {
+          var lng_rate_1 = j / n,
+              lng_rate_2 = (j + 1) / n,
+              _southWest = L.latLng(south + lat_rate_1 * (north - south), west + lng_rate_1 * (east - west)),
+              _northEast = L.latLng(south + lat_rate_2 * (north - south), west + lng_rate_2 * (east - west)),
+              divideBoundsPart = L.latLngBounds(_southWest, _northEast);
+
+          this._divideBoundsParts.push(divideBoundsPart);
+        }
+      }
+
+      var _loop = function _loop(_i) {
+        var divideBoundsPart = _this._divideBoundsParts[_i],
+            dividePolylinesPart = [];
+
+        _this._polylines.forEach(function (polyline) {
+          if (polyline.latLngBounds.intersects(divideBoundsPart)) dividePolylinesPart.push(polyline);
+        });
+
+        _this._dividePolylinesParts.push(dividePolylinesPart);
+      };
+
+      for (var _i in this._divideBoundsParts) {
+        _loop(_i);
+      }
+    },
+    onDrawLayer: function onDrawLayer(viewInfo) {
+      // if (!this.isVisible()) return;
+      if (!this._map) return;
+
+      this._updateOpacity();
+
+      this._drawPolylines();
+    },
+    onLayerDidMount: function onLayerDidMount() {
+      // this._enableIdentify();
+      this._map.getContainer().style.cursor = this.options.cursor;
+      this.needRedraw();
+    },
+    onLayerWillUnmount: function onLayerWillUnmount() {
+      // this._disableIdentify();
+      this._map.getContainer().style.cursor = '';
+    },
+    // _enableIdentify: function() {
+    //     // Everytime when CLICK on `this._map`, `this` will 
+    //     // react on a CLICK event.
+    //    this._map.on('click', this._onClick, this);
+    //    // If there exists an `onClick` parameter, then bind this 
+    //    // function to CLICK event.
+    //    this.options.onClick && this.on('click', this.options.onClick, this);
+    // },
+    // _disableIdentify: function() {
+    //     this._map.off('click', this._onClick, this);
+    //     this.options.onClick && this.off('click', this.options.onClick, this);
+    // },
+    // _onClick: function(e) {
+    //     let v = this._queryValue(e);
+    //     this.fire('click', v);
+    // },
+    needRedraw: function needRedraw() {
+      if (this._map) {
+        CanvasLayer.prototype.needRedraw.call(this);
+      }
+    },
+    _isDisplayPolyline: function _isDisplayPolyline(polyline) {
+      return this._map.getZoom() >= polyline.options.zoomLevel;
+    },
+    _drawPolylines: function _drawPolylines() {
+      if (!this._polylines) return;
+
+      var ctx = this._getDrawingContext();
+
+      for (var i = 0; i < this._polylines.length; ++i) {
+        if (!this._isDisplayPolyline(this._polylines[i])) continue;
+
+        var latlngs = this._polylines[i].coordinates.map(function (x) {
+          return L.latLng(x);
+        });
+
+        this._prepareOptions(this._polylines[i], ctx);
+
+        ctx.beginPath();
+        if (latlngs.length) ctx.moveTo(this._map.latLngToContainerPoint(latlngs[0]).x, this._map.latLngToContainerPoint(latlngs[0]).y);
+
+        for (var j = 1; j < latlngs.length; ++j) {
+          ctx.lineTo(this._map.latLngToContainerPoint(latlngs[j]).x, this._map.latLngToContainerPoint(latlngs[j]).y);
+        }
+
+        ctx.stroke();
+        ctx.closePath();
+      }
+    },
+    _getDrawingContext: function _getDrawingContext() {
+      var g = this._canvas.getContext('2d');
+
+      g.clearRect(0, 0, this._canvas.width, this._canvas.height);
+      return g;
+    },
+    _prepareOptions: function _prepareOptions(polyline, ctx) {
+      ctx.lineWidth = polyline.options.width;
+      ctx.strokeStyle = polyline.options.color;
+    },
+    _queryValue: function _queryValue(e) {
+      if (!e) return e;
+      var polyline = this._polylines && this.getBounds().contains(e.latlng) ? this._polylineAt(e.containerPoint) : null,
+          index = polyline ? polyline.index : null;
+      return _objectSpread({}, e, {
+        value: polyline,
+        // latlng: e.latlng,
+        index: index,
+        originData: this._polylines[index]
+      });
+    },
+    _polylineAt: function _polylineAt(point) {
+      var min_precision = undefined,
+          ret_polyline = null,
+          dividePolylinesPart = undefined,
+          latlng = this._map.containerPointToLatLng(point);
+
+      if (!this._map) return null;
+
+      for (var i = 0; i < this._divideBoundsParts.length; ++i) {
+        if (this._divideBoundsParts[i].contains(latlng)) {
+          dividePolylinesPart = this._dividePolylinesParts[i];
+          break;
+        }
+      }
+
+      if (dividePolylinesPart === undefined) return null;
+
+      for (var _i2 = 0; _i2 < dividePolylinesPart.length; ++_i2) {
+        var polyline = dividePolylinesPart[_i2];
+        if (!this._isDisplayPolyline(polyline)) continue;
+
+        var precision = this._pointIsOnPolyline(point, polyline);
+
+        if (precision === false) continue; // point is not on this polyline
+
+        min_precision = Math.min(min_precision || precision, precision);
+        if (precision == min_precision) ret_polyline = polyline;
+      }
+
+      return ret_polyline;
+    },
+    _pointIsOnPolyline: function _pointIsOnPolyline(pt, polyline) {
+      var _this2 = this;
+
+      var latlngs = polyline.coordinates,
+          lineWidth = polyline.options.width,
+          containerPoints = latlngs.map(function (latlng) {
+        return _this2._map.latLngToContainerPoint(latlng);
+      });
+      var ret = false;
+      if (polyline.latLngBounds && !polyline.latLngBounds.contains(this._map.containerPointToLatLng(pt))) return ret;
+
+      for (var i = 0; i < containerPoints.length - 1; ++i) {
+        var curPt = containerPoints[i],
+            nextPt = containerPoints[i + 1];
+
+        if (pt.x >= Math.min(curPt.x, nextPt.x) - 10 && pt.x <= Math.max(curPt.x, nextPt.x) + 10 && pt.y >= Math.min(curPt.y, nextPt.y) - 10 && pt.y <= Math.max(curPt.y, nextPt.y) + 10) {
+          var precision = Math.abs((curPt.x - pt.x) / (curPt.y - pt.y) - (nextPt.x - pt.x) / (nextPt.y - pt.y));
+
+          if (precision <= 1.618 + Math.log10(c._map.getZoom()) / 10 + lineWidth) {
+            ret = Math.min(ret || precision, precision);
+          }
+        }
+      }
+
+      return ret;
+    }
+  });
+
+  var GeoJson =
+  /*#__PURE__*/
+  function () {
+    function GeoJson(data, options) {
+      _classCallCheck(this, GeoJson);
+
+      this.geojson = L.geoJSON(data, options);
+    }
+
+    _createClass(GeoJson, [{
+      key: "bindPopup",
+      value: function bindPopup(func) {
+        this.geojson.bindPoup(func);
+        return this;
+      }
+    }, {
+      key: "addTo",
+      value: function addTo(map) {
+        this.geojson.addTo(map);
+        return this;
+      }
+    }, {
+      key: "addData",
+      value: function addData(data) {
+        this.geojson.addTo(data);
+        return this;
+      }
+    }, {
+      key: "setStyle",
+      value: function setStyle(style) {
+        this.geojson.setStyle(style);
+        return this;
+      } // @method on
+      //  
+      // overwrite the method on
+
+    }, {
+      key: "on",
+      value: function on(event_type, callback) {
+        this.geojson.eachLayer(function (layer) {
+          if (layer && layer.feature) {
+            callback(layer, layer.feature);
+          }
+        }, this);
+        return this;
+      }
+    }]);
+
+    return GeoJson;
+  }();
+
+  // import {PointLayer} from "./PointLayer.js"
+  var TimelineLayer =
+  /*#__PURE__*/
+  function () {
+    function TimelineLayer(mymap, options) {
+      _classCallCheck(this, TimelineLayer);
+
+      this._times = [];
+      this._data = [];
+      this.times2index = {};
+      this._layers = [];
+      this._curlayer = null;
+      this._map = mymap;
+      this._isrunning = false;
+
+      this.timechangefun = function (d, i, t, layer) {};
+
+      this.timeline = document.createElement("div");
+      this.timeline.id = "timeline";
+      this.timeline.style.visibility = "visible";
+      document.body.appendChild(this.timeline);
+      this.slider = document.createElement("input");
+      this.slider.type = "range";
+      this.slider.min = 0;
+      this.slider.max = 4;
+      this.slider.value = 0;
+      this.slider.id = "myRange";
+      this.bt_play = document.createElement("button");
+      this.bt_play.type = "button";
+      this.bt_play.id = "bt_play";
+      this.bt_play.textContent = "play";
+      this.par = document.createElement("p");
+      this.par.textContent = "Vaule: ";
+      this.output = document.createElement("span");
+      this.output.id = "demo";
+      this.par.appendChild(this.output);
+      this.timeline.appendChild(this.slider);
+      this.timeline.appendChild(this.bt_play);
+      this.timeline.appendChild(this.par);
+      this.setOption(options);
+      var tmp = this;
+
+      this.slider.onclick = function () {
+        tmp.renderAtTime(tmp.output.innerHTML, tmp._map);
+      };
+    }
+
+    _createClass(TimelineLayer, [{
+      key: "setOption",
+      value: function setOption(options) {
+        this.options = options;
+      }
+    }, {
+      key: "data",
+      value: function data(time, _data, fn) {
+        this._times = time;
+        this._data = _data;
+        this.slider.max = time.length - 1;
+
+        for (var i = 0; i < time.length; i++) {
+          this.times2index[this._times[i]] = i;
+        }
+
+        for (var _i = 0; _i < time.length; _i++) {
+          if (this.options.layerType == "PointMap") {
+            var l = new PointLayer();
+            this._layers[_i] = l.data(_data[_i], fn).enter();
+          } else if (this.options.layerType == "heatmap") ;
+        }
+
+        this.listen();
+        return this;
+      }
+    }, {
+      key: "listen",
+      value: function listen() {
+        //添加slider监听事件
+        var tmp = this;
+
+        this.slider.oninput = function () {
+          tmp.output.innerHTML = tmp._times[tmp.slider.value];
+          return tmp.output.innerHTML;
+        };
+
+        this.output.innerHTML = this._times[this.slider.value]; // Display the default slider value
+        //the timeline is(not) visible
+
+        if (this.options.enableControl == false) {
+          timeline.style.visibility = "hidden";
+        } else {
+          timeline.style.visibility = "visible";
+        } //是否自动播放
+
+
+        if (this.options.autoPlay == true) {
+          this.play(this._times[0], this._map);
+        } else {
+          this.renderAtTime(this._times[0], this._map);
+        } //添加播放按钮监听事件
+
+
+        var tmp = this;
+
+        this.bt_play.onclick = function () {
+          // tmp.running = 1;
+          tmp.play(tmp._times[0], tmp._map);
+        }; // this.bt_stop.onclick = function(){
+        //     tmp.running = 2;
+        // }
+        // this.bt_pause.onclick = function(){
+        //     tmp.running = 3;
+        // }
+
+      }
+    }, {
+      key: "renderAtTime",
+      value: function renderAtTime(time_index) {
+        if (this._curlayer != null) {
+          this._curlayer.remove();
+        }
+
+        switch (this.options.layerType) {
+          case "PointMap":
+            this._layers[this.times2index[time_index]].addTo(this._map);
+
+            this._curlayer = this._layers[this.times2index[time_index]];
+            break;
+
+          case "heatmap":
+            this._curlayer = new HeatmapOverlay(this.options.layerOption).addTo(this._map);
+
+            this._curlayer.setData(this._data[this.times2index[time_index]]);
+
+            break;
+
+          default:
+            throw new Error(this.options.layerType + 'is not exist in the timelinelayer');
+        }
+
+        this.slider.value = this.times2index[time_index];
+        this.output.innerHTML = time_index;
+        var index = Number(this.slider.value);
+        this.timechangefun(this._data[index], index, this._times[index], this._curlayer);
+      }
+    }, {
+      key: "on",
+      value: function on(event, f) {
+        if (event === "timechange") {
+          this.timechangefun = f;
+        }
+
+        return this;
+      }
+    }, {
+      key: "play",
+      value: function play(time) {
+        var _this = this;
+
+        var index = this.times2index[time];
+
+        if (this._isrunning == false) {
+          this._isrunning = true; //es6 promise
+
+          var _loop = function _loop(i) {
+            tmp = _this;
+
+            (function () {
+              setTimeout(function () {
+                tmp.renderAtTime(tmp._times[i], tmp._map);
+
+                if (i == tmp._times.length - 1) {
+                  tmp._isrunning = false;
+                }
+              }, tmp.options.tickTime * i);
+            })();
+          };
+
+          for (var i = index; i < this._times.length; i++) {
+            var tmp;
+
+            _loop(i);
+          }
+        }
+      }
+    }]);
+
+    return TimelineLayer;
+  }();
 
   /**
    * A class to define animation queue
@@ -1117,8 +4509,23 @@ var dmap = (function (exports) {
   var Util = util;
 
   exports.Util = Util;
+  exports.GroupLayer = GroupLayer;
+  exports.PointLayer = PointLayer$1;
+  exports.PolygonLayer = PolygonLayer;
+  exports.MarkerLayer = MarkerLayer;
+  exports.ODLayer = ODLayer;
+  exports.PolylineLayer = PolylineLayer;
+  exports.HeatmapLayer = HeatmapLayer;
+  exports.CanvasGridLayer = CanvasGridLayer;
+  exports.canvasGridLayer = canvasGridLayer;
+  exports.SVGGridLayer = SVGGridLayer;
+  exports.CanvasPolylineLayer = CanvasPolylineLayer;
   exports.GeoJson = GeoJson;
   exports.TimelineLayer = TimelineLayer;
+  exports.BaseLayer = BaseLayer;
+  exports.OD = OD;
+  exports.od = od;
+  exports.ScalarField = ScalarField;
 
   return exports;
 
