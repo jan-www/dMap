@@ -19,7 +19,7 @@
 ### data
 *(Array&lt;any&gt;, Function) => this*
 
-将原始数据集映射为具有指定字段格式的对象数组`this._data`。。
+将原始数据集映射为具有指定字段格式的对象数组`this._data`。
 
 `data` 方法的调用方式可参见[教程](#/zh/guide/quickstart)。
 
@@ -31,12 +31,12 @@
 ### enter
 *() => this*
 
-调用`generate`方法，将`this._data`映射为对应的`L.Polygon`对象数组
+调用`generate`方法，将`this._data`映射为对应的`L.Polygon`对象数组。
 
 ### generate
 *() => Array*
 
-将 `this._data` 映射为 `Array<L.Polygon>`，形成 `PolygonLayer` 的一个实例。。
+将 `this._data` 映射为 `Array<L.Polygon>`，形成 `PolygonLayer` 的一个实例。
 
 ### addTo
 *(L.Map) => this*
@@ -47,7 +47,7 @@
 
 *(String:event_type, Function:callback) => this*
 
-将一个事件一次性绑定在所有层内所有共同属性的元素上
+将一个事件一次性绑定在所有层内所有的元素上。
 
 ### getBounds
 *() => L.Bounds*

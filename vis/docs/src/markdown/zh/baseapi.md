@@ -36,7 +36,7 @@
 
 *(String:event_type, Function:callback) => this*
 
-将一个事件一次性绑定在所有层内所有共同属性的元素上
+将一个事件一次性绑定在所有层内所有的元素上
 
 ### getBounds
 *() => L.Bounds*

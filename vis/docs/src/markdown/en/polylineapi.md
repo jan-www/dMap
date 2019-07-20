@@ -1,59 +1,60 @@
 # PolylineLayer : GroupLayer
 
-## 元素说明
-我们以 Leaflet 的元素 [L.Polyline](https://leafletjs.com/reference-1.4.0.html#polyline) 作为 `PolylineLayer` 图层的显示元素，从而以折线的形式在地图上渲染坐标序列。
+## Element
+We use Leaflet element [L.Polyline](https://leafletjs.com/reference-1.4.0.html#polyline) as display element for `PolylineLayer`, to display coordnates by `L.Polyline`s.
 
-## 参数说明
+## Parameters
 
-+ options: 均继承自 BaseLayer
++ options: inherited from BaseLayer
 
 | Option | Type | Default | Description |
 | :----- | :---:| :-----: | :---------  |
-| zIndex | Number | 300   | 图层在z轴的层级高度 |
+| zIndex | Number | 300   | Layer level in Z-axis |
 
-## 方法说明
+## Methods
 
 ### data
 *(Array&lt;any&gt;, Function) => this*
 
-将原始数据集映射为具有指定字段格式的对象数组`this._data`。
+Map origin data to array of object with specific keys.
 
-`data` 方法的调用方式可参见[教程](#/zh/guide/quickstart)。
+Please view[Guide](#/zh/guide/quickstart) to get `data` method calling example.
 
 | key    | Type  | Description |
 | :----- | :---: | :---------  |
-| coordinates  | `Array(Array(2))`/`Array<L.Latlng>` | Polyline 的坐标集合 |
-| options | `Object` | 样式设置，与 L.Polyline 的设置方式相同
+| coordinates  | `Array(Array(2))`/`Array<L.Latlng>` | Coordinates of polyline |
+| options | `Object` | lement style, same as `L.Polyline`'s option |
 
 ### enter
 *() => this*
 
-调用`generate`方法，将`this._data`映射为对应的`L.Polyline`对象数组。
+Call `generate` method and map `this._data` to array of `L.Polyline`.
 
 ### generate
 *() => Array*
 
-将 `this._data` 映射为 `Array<L.Polyline>`。
+Map `this._data` to `Array<L.Polyline>`.
 
 ### addTo
 *(Map) => this*
 
-将图层添加到Leaflet地图容器中。
+Add this layer on Leaflet `map` container.
 
 ### `on`
 
 *(String:event_type, Function:callback) => this*
 
-将一个事件一次性绑定在所有层内所有的元素上。
+Bind a callback function to all elements in this layer.
+
 
 ### getBounds
 *() => L.Bounds*
 
-返回该图层的渲染范围，为地图缩放等功能提供参数。
+Return rendering range of this layer. Provide argument for map-scaling functions.
 
-## 代码示例
+## Demo
 
-显示一小段路网数据。
+Display some streets.
 
 ```javascript
 var roads = [

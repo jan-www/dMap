@@ -31,7 +31,7 @@
 ### enter
 *() => this*
 
-调用`generate`方法，将`this._data`映射为对应的`L.CircleMarker`对象数组
+调用`generate`方法，将`this._data`映射为对应的`L.CircleMarker`对象数组。
 
 ### generate
 *() => Array*
@@ -42,6 +42,12 @@
 *(L.Map) => this*
 
 将图层添加到Leaflet地图容器中。
+
+### `on`
+
+*(String:event_type, Function:callback) => this*
+
+将一个事件一次性绑定在所有层内所有的元素上。
 
 ### getBounds
 *() => L.Bounds*

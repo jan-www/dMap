@@ -1,7 +1,7 @@
 # BaseLayer
 
 ## Element
-`BaseLayer`, inherited from `L.Layer`, is base class of all `dmap` layers. There is no need for `BaseLayer` to render data. It provides method interfaces for `dmap` layers.
+`BaseLayer`, which is inherited from `L.Layer`, is base class of all `dmap` layers. There is no need for `BaseLayer` to render data. It provides method interfaces for `dmap` layers.
 
 ## Parameters
 

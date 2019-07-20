@@ -12,7 +12,7 @@
 
 | Option | Type | Default | Description |
 | :----- | :---:| :-----: | :---------  |
-| zIndex | Number | 300   | 图层在z轴的层级高度 
+| zIndex | Number | 300   | 图层在z轴的层级高度 |
 
 ## 方法说明
 
@@ -26,12 +26,12 @@
 | key    | Type  | Description |
 | :----- | :---: | :---------  |
 | coordinate  | `Array(2)`/`L.Latlng` | 指定对应标记在地图上的坐标经纬度 |
-| options | `Object` | 样式设置，与 L.Marker 的设置方式相同
+| options | `Object` | 样式设置，与 L.Marker 的设置方式相同|
 
 ### enter
 *() => this*
 
-调用`generate`方法，将`this._data`映射为对应的`L.Marker`对象数组
+调用`generate`方法，将`this._data`映射为对应的`L.Marker`对象数组。
 
 ### generate
 *() => Array*
@@ -42,6 +42,12 @@
 *(L.Map) => this*
 
 将图层添加到Leaflet地图容器中。
+
+### `on`
+
+*(String:event_type, Function:callback) => this*
+
+将一个事件一次性绑定在所有层内所有的元素上。
 
 ### getBounds
 *() => L.Bounds*

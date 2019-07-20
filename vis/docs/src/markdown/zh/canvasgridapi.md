@@ -9,7 +9,7 @@
 | :----- | :---:| :-----: | :---------  |
 | opacity | Number | `0.99` | canvas图层不透明度 |
 | createPane | Boolean | `true` | 是否在新的Pane上创建图层 |
-| zIndex | Number | `300` | 图层的Z轴高度 
+| zIndex | Number | `300` | 图层的Z轴高度 |
 | color  | Function | `null` | 数据-颜色映射函数 |
 | border  | Boolean | `false` | 是否绘制网格边框 |
 | borderWidth | Number | `0.5` | 边框宽度，单位为px |
