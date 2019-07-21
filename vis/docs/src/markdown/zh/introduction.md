@@ -14,8 +14,8 @@ dMap提供基础的地图渲染和基于地图的图表，api分三层调用：
 
 在特定div内使用leaflet引擎渲染默认底图（初始时默认北京中心，zoomLevel=7(待定)，使用实验室地图服务器，该层设计基本迁移leaflet的api，返回一个具体的地图对象。
 
-```
-var map = new dMap.Map(‘#div’, (options))
+```JavaScript
+var map = new dMap.Map('#div', (options))
 ```
 1. 建立地图图层，绑定数据
 
@@ -23,7 +23,7 @@ var map = new dMap.Map(‘#div’, (options))
 
 **（这里借鉴了d3的语法）**
 
-```
+```JavaScript
 var layer = new dMap.PointMap(options)
 .data(data,function(d){})
 .enter()
@@ -32,7 +32,7 @@ var layer = new dMap.PointMap(options)
 1. 图层的显示
 
 可以选择将图层添加到map中，
-```
+```JavaScript
 layer.addTo(map)
 ```
 ## options 、Data和Layer
@@ -72,18 +72,18 @@ dMap提供以下几类不同的图层，包括
 
 ### 主题配置
 为了方便用户更好地配置地图，在leaflet的接口基础上，可以加入地图主题设置
-```
+```JavaScript
 map.setOptions({theme:'...'})
 ```
 ### 导入新配置
-```
+```JavaScript
 map.setOptions(options)
 ```
 
 ## 图层配置
 ### 基础配置
 图层基础配置适用于一般图层，可以包括以下配置选项，可以参考leaflet对图层类的设置标准
-```
+```JavaScript
 options = {
   name: 'layer1', //图层名称
   enable_tooltip: boolean, //是否允许tooltip
@@ -100,20 +100,20 @@ options = {
 ```
 
 ### 标记图(MarkerMap)
-```
+```JavaScript
 options = {
   icon: 'src'  //标记的图标
   icon_size: 23 //如在元素中有设置，此项被覆盖
 }
 ```
 ### 点图(PointMap)
-```
+```JavaScript
 options = {
   radius: 200 //配置点的半径，如在元素中有设置，此项被覆盖
 }
 ```
 ### OD图(ODMap)
-```
+```JavaScript
 options = {
   arc: 233, //OD的弧度
   startIcon: 'src', //起始点的图标
@@ -126,7 +126,7 @@ options = {
 }
 ```
 ### 时间轴图(TimeLineMap)
-```
+```JavaScript
 options = {
   enableControl: boolean, //是否显示时间控制条，默认显示
   autoPlay: boolean, //是否自动播放
@@ -136,7 +136,7 @@ options = {
 ```
 ## 元素配置9
 ### 基础配置
-```
+```JavaScript
 layer.data(data,function(d){
   return {
     //渲染该元素需要的基本配置，包括地理坐标等
@@ -156,7 +156,7 @@ layer.data(data,function(d){
 ### 
 ### 集合注入操作
 数据注入参考d3的实现方式，主要包含以下几种基本操作，通过集合操作来进行计算和渲染
-```
+```JavaScript
 enter, //数据注入
 exit, //输出删除
 
@@ -165,21 +165,15 @@ exit, //输出删除
 事件配置用于为图层配置事件，可以参考leaflet的图层事件类型
 [https://leafletjs.com/reference-1.3.4.html#map-event](https://leafletjs.com/reference-1.3.4.html#map-event)
 但是调用方式略有不同，在dMap中事件配置如下：
-```
+```JavaScript
 layer.on('eventname',function(){
-  ....
-})
-```
-在这里可以重写bind方法，保证新加入的元素可以不用重新载入事件
-```
-layer.bind('eventname',function(){
   ....
 })
 
 ```
 ## 元素事件
 元素事件指的是具体触发某个特定元素的事件，可以包含比如
-```
+```JavaScript
 click,
 hover,
 mousemove,
@@ -189,14 +183,14 @@ mouseout,
 ```
 在dMap中元素事件配置如下：
 
-```
+```JavaScript
 layer.onElement('eventname',function(d){
   ....
 })
 ```
 ## 数据映射
 数据映射可以借鉴d3的思路，用于生成渐变颜色、数值等，如下所示
-```
+```JavaScript
 //将10-100映射到棕色到蓝色的渐变
 var color = d3.scaleLinear()
     .domain([10, 100])
@@ -259,7 +253,7 @@ color(5)
 * items
 ## 打包机制
 使用rollup将打包成es5，机制：在package.json中设置加载库和build脚本，在build.js中设置rollup的参数
-```
+```JavaScript
 {
     // package.json
     "devDependencies": {
@@ -279,7 +273,7 @@ color(5)
 }
 ```
 
-```
+```JavaScript
 // build.js
 var rollup = require('rollup');
 var babel = require('rollup-plugin-babel');         // babel 插件
@@ -302,7 +296,7 @@ rollup.rollup({
     bundle.write({
         // 转化格式 cjs 代表 commonJs, 还支持 iife, amd, umd, es6 ....
         format: 'cjs',
-        banner: 'si_log.js v0.1.1',     //文件顶部的广告
+        banner: 'si_log.js v0.1.1',    
         dest: 'dist/si_log_common.js'
     });
 });

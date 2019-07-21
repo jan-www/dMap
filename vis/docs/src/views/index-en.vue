@@ -18,45 +18,38 @@
             </g>
           </svg>
         </div>
-        <h1>A Lightweight and Modular Front-End UI Library</h1>
+        <h1>A lightweight, data-driven spatial-temporial data visualization library</h1>
         <div class="btn-container">
-          <div class="btn btn-begin"><router-link :to="{ name: 'Introduction-en' }">GET STARTED</router-link></div>
-          <div class="btn btn-github"><a href="https://github.com/at-ui/at-ui">GITHUB</a></div>
+          <div class="btn btn-begin"><router-link :to="{ name: 'Introduction-en' }">Start</router-link></div>
+          <div class="btn btn-github"><a href="https://github.com/sugarspectre/dMap/" target="_blank">Github</a></div>
         </div>
       </div>
-      <div class="prototype-screens flex">
-        <div class="prototype prototype-1"><img src="../assets/prototype-1.png" alt=""></div>
-        <div class="prototype prototype-2"><img src="../assets/prototype-2.png" alt=""></div>
-        <div class="prototype prototype-3"><img src="../assets/prototype-3.png" alt=""></div>
-        <div class="prototype prototype-4"><img src="../assets/prototype-4.png" alt=""></div>
-      </div>
-      <div class="separate-panel"></div>
     </section>
     <section class="section section-navigation">
-      <div class="container flex flex-around">
+      <div class="container flex flex-around" style="margin-bottom: 40px">
         <div class="navigation-panel">
           <div class="icon-cnt">
             <img src="../assets/icon-navigation-1.png" alt="">
           </div>
           <div class="title">Guide</div>
-          <div class="desc">Understand the design guidelines, makes design and prototype more simple and accessible for all project members.</div>
-          <div class="btn-readmore"><router-link :to="{ name: 'Guide-en' }">View Details <i class="icon icon-chevron-right"></i></router-link></div>
+          <div class="desc">了解dMap设计思路，快速入门</div>
+          <div class="btn-readmore"><router-link :to="{ name: 'Guide-en' }">Detail <i class="icon icon-chevron-right"></i></router-link></div>
         </div>
         <div class="navigation-panel">
           <div class="icon-cnt">
             <img src="../assets/icon-navigation-2.png" alt="">
           </div>
-          <div class="title">Component</div>
-          <div class="desc">Base on Vue.js, experience interaction details by strolling through component demos. Use the components singleton or global is free.</div>
-          <div class="btn-readmore"><router-link :to="{ name: 'Docs-en' }">View Details <i class="icon icon-chevron-right"></i></router-link></div>
+          <div class="title">API</div>
+          <div class="desc">查看API文档，了解配置详情</div>
+          <div class="btn-readmore"><router-link :to="{ name: 'Docs-en' }">Detail <i class="icon icon-chevron-right"></i></router-link></div>
         </div>
         <div class="navigation-panel">
           <div class="icon-cnt">
             <img src="../assets/icon-navigation-3.png" alt="">
           </div>
-          <div class="title">Resource</div>
-          <div class="desc">Provide the design resources, product managers can make prototype more simple and efficient. Save time and improve work efficiency.</div>
-          <div class="btn-readmore"><router-link :to="{ name: 'Resource-en' }">View Details <i class="icon icon-chevron-right"></i></router-link></div>
+          <div class="title">Demo</div>
+          <div class="desc">提供丰富的展示案例，便于您调用和扩展</div>
+          <div class="btn-readmore"><router-link :to="{ name: 'Demo-en' }">Detail <i class="icon icon-chevron-right"></i></router-link></div>
         </div>
       </div>
     </section>
@@ -78,8 +71,4 @@ export default {
 
 <style lang="scss" scoped>
 @import '../assets/style/index';
-
-.navigation-panel {
-  width: 290px !important;
-}
 </style>

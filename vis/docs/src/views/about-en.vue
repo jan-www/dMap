@@ -19,7 +19,7 @@
 
 <style lang="scss" scoped>
 .wrapper {
-  background-color: rgb(255, 255, 255);
+  background-color: #F8FAFF;
 }
 .page-header {
   position: relative !important;
@@ -43,7 +43,7 @@ export default {
   },
   data () {
     return {
-      navs: navsConfig.en.demo
+      navs: navsConfig.zh.about
     }
   },
   methods: {

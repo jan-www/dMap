@@ -15,8 +15,8 @@ DMap provides basic map rendering and map-based charts, and the API is divided i
 
 Use Leaflet engine to render the base map within a specific `<div>` . Basically, the design of this layer makes use of Leafley api, which returns a concrete map object.
 
-```
-var map = new dMap.Map(‘#div’, (options))
+```JavaScript
+var map = new dMap.Map('#div', (options))
 ```
 2.Create New Layer and Binding Data
 
@@ -24,7 +24,7 @@ The specific display effect is called by the map object, which can be divided in
 
 **（D3 syntax is used here）**
 
-```
+```JavaScript
 var layer = new dMap.PointMap(options)
 .data(data,function(d){})
 .enter()
@@ -33,7 +33,7 @@ var layer = new dMap.PointMap(options)
 3. Layer Display
 
 You can choose to add layers to the map.
-```
+```JavaScript
 layer.addTo(map)
 ```
 ## Options,Data and Layer
@@ -82,18 +82,18 @@ This layer just retain the map configuration of the leaflet. All the included op
 
 ### Theme Settings
 In order to help the user to better configure the map, on the basis of the interface in leaflet, map theme settings can be added.
-```
+```JavaScript
 map.setOptions({theme:'...'})
 ```
 ### Import new Configuration
-```
+```JavaScript
 map.setOptions(options)
 ```
 
 ## Layer Configuration
 ### Basic Configuration
 The layer base configuration works on normal layers. Following options are supported :
-```
+```JavaScript
 options = {
   name: 'layer1', //name of layer
   enable_tooltip: boolean, //is tooltip enabled
@@ -110,20 +110,20 @@ options = {
 ```
 
 ### MarkerMap
-```
+```JavaScript
 options = {
   icon: 'src'  
   icon_size: 23 //if icon size is setted in specific element, this can be ignored
 }
 ```
 ### PointMap
-```
+```JavaScript
 options = {
   radius: 200 //if radius is setted in specific element, this can be ignored
 }
 ```
 ### ODMap
-```
+```JavaScript
 options = {
   arc: 233, 
   startIcon: 'src',
@@ -136,7 +136,7 @@ options = {
 }
 ```
 ### TimeLineMap
-```
+```JavaScript
 options = {
   enableControl: boolean, //is control bar displayed (default:true)
   autoPlay: boolean, 
@@ -146,7 +146,7 @@ options = {
 ```
 ## Element Configuration
 ### Basic Configuration
-```
+```JavaScript
 layer.data(data,function(d){
   return {
     //Basic configuration required to render the element, including geographic coordinates, etc
@@ -167,7 +167,7 @@ layer.data(data,function(d){
 ### Data Entering
 Data injection refers to the implementation of d3, which mainly includes the following basic operations, and use the set operations to calculate and render
 
-```
+```JavaScript
 enter, //inject
 exit, //delete
 
@@ -177,21 +177,15 @@ Event configuration is used to configure the event for the layer, refer to the l
 
 [https://leafletjs.com/reference-1.3.4.html#map-event](https://leafletjs.com/reference-1.3.4.html#map-event)
 However, the calling style is sightly different. The event configuration in dMap is configured like this:
-```
+```JavaScript
 layer.on('eventname',function(){
   ....
 })
 ```
-You can override the bind method here to ensure that newly added elements are not reloaded with events
-```
-layer.bind('eventname',function(){
-  ....
-})
 
-```
 ## Element Event
 An element event is an event when specifically triggers a particular element, including:
-```
+```JavaScript
 click,
 hover,
 mousemove,
@@ -201,14 +195,14 @@ mouseout,
 ```
 The element events in the dMap are configured as follows:
 
-```
+```JavaScript
 layer.onElement('eventname',function(d){
   ....
 })
 ```
 ## Data Mapping
 Data mapping can be used to generate gradient colors, values, etc., using ideas from d3, as shown below:
-```
+```JavaScript
 //Map 10-100 to a brown to blue gradient
 var color = d3.scaleLinear()
     .domain([10, 100])

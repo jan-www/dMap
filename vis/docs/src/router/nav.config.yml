@@ -52,105 +52,52 @@ zh:
      
 en:
   guide:
-    - title: Brand
+    - title: Guide
       name: Guide
       items:
-        - title: Color
-          name: Color
-        - title: Typography
-          name: Typography
-  resource:
-    - title: Resource
-      name: Resource
-      items:
-        - title: Design
-          name: design
-  components:
-    - title: Overview
-      name: Docs
-      items:
-        - title: Introduction
+        - title: DMap Introduction
           name: Introduction
-        - title: Installation
-          name: Installation
-        - title: Quickstart
-          name: Quickstart
-        - title: Internationalization
-          name: i18n
-        - title: Change Log
-          name: Changelog
-    - title: Components
+        # - title: 安装
+        #   name: Installation
+        # - title: 快速上手
+        #   name: Quickstart
+  components:
+    - title: API
       name: Docs
-      groups:
-        - title: Base
-          items:
-            - title: Button
-              name: Button
-            - title: Layout
-              name: Layout
-            - title: Tag
-              name: Tag
-            - title: Icon
-              name: Icon
-        - title: Form
-          items:
-            - title: Checkbox
-              name: Checkbox
-            - title: Input
-              name: Input
-            - title: InputNumber
-              name: InputNumber
-            - title: Radio
-              name: Radio
-            - title: Rate
-              name: Rate
-            - title: Select
-              name: Select
-            - title: Switch
-              name: Switch
-            - title: Slider
-              name: Slider
-            - title: Textarea
-              name: Textarea
-        - title: View
-          items:
-            - title: Alert
-              name: Alert
-            - title: Badge
-              name: Badge
-            - title: Card
-              name: Card
-            - title: Collapse
-              name: Collapse
-            - title: LoadingBar
-              name: LoadingBar
-            - title: Modal
-              name: Modal
-            - title: Message
-              name: Message
-            - title: Notification
-              name: Notification
-            - title: Popover
-              name: Popover
-            - title: Progress
-              name: Progress
-            - title: Timeline
-              name: Timeline
-            - title: Tooltip
-              name: Tooltip
-            - title: Table
-              name: Table
-        - title: Navigation
-          items:
-            - title: Breadcrumb
-              name: Breadcrumb
-            - title: Dropdown
-              name: Dropdown
-            - title: Menu
-              name: Menu
-            - title: Pagination
-              name: Pagination
-            - title: Steps
-              name: Steps
-            - title: Tabs
-              name: Tabs
+      items:
+        # - title: OD图/ODLayer
+        #   name: ODAPI
+        - title: PointLayer
+          name: PointAPI
+        - title: MarkerLayer
+          name: MarkerAPI
+        - title: PolygonLayer
+          name: PolygonAPI
+        - title: PolylineLayer
+          name: PolylineAPI
+        - title: CanvasPolylineLayer
+          name: CanvasPolylineAPI
+        - title: CanvasGridLayer
+          name: CanvasGridAPI
+        - title: BaseLayer
+          name: BaseAPI
+        - title: GroupLayer
+          name: GroupAPI
+        # - title: 热力图/Heatmap
+        #   name: HeatMapAPI
+        # - title: GeoJSON图/GeoJson
+        #   name: GeoJsonAPI
+        # - title: 时间轴图层/TimelineLayer
+        #   name: TimelineAPI
+  demo:
+    - title: Demo
+      name: Demo
+      items:
+        - title: All
+          name: demos
+  # about:
+  #   - title: 关于我们
+  #     name: About
+  #     items:
+    #     - title: 团队介绍
+    #       name: Us
