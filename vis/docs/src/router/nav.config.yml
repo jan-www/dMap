@@ -95,9 +95,9 @@ en:
       items:
         - title: All
           name: demos
-  # about:
-  #   - title: 关于我们
-  #     name: About
-  #     items:
-    #     - title: 团队介绍
-    #       name: Us
+  about:
+    - title: About Us
+      name: About
+      items:
+        - title: Team
+          name: Us

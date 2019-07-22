@@ -6,6 +6,14 @@
 
 本项目的组织及开发成员：
 
+| Name | Organization | Email | Status |
+| :----- | :---:| :-----: | :-----: |
+| 王静远 | 北京航空航天大学 | jywang#buaa.edu.cn  | 团队领导 dMap项目组织者 |
+| 王晓健 | 北京航空航天大学 | | 项目进度主要负责人与管理者 |
+| 鲁聃 | 北京航空航天大学 | kibbon#outlook.com | 提供技术支持 |
+| 寄家豪 | 北京航空航天大学 | bh1506jjh#buaa.edu.cn | 图层设计与实现 |
+| 周育聪 | 北京航空航天大学 | zhouyucong0421#foxmail.com | 图层设计与实现 |
+
 ## 联系我们
 
-关于<strong>BIGSCity的详细情况参见研究组主页：</strong><a href="https://www.bigscity.com/" target="_blank">bigscity.com/</a>
+关于<strong>BIGSCity</strong>的详细情况参见研究组主页：<a href="https://www.bigscity.com/" target="_blank">bigscity.com</a>

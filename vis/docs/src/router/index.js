@@ -123,6 +123,12 @@ routes.forEach(page => {
       name: 'About',
       redirect: { name: page.children[0].name }
     })
+  } else if (page.path === '/en/about') {
+    page.children.push({
+      path: '',
+      name: 'About-en',
+      redirect: { name: page.children[0].name }
+    })
   }
 })
 

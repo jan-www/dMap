@@ -20,7 +20,7 @@
           <li><router-link :to="{ name: 'Guide-en' }">Guide</router-link></li>
           <li><router-link :to="{ name: 'Docs-en' }">API</router-link></li>
           <li><router-link :to="{ name: 'Demo-en' }">Demo</router-link></li>
-          <li><router-link :to="{ name: 'About' }">About Us</router-link></li>
+          <li><router-link :to="{ name: 'About-en' }">About Us</router-link></li>
         </ul>
         <div class="btn-language" @click="switchLang('zh')">中文</div>
       </div>
