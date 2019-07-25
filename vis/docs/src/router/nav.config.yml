@@ -65,8 +65,8 @@ en:
     - title: API
       name: Docs
       items:
-        # - title: OD图/ODLayer
-        #   name: ODAPI
+        - title: ODLayer
+          name: ODAPI
         - title: PointLayer
           name: PointAPI
         - title: MarkerLayer

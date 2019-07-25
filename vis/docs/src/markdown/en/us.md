@@ -12,7 +12,7 @@ Developers and organizers of this project:
 | Xiaojian Wang | Beihang University | | Project manager |
 | Dan Lu | Beihang University | kibbon#outlook.com | Tech support |
 | Jiahao Ji | Beihang University | bh1506jjh#buaa.edu.cn | Layer design and implementation |
-| Yucong Zhou | Beihang University | zhouyucong0421#foxmail.com | ayer design and implementation |
+| Yucong Zhou | Beihang University | zhouyucong0421#foxmail.com | Layer design and implementation |
 
 ## Contact Us
 

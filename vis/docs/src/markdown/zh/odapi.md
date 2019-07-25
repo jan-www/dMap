@@ -47,7 +47,7 @@ odLayer.data(paths, function(path) {
 
 *(event_type, callback) => this*
 
-将一个事件一次性绑定在所有层内所有共同属性的元素上，注意*event_type*在给定的时候需要有特殊的格式：
+将一个事件一次性绑定在层内所有共同属性的元素上，注意*event_type*在给定的时候需要有特殊的格式：
 
 + org_*your_event_type*：将事件 *your_event_type* 绑定在所有的起点上
 + dst_*your_event_type*：将事件 *your_event_type* 绑定在所有的终点上
@@ -66,6 +66,62 @@ myODLayer.on('org_mouseover', function(e){
         .setContent('org: '+ e.latlng.toString())
         .openOn(map);
 });
+```
+
+## 代码示例
+
+```javascript
+// Prepare the data of airports and airlines
+var odData = {
+    Airport_LOC: {
+        "BGR": [44.807442, -68.828102],
+        "DCA": [38.852081, -77.037697],
+        "CAE": [33.938831, -81.119499],
+        "PHL": [39.871941, -75.241096]
+    },
+    flights: [
+        ["BGR", "DCA", 1, 0, 44580051.972303644, 1],
+        ["BGR", "PHL", 1, 0, 60163158.81116707, 0],
+        ["DCA", "PHL", 1, 0, 14984886.90177007, 1],
+        ["CAE", "DCA", 1, 0, 28849199.039916407, 0]
+    ]
+}
+
+let  airports = odData.Airport_LOC,
+    trails = odData.flights;
+
+var ods = new dmap.ODLayer();
+// Feed data to OD layer and use `enter()` to render it 
+ods.data(trails, function(t){
+    return {
+        origin: airports[t[0]], 
+        destination: airports[t[1]], 
+        options: {
+            // @trail relevant
+            color: '#4682B4',
+            dashArray: 0,
+            curvature: 5,
+            opacity: 0.3,
+            weight: 2,
+            // @points relevant
+            points: true,
+            pointsColor: '#00C5CD',
+            pointsOpacity: 0.3,
+            pointsRadius: 1,
+            preferCenter: [30, -90],
+            // @interaction relevant
+            popup: true,
+            popuopContent: {
+                org: t[0],
+                dst: t[1]
+            }, 
+            trailHighlight: true,
+            trailAnimate: true,
+            twoWay: t[5]==1?true: false
+        }
+    }
+}).enter();
+ods.addTo(map);
 ```
 
 <h2 id="extra">额外说明</h2>
