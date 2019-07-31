@@ -44,9 +44,15 @@ var coords = [
     { name: '澳门', geoCoord: [22.19, 113.54] }
 ]
 
+function showProvince(data, index, element, event) {
+  let html = `<span class="popupText">Name: ${data.extra}<br/>Location: ${event.latlng}</span>`;
+  L.popup().setLatLng(event.latlng).setContent(html).openOn(map);
+}
+
 pLayer.data(coords, function (data) {
     return {
         coordinate: data.geoCoord,
+        extra: data.name,
         options: {
             radius: 2.4,
             color: '#7C1200'
@@ -54,6 +60,9 @@ pLayer.data(coords, function (data) {
     }
 })
 
-pLayer.enter().addTo(map)
+pLayer
+.enter()
+.on('click', showProvince)
+.addTo(map)
 
 // map.fitBounds(pLayer.getBounds())
