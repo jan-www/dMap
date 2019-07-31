@@ -92,19 +92,19 @@ Return rendering range of this layer. Provide argument for map-scaling functions
 
 Force to re-render this layer.
 
-## 代码示例
+## Demo
+
 ```javascript
 
-d3.text('risk.asc', function (asc) {
+d3.text('data/out.asc', function (asc) {
+    // load grid from ASC file
     let s = dmap.ScalarField.fromASCIIGrid(asc);
     
-    let identify = function (e) {
-        console.log(e.latlng);
-        if (e.value !== null) {
-            let v = e.value.toFixed(3);
+    // display information on map
+    let identify = function (v, index, e) {
+        if (v !== null) {
             let html = `<span class="popupText">value: ${v}</span>`;
-
-            let popup = L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
+            L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
         }
     };
 
@@ -118,15 +118,15 @@ d3.text('risk.asc', function (asc) {
         controlBar: true,
         zIndex: 200
     });
-
     gridLayer
-        .data(s.grid, (d)=>d ,s.params)
-        .enter()
-        .addTo(map)
-        .on('click', identify);
+    .data(s.grid, (d)=>d ,s.params)
+    .enter()
+    .addTo(map)
+    .on('click', identify); // bind event
 
     map.fitBounds(gridLayer.getBounds());
 
+    l = gridLayer;
 });
 
 ```

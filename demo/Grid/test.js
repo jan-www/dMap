@@ -9,15 +9,13 @@ d3.text('data/out.asc', function (asc) {
     let s = dmap.ScalarField.fromASCIIGrid(asc);
     
     let identify = function (v, index, e) {
-        console.log(e.latlng);
         if (v !== null) {
-          let html = `<span class="popupText">value: ${v}</span>`;
-
-          let popup = L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
+            let html = `<span class="popupText">value: ${v}</span>`;
+            L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
         }
-      };
+    };
 
-      let gridLayer = new dmap.CanvasGridLayer({
+    let gridLayer = new dmap.CanvasGridLayer({
         opacity: 0.78,
         border: true,
         color: dmap.Util.colorScale(['#FFFFB2', '#E31A1C']).domain([0, 27]),
@@ -26,13 +24,13 @@ d3.text('data/out.asc', function (asc) {
         borderOpacity: 0.7,
         controlBar: true,
         zIndex: 200
-      });
-      gridLayer
-      .data(s.grid, (d)=>d ,s.params)
-      .enter()
-      .addTo(map)
-      .on('click', identify);
-      map.fitBounds(gridLayer.getBounds());
+    });
+    gridLayer
+    .data(s.grid, (d)=>d ,s.params)
+    .enter()
+    .addTo(map)
+    .on('click', identify);
+    map.fitBounds(gridLayer.getBounds());
 
-      l = gridLayer;
+    l = gridLayer;
 });
