@@ -5,17 +5,12 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 var l = undefined;
 
-let svgidentify = function(polygon, index, layer) {
-  console.log(layer)
-}
-
 d3.text('data/out.asc', function (asc) {
     let s = dmap.ScalarField.fromASCIIGrid(asc);
     
-    let identify = function (e) {
+    let identify = function (v, index, e) {
         console.log(e.latlng);
-        if (e.value !== null) {
-          let v = e.value.toFixed(3);
+        if (v !== null) {
           let html = `<span class="popupText">value: ${v}</span>`;
 
           let popup = L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
@@ -36,11 +31,7 @@ d3.text('data/out.asc', function (asc) {
       .data(s.grid, (d)=>d ,s.params)
       .enter()
       .addTo(map)
-      .on('click', function(v, index, e){
-        // let html = `<span class="popupText">value: ${v}</span>`;
-        // let popup = L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
-        console.log('xxxxx')
-      });
+      .on('click', identify);
       map.fitBounds(gridLayer.getBounds());
 
       l = gridLayer;
