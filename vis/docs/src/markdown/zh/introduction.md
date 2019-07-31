@@ -15,7 +15,7 @@ dMap提供基础的地图渲染和基于地图的图表，api分三层调用：
 在特定div内使用leaflet引擎渲染默认底图（初始时默认北京中心，zoomLevel=7(待定)，使用实验室地图服务器，该层设计基本迁移leaflet的api，返回一个具体的地图对象。
 
 ```JavaScript
-var map = new dMap.Map('#div', (options))
+var map = new L.Map('#div', (options))
 ```
 1. 建立地图图层，绑定数据
 
@@ -134,7 +134,7 @@ options = {
   layerType: 'HeatMap',//图层的类型
 }
 ```
-## 元素配置9
+## 元素配置
 ### 基础配置
 ```JavaScript
 layer.data(data,function(d){

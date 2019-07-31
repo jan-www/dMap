@@ -129,7 +129,7 @@ options = {
   layerType: 'HeatMap',//图层的类型
 }
 ```
-## 元素配置9
+## 元素配置
 ### 基础配置
 ```
 layer.data(data,function(d){
