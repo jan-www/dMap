@@ -34,6 +34,12 @@
 
 `GroupLayer` 通过维护一个 `L.FeatureGroup` 来组织全部同类元素。`on` 方法对 `L.FeatureGroup` 中的每个元素执行事件绑定。
 
+`GroupLayer` 的 `callback` 函数最多接受四个参数，依次为：
++ `data`: 该元素在 `this._data` 中的对应数据
++ `index`: 该元素在原始数据中的对应下标
++ `layer`: 该元素的在集合中的对应 Leaflet 控件元素，如一个 `L.Marker` 对象
++ `event`: 原始事件，包含 `latlng` 等有效信息
+
 ### setElementOptions
 *(Array: data, Function: map_function)*
 

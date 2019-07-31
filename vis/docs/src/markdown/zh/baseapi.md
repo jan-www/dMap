@@ -32,11 +32,13 @@
 
 将图层添加到Leaflet地图容器中。
 
-### `on`
+### on
 
 *(String:event_type, Function:callback) => this*
 
-将一个事件一次性绑定在所有层内所有的元素上
+将一个事件一次性绑定在所有层内所有的元素上。
+
+不同的图层其 `callback` 函数接受的参数略有不同，请参照对应的文档。
 
 ### getBounds
 *() => L.Bounds*

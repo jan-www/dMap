@@ -37,6 +37,12 @@ Map elements in `this_data` to SVG elements.
 
 `GroupLayer` manages elements by an `L.FeatureGroup`. By `on` method, user can bind callback function to all the elements in the FeatureGroup.
 
+Function `callback` of `GroupLayer` receives up to 4 arguments:
++ `data`: corresponding data object in `this._data`
++ `index`: corresponding index of this element in origin data set
++ `layer`: corresponding Leaflet component in the group, such as a `L.Marker` object
++ `event`: original event, which contains helpful information such as `latlng` 
+
 ### setElementOptions
 *(Array: data, Function: map_function)*
 
