@@ -88,6 +88,7 @@ pLayer = new dmap.PointLayer();
 pLayer.data(coords, function (data) {
     return {
         coordinate: data.geoCoord,
+        extra: data.name
         options: {
             radius: 0.2,
             color: '#7C1200'
@@ -99,7 +100,31 @@ pLayer.enter();
 ```
 这里`data`方法是为了给图层绑定数据，由于用户的原始数据集（coords）与图层（pLayer）要求的数据格式不一定对应，所以这里留了一个回调函数供用户将自己的数据规范化为图层要求的数据，至于图层要求的数据格式可以查看官方文档。然后使用`enter`方法将数据注入图层中，注意这一步必不可少，因为`enter`方法才真正地将映射好的数据实例化为图层元素。
 
-## 3 图层渲染
+请注意，上述的回调函数将原始的数据`data`，映射为了包含必要参数`coordinate`与`options`的对象。除此之外，对象还会包含一个`extra`字段，此处保存了省份的名称。这个字段的具体用途会在下一段展示。
+
+## 3 绑定事件
+
+为了增强图层的交互性，用户往往需要对在地图上进行点击等操作。此时可以通过`on`方法让图层对点击`click`、双击`dblclick`等事件进行响应。
+
+对于上述的`pLayer`，如果我们希望点击对应的点，在地图上就能显示对应的省份名称，就可以用下述代码实现：
+```js
+// 首先定义这样的一个显示函数
+function showProvince(data, _index, _element, event) {
+    let html = `<span class="popupText">Name: ${data.extra}<br/>Location: ${event.latlng}</span>`;
+    L.popup().setLatLng(event.latlng).setContent(html).openOn(map);
+}
+
+// 随后调用 on 方法进行绑定
+pLayer.on('click', showProvince)
+```
+
+上述代码中可见，`dmap.PointLayer` 的回调函数最多接受四个参数，而上文提及的保存了省份名称的 `extra` 字段可以在第一个参数 `data` 中取得，在函数内派上了用场。
+
+这样，之后当`pLayer`图层上的点被点击后，就会在点击位置以 Popup 的方式显示该省的名称与地理坐标。
+
+
+
+## 4 图层渲染
 
 在注入数据后，使用`addTo`方法将图层`pLayer`添加到地图容器中，从而实现前端的渲染。
 ```js
